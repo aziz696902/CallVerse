@@ -1,17 +1,42 @@
 # HelpPilot
 
-A small customer-support agent built with LangGraph. It reads a customer message,
-looks up their order, searches the help docs, and writes a grounded reply. When it
-wants to do something sensitive — like give a refund — it stops and waits for a human
-to approve.
+**A customer-support agent that investigates on its own, but asks a human before it does anything irreversible.**
 
-I built this to learn how to design an agent that is safe and easy to follow, not
-just one that answers questions. Every run shows up as a single trace in LangSmith.
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-agent-1C3C3C)
+![Groq](https://img.shields.io/badge/Groq-gpt--oss-F55036)
+![Chroma](https://img.shields.io/badge/RAG-Chroma%20%2B%20reranker-4B32C3)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-```
-customer → triage → solver → approval → reviewer → respond → reply
-           (20B)    (120B)   (human)    (120B)     (code)
-```
+It reads a customer message, looks up their order, searches the help docs, and writes
+a reply that is backed by those docs. When it wants to do something sensitive — like
+give a refund — it stops and waits for a human to approve. Every run is one trace in
+LangSmith.
+
+I built this to learn how to design an agent that is **safe and easy to follow**, not
+just one that answers questions.
+
+![correct](https://img.shields.io/badge/correct-86.7%25-brightgreen)
+![grounded](https://img.shields.io/badge/grounded-100%25-brightgreen)
+![refunds approved first](https://img.shields.io/badge/no%20refund%20without%20approval-100%25-brightgreen)
+![cost](https://img.shields.io/badge/cost-~%240.0008%2Fticket-blue)
+
+### Highlights
+
+- **5-node LangGraph** — triage → solver → approval → reviewer → respond.
+- **Human in the loop** — refunds pause on a durable SQLite checkpoint and resume only
+  when a person approves, even from a different screen or process.
+- **Real RAG** — Chroma vector search + a cross-encoder reranker, with citations.
+- **Grounding gate** — a separate reviewer model blocks any reply the docs don't support.
+- **Tested** — a 30-ticket eval with LLM-as-judge and a hard "no refund without approval" rule.
+
+The graph below is rendered by LangGraph itself (solid = fixed edges, dotted =
+conditional routing — triage can skip to respond for escalations, and reviewer can
+loop back to the solver):
+
+<p align="center">
+  <img src="docs/langgraph.png" alt="HelpPilot LangGraph flow" width="210">
+</p>
 
 ## What it does
 
@@ -48,6 +73,23 @@ So the agent works like a real support team:
 - A **staff member** opens a separate view with a queue of pending refunds. They see
   what the agent proposed and click Approve or Reject.
 - When staff decide, the answer is sent back to the customer.
+
+```mermaid
+sequenceDiagram
+    actor C as Customer
+    participant A as Agent
+    participant Q as Approval queue
+    actor S as Staff
+    C->>A: "my package never arrived"
+    A->>A: look up order, check policy, draft refund
+    A-->>Q: interrupt() — refund pending, run paused to SQLite
+    A-->>C: "a specialist is reviewing, we'll follow up"
+    Note over C: not blocked — the chat ends here
+    S->>Q: opens the queue, reads the AI's draft
+    S->>A: Approve — resume the same thread
+    A->>A: issue refund → review → finalize
+    A-->>C: "your refund is approved"
+```
 
 This is possible because of LangGraph's `interrupt()`. It saves the whole run to a
 SQLite file and stops. Later, a call to `resume_turn(thread_id, approved=...)` picks
@@ -119,9 +161,19 @@ Then, in the app:
 It also measures latency and estimated cost, prints a table, and writes the result
 to `EVAL_RESULTS.md`.
 
-On the last run (30 tickets): **86.7% correct, 100% grounded, 100% correct
-escalations, and 100% of refunds went through approval** — at about $0.0008 per
-ticket. See [`EVAL_RESULTS.md`](EVAL_RESULTS.md) for the full table.
+Last run (30 tickets):
+
+| Metric | Result |
+|--------|--------|
+| Correctness (LLM judge) | **86.7%** |
+| Groundedness (LLM judge) | **100%** |
+| Escalation correctness | **100%** |
+| No refund without approval | **100%** |
+| Avg latency / ticket | ~16s |
+| Cost / ticket | ~$0.0008 |
+
+The few correctness misses were still grounded and safe — I chose not to tune the
+prompts to the test set. See [`EVAL_RESULTS.md`](EVAL_RESULTS.md) for the full table.
 
 ## Project structure
 

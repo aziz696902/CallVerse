@@ -20,6 +20,9 @@ data/
 .idea/
 .vscode/
 
+# Personal / internal docs (not for the public repo)
+internal_docs/
+
 # OS
 .DS_Store
 
