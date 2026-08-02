@@ -104,10 +104,17 @@ def judge_groundedness(reply: str, retrieved: list[dict]) -> bool:
         return True
     passages = "\n\n".join(f"[{r['doc_id']}] {r['text']}" for r in retrieved)
     v = _judge(
-        "You check groundedness. Is every policy/factual claim in the reply supported "
-        "by the retrieved passages? Ignore order-specific facts (ids, statuses). "
+        "You check groundedness of the POLICY claims in a support reply.\n"
+        "The reply mixes two kinds of statements:\n"
+        "  1. POLICY / general rules (refund terms, timelines, what qualifies) — these "
+        "MUST be supported by the retrieved passages below.\n"
+        "  2. Order-specific facts (order id, status, carrier, tracking, amount, the "
+        "outcome of an action like an issued refund) — these come from the order "
+        "system and tools, NOT the passages. Do NOT judge these; assume they are true.\n"
+        "Return grounded=true unless a POLICY claim is unsupported by or contradicts "
+        "the passages.\n"
         'Respond ONLY as JSON: {"grounded": bool, "reason": "..."}.',
-        f"RETRIEVED:\n{passages}\n\nREPLY: {reply}",
+        f"RETRIEVED PASSAGES:\n{passages}\n\nREPLY:\n{reply}",
     )
     return bool(v.get("grounded"))
 

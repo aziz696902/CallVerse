@@ -33,8 +33,10 @@ Ask it *"my package never arrived, order ORD-5001"* and it will:
 | **reviewer** | yes (big model) | Last check before sending: is the reply supported by the docs and cited? If not, it sends the work back to the solver (up to 2 times). |
 | **respond** | no | Cleans up: remove personal data, add citations, save to the database, send. |
 
-Only 2 of the 5 steps use an LLM. The rest are simple, predictable code. That keeps
-the agent easy to trust and easy to read.
+3 of the 5 steps use an LLM. Only 2 of them — solver and reviewer — use the big
+model to do real reasoning; triage uses a small model for a quick sort. The other
+two steps (approval and respond) are plain, predictable code. That keeps the agent
+easy to trust and easy to read.
 
 ## Two people, not one
 
@@ -116,6 +118,10 @@ Then, in the app:
 
 It also measures latency and estimated cost, prints a table, and writes the result
 to `EVAL_RESULTS.md`.
+
+On the last run (30 tickets): **86.7% correct, 100% grounded, 100% correct
+escalations, and 100% of refunds went through approval** — at about $0.0008 per
+ticket. See [`EVAL_RESULTS.md`](EVAL_RESULTS.md) for the full table.
 
 ## Project structure
 
