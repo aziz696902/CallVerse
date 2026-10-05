@@ -1,4 +1,9 @@
-# HelpPilot
+# CallVerse
+
+CallVerse is a final-year Data Science project for building a digital twin of an
+e-commerce and delivery customer-support center. This first phase keeps the inherited
+customer-advisor application intact as a verified baseline; the internal `helppilot`
+package name is intentionally unchanged to avoid breaking working imports.
 
 **A customer-support agent that investigates on its own, but asks a human before it does anything irreversible.**
 
@@ -7,6 +12,16 @@
 ![Groq](https://img.shields.io/badge/Groq-gpt--oss-F55036)
 ![Chroma](https://img.shields.io/badge/RAG-Chroma%20%2B%20reranker-4B32C3)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
+## Open-source foundation and attribution
+
+CallVerse builds on [HelpPilot](https://github.com/poysa213/HelpPilot), which provides
+the initial customer-support agent foundation. HelpPilot is distributed under the MIT
+License. Its upstream license and copyright notice are preserved verbatim in
+[`LICENSE`](LICENSE), and the inherited source history remains available in Git.
+
+The HelpPilot code is third-party open-source work; CallVerse does not claim the
+inherited code as original CallVerse authorship.
 
 It reads a customer message, looks up their order, searches the help docs, and writes
 a reply that is backed by those docs. When it wants to do something sensitive — like
