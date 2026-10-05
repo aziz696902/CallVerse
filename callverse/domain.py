@@ -116,6 +116,12 @@ class ScenarioConfig(DomainModel):
     name: str = Field(min_length=1)
     description: str | None = None
     simulation_duration: float = Field(gt=0, description="Duration in simulated minutes.")
+    simulation_start_minute_of_day: int = Field(
+        default=480,
+        ge=0,
+        lt=1440,
+        description="Local clock minute corresponding to simulation time zero.",
+    )
     random_seed: int = Field(default=42, ge=0)
     external_condition: str = Field(default="normal", min_length=1)
     demand_multiplier: float = Field(default=1.0, gt=0)

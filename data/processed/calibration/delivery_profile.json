@@ -1,0 +1,128 @@
+{
+  "profile_version": "1.0",
+  "source": {
+    "dataset_name": "Brazilian E-Commerce Public Dataset by Olist",
+    "institution": "Olist / Kaggle",
+    "source_url": "https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce",
+    "period": "2016 through 2018",
+    "usage_scope": "Delivered-order lateness and order-level review association only.",
+    "license_or_use_statement": "Official Kaggle page reports CC BY-NC-SA 4.0."
+  },
+  "order_quality": {
+    "raw_rows": 99441,
+    "usable_rows": 96470,
+    "excluded_rows": 2971,
+    "exclusion_reasons": {
+      "missing_required_timestamp": 8,
+      "not_delivered": 2963
+    },
+    "relevant_missingness": {
+      "order_delivered_customer_date": 8
+    },
+    "duplicate_rows": 0,
+    "final_grain": "one eligible delivered order"
+  },
+  "review_quality": {
+    "raw_rows": 99224,
+    "usable_rows": 98673,
+    "excluded_rows": 551,
+    "exclusion_reasons": {
+      "superseded_multiple_review": 551
+    },
+    "relevant_missingness": {},
+    "duplicate_rows": 551,
+    "final_grain": "one latest valid review per order"
+  },
+  "eligible_delivered_orders": 96470,
+  "late_orders": 7826,
+  "late_delivery_rate": 0.08112366538820359,
+  "delivery_delay_days": {
+    "count": 96470,
+    "mean": -11.17812572885353,
+    "median": -11.948101851851852,
+    "standard_deviation": 10.184301141984639,
+    "minimum": -146.0161226851852,
+    "p25": -16.244065393518518,
+    "p75": -6.389814814814814,
+    "p90": -1.1375312499999999,
+    "p95": 3.8169930555555602,
+    "p99": 18.939552777777767,
+    "maximum": 188.97508101851852
+  },
+  "late_delay_days": {
+    "count": 7826,
+    "mean": 9.551775917880569,
+    "median": 5.806481481481482,
+    "standard_deviation": 13.95164806945268,
+    "minimum": 0.0025,
+    "p25": 1.8671788194444445,
+    "p75": 11.820978009259258,
+    "p90": 21.536087962962963,
+    "p95": 29.639577546296294,
+    "p99": 62.78677951388889,
+    "maximum": 188.97508101851852
+  },
+  "early_or_on_time_days": {
+    "count": 88644,
+    "mean": 13.008280170071671,
+    "median": 12.317789351851852,
+    "standard_deviation": 7.375900940494985,
+    "minimum": 5.787037037037037e-05,
+    "p25": 7.996802662037037,
+    "p75": 17.037120949074072,
+    "p90": 21.947172453703686,
+    "p95": 26.258434606481476,
+    "p99": 35.34927916666664,
+    "maximum": 146.0161226851852
+  },
+  "severity_bands": {
+    "on_time_or_early": {
+      "count": 88644,
+      "average_review_score": 4.294114310992139,
+      "low_review_rate": 0.09221555527829135
+    },
+    "slightly_late": {
+      "count": 2117,
+      "average_review_score": 3.915714285714286,
+      "low_review_rate": 0.1523809523809524
+    },
+    "moderately_late": {
+      "count": 2364,
+      "average_review_score": 2.5166738847986143,
+      "low_review_rate": 0.5504547423126894
+    },
+    "severely_late": {
+      "count": 3345,
+      "average_review_score": 1.7272447724477245,
+      "low_review_rate": 0.784440344403444
+    }
+  },
+  "reviews_by_delivery_state": {
+    "on_time_or_early": {
+      "count": 88163,
+      "average_score": 4.294114310992139,
+      "low_review_rate": 0.09221555527829135,
+      "score_counts": {
+        "1": 5811,
+        "2": 2319,
+        "3": 7044,
+        "4": 17944,
+        "5": 55045
+      }
+    },
+    "late": {
+      "count": 7661,
+      "average_score": 2.565069834225297,
+      "low_review_rate": 0.5406604881869208,
+      "score_counts": {
+        "1": 3540,
+        "2": 602,
+        "3": 872,
+        "4": 944,
+        "5": 1703
+      }
+    }
+  },
+  "low_review_threshold": 2,
+  "reviewed_eligible_orders": 95824
+}

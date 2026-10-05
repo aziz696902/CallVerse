@@ -93,7 +93,32 @@ class _SupportCenterSimulation:
         return self._build_result()
 
     def _generate_arrivals(self):
-        rate = self.policy.base_arrival_rate_per_minute * self.scenario.demand_multiplier
+        base_rate = self.policy.base_arrival_rate_per_minute * self.scenario.demand_multiplier
+        if self.policy.arrival_slot_multipliers is None:
+            yield from self._generate_flat_arrivals(base_rate)
+            return
+
+        profile_mean = self.policy.mean_arrival_multiplier(
+            self.scenario.simulation_duration,
+            self.scenario.simulation_start_minute_of_day,
+        )
+        maximum_multiplier = max(self.policy.arrival_slot_multipliers) / profile_mean
+        candidate_rate = base_rate * maximum_multiplier
+        while True:
+            interarrival = self.arrival_rng.expovariate(candidate_rate)
+            if self.env.now + interarrival >= self.scenario.simulation_duration:
+                return
+            yield self.env.timeout(interarrival)
+            current_multiplier = self.policy.arrival_multiplier(
+                self.env.now, self.scenario.simulation_start_minute_of_day
+            ) / profile_mean
+            if self.arrival_rng.random() > current_multiplier / maximum_multiplier:
+                continue
+            state = self._new_request(len(self.requests) + 1)
+            self.requests.append(state)
+            self.env.process(self._handle_request(state))
+
+    def _generate_flat_arrivals(self, rate: float):
         while True:
             interarrival = self.arrival_rng.expovariate(rate)
             if self.env.now + interarrival >= self.scenario.simulation_duration:

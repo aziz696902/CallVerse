@@ -71,6 +71,21 @@ class SimulationExecutionTests(unittest.TestCase):
 
 
 class SimulationBehaviorTests(unittest.TestCase):
+    def test_arrival_profile_is_normalized_over_scenario_horizon(self) -> None:
+        policy = SimulationPolicy(arrival_slot_multipliers=tuple(range(1, 49)))
+        duration = 487.0
+        start = 473
+        mean = policy.mean_arrival_multiplier(duration, start)
+        elapsed = 0.0
+        weighted = 0.0
+        while elapsed < duration:
+            minute = (start + elapsed) % 1440
+            segment = min(30 - minute % 30, duration - elapsed)
+            weighted += policy.normalized_arrival_multiplier(elapsed, start, duration) * segment
+            elapsed += segment
+        self.assertAlmostEqual(mean, weighted * mean / duration)
+        self.assertAlmostEqual(weighted / duration, 1.0)
+
     def test_severe_staff_reduction_does_not_improve_queue_performance(self) -> None:
         well_staffed = scenario_variant(
             "well_staffed", simulation_duration=240, demand_multiplier=1.4, available_agents=9

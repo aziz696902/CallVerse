@@ -43,3 +43,27 @@ not duplicate databases, and remain ignored by Git.
 Five small `__pycache__` directories were found outside `.venv`. They are disposable
 and ignored. Deletion was not necessary for project health; the execution environment
 also rejected deletion commands, so this audit recovered zero bytes.
+
+## Phase 4 measurement — 2026-10-05
+
+Immediately before Phase 4 the project measured 1,305,049,604 bytes. After full
+calibration it measured 1,438,808,673 bytes (about 1.34 GiB), an increase of
+133,759,069 bytes. Technion raw files plus
+archive occupy 56,714,892 bytes; the two required Olist CSVs plus archive occupy
+76,824,164 bytes. Compact processed calibration artifacts total only 73,491 bytes.
+The largest new file is the 44,717,580-byte Olist download archive.
+
+The archive hashes were verified and recorded in `docs/DATA_SOURCES.md`.
+
+## Phase 4B cleanup — 2026-10-05
+
+After validation, the verified Technion RAR (10,625,021 bytes), verified Olist ZIP
+(44,717,580 bytes), and redundant combined-profile JSON (27,529 bytes) were removed.
+Approximately 55.37 MB was recovered. One clean extracted raw copy remains: 46,089,871
+bytes of Technion monthly files and 32,106,584 bytes across the two required Olist CSVs.
+
+The final project size is 1,383,493,581 bytes (about 1.29 GiB), including the unchanged
+1,302,603,671-byte `.venv`. Raw data totals 78,196,455 bytes and processed calibration
+artifacts total 56,998 bytes. The largest remaining non-environment file is
+`olist_orders_dataset.csv` at 17,654,914 bytes. Exactly one `.venv` remains, and the
+project is far below the 8 GB target.

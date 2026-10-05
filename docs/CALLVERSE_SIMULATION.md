@@ -12,10 +12,12 @@ or any other external service.
 
 ## Operational Flow
 
-Requests arrive according to a Poisson-style process: inter-arrival times are sampled
-from an exponential distribution. The explicit prototype baseline is 0.75 requests per
-simulated minute, multiplied by the scenario's `demand_multiplier`. The scenario seed
-makes the full run reproducible, and its duration sets the time horizon.
+Requests arrive according to a Poisson-style process. The default prototype has a flat
+0.75 requests/minute baseline. The optional calibrated policy uses thinning to apply
+the empirical 48-slot arrival shape; `simulation_start_minute_of_day` maps elapsed time
+Calibrated weights are divided by their time-weighted mean over the exact scenario
+horizon. Their horizon average is therefore one: the scenario controls expected total
+demand and the profile controls temporal concentration.
 
 Each generated request uses the scenario's request-intent and customer-persona
 probability mixes. It is represented by the existing `SupportRequest` contract. A
@@ -63,7 +65,7 @@ because Digital Twin V1 has no defensible way to calculate them.
 
 ## Scenario-Driven Behavior
 
-The current engine uses scenario duration, random seed, demand multiplier, available
+The current engine uses scenario duration, start minute, random seed, demand multiplier, available
 agents, request-intent mix, customer-persona mix, and the AI-automation flag recorded
 in results. The automation flag has no queue effect yet.
 
@@ -97,5 +99,6 @@ Digital Twin V1 models operational flow only. It does not yet model:
 - reinforcement learning
 - live advisor automation effects
 
-The initial arrival, handling, and patience distributions must be calibrated and
-validated later with appropriate contact-center datasets before real-world use.
+Phase 4's optional calibrated policy and its limitations are documented in
+[`CALLVERSE_CALIBRATION.md`](CALLVERSE_CALIBRATION.md). Neither mode is validated for
+real-world operational decisions.
