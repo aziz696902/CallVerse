@@ -84,11 +84,19 @@ class RequestClassifier:
 
     @classmethod
     def from_metadata(cls, metadata_path: str | Path) -> RequestClassifier:
+        metadata_path = Path(metadata_path)
         metadata = load_metadata(metadata_path)
+        artifact_path = Path(metadata.artifact_path)
+        if not artifact_path.is_absolute() and not artifact_path.exists():
+            for parent in metadata_path.resolve().parents:
+                candidate = parent / artifact_path
+                if candidate.exists():
+                    artifact_path = candidate
+                    break
         if metadata.model_type == "tfidf_logistic_regression":
-            predictor: IntentPredictor = SklearnPredictor(metadata.artifact_path)
+            predictor: IntentPredictor = SklearnPredictor(artifact_path)
         elif metadata.model_type == "transformer":
-            predictor = TransformerPredictor(metadata.artifact_path)
+            predictor = TransformerPredictor(artifact_path)
         else:
             raise ValueError(f"unsupported model type: {metadata.model_type}")
         return cls(predictor, metadata)

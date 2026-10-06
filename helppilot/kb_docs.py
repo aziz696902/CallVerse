@@ -95,4 +95,25 @@ KB_DOCS: list[dict[str, str]] = [
             "and promise a response within one business day."
         ),
     },
+    {
+        "id": "callverse-address-change-demo",
+        "title": "Synthetic CallVerse Demonstration Policy: Address Changes",
+        "text": (
+            "This is a synthetic demonstration policy, not a real courier-company policy. "
+            "A shipping address may be changed only while an order is still processing. "
+            "Support must verify the order and owning customer with the order tool. Because "
+            "the demo has no address-update tool, an eligible request must be escalated for "
+            "execution; the advisor must never claim the address was changed."
+        ),
+    },
+    {
+        "id": "callverse-damaged-item-demo",
+        "title": "Synthetic CallVerse Demonstration Policy: Damaged Items",
+        "text": (
+            "This is a synthetic demonstration policy, not a real courier-company policy. "
+            "For an item reported damaged on arrival, verify the order, ask the customer to "
+            "retain the packaging and provide photographs, then escalate for specialist "
+            "review. Do not automatically promise or issue a refund or replacement."
+        ),
+    },
 ]

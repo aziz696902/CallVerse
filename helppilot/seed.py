@@ -54,6 +54,8 @@ ORDERS = [
      "UPS", "1Z999AA10987654321", "Delivered, signed by D. Okoye"),
     ("ORD-5005", "CUST-1005", "Standing Desk", 349.00, "processing",
      None, None, "Preparing for shipment"),
+    ("ORD-5006", "CUST-1002", "Laptop Stand", 54.00, "delayed",
+     "DHL", "JD014600006281234567", "Carrier delay; estimated arrival in 3 days"),
 ]
 
 
@@ -91,7 +93,8 @@ def seed_sqlite() -> None:
         )
     print(
         f"  SQLite: {len(CUSTOMERS)} customers, {len(TICKETS)} tickets, "
-        f"{len(ORDERS)} orders (1 lost), {sum(len(f) for f in STORED_FACTS.values())} facts."
+        f"{len(ORDERS)} orders (1 lost, 1 delayed), "
+        f"{sum(len(f) for f in STORED_FACTS.values())} facts."
     )
 
 

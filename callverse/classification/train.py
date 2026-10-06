@@ -84,7 +84,7 @@ def _draw_confusion(matrix: list[list[int]], path: Path) -> None:
 
 
 def _train_tfidf(data: PreparedData, model_dir: Path):
-    _, train_labels = _xy(data.train)
+    train_text, train_labels = _xy(data.train)
     pipeline = Pipeline([
         ("tfidf", TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=2, max_features=50_000, sublinear_tf=True)),
         ("classifier", LogisticRegression(max_iter=1_000, class_weight="balanced", random_state=TRAINING_SEED)),
@@ -205,7 +205,7 @@ def _tune_threshold(actual: list[str], predicted: list[str], confidence: list[fl
 def train_and_evaluate(data: PreparedData, model_dir: str | Path, evaluation_dir: str | Path) -> dict[str, object]:
     model_dir, evaluation_dir = Path(model_dir), Path(evaluation_dir)
     evaluation_dir.mkdir(parents=True, exist_ok=True)
-    train_text, train_labels = _xy(data.train)
+    _, train_labels = _xy(data.train)
     validation_text, validation_labels = _xy(data.validation)
     test_text, test_labels = _xy(data.test)
 

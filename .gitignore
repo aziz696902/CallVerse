@@ -37,7 +37,10 @@ data/processed/classification/evaluation/*
 .cache/
 
 # Local model/training artifacts (require explicit review before tracking)
-models/
+models/*
+!models/intent_classifier/
+models/intent_classifier/*
+!models/intent_classifier/tfidf_logistic.joblib
 checkpoints/
 artifacts/
 experiments/
