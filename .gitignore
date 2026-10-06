@@ -37,6 +37,9 @@ data/processed/forecasting/*
 !data/processed/forecasting/demand_30min.csv
 !data/processed/forecasting/evaluation.json
 !data/processed/forecasting/model_metadata.json
+!data/processed/workforce/
+data/processed/workforce/*
+!data/processed/workforce/erlang_c_validation.json
 
 # Model cache
 .cache/

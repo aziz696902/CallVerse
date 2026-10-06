@@ -63,3 +63,43 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Queueing-Simulation-and-Optimization-System
+
+- **Project:** Call-Center Staffing Simulator (M/M/c)
+- **Upstream repository:** https://github.com/thelostbong/Queueing-Simulation-and-Optimization-System
+- **Adapted revision:** `762d29ee4aac62d5e184ad8a2b5f524bed60dcd5`
+- **Copyright:** Copyright (c) 2026 Nayeemuddin Mohammed
+- **License:** MIT License
+- **Use in CallVerse:** Phase 10 adapts the M/M/c offered-load formulation,
+  Erlang-C waiting probability and theoretical expected-wait structure, staffing
+  sweeps, and minimum SLA staffing pattern. CallVerse replaces direct factorial
+  calculations with a stable Erlang-B recurrence and adds its own typed contracts,
+  calibrated AHT, service-level probability, occupancy constraint, forecast buffer,
+  smoothing, shortfall handling, and Digital Twin validation.
+
+CallVerse does not copy the upstream simulator, plotting application,
+time-dependent simulator, generated figures, or its hardcoded €28/hour cost
+assumption. The calibrated CallVerse SimPy Digital Twin remains authoritative.
+
+MIT License
+
+Copyright (c) 2026 Nayeemuddin Mohammed
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

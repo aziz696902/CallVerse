@@ -222,6 +222,7 @@ def test_streamlit_customer_staff_and_manager_views_load_without_exceptions():
         "Twin Monitor",
         "Compare Decisions",
         "Forecast",
+        "Workforce",
         "Interaction Lab",
         "Quality",
     }
@@ -254,6 +255,25 @@ def test_streamlit_forecast_view_is_reachable_and_honestly_labelled():
     assert "ACTUAL HISTORY" in visible_text
     assert "FORECAST covers" in visible_text
     assert "does not recommend staffing levels" in visible_text
+
+
+def test_streamlit_workforce_view_builds_an_honestly_labelled_plan():
+    app = AppTest.from_file("app.py", default_timeout=30).run()
+    app.sidebar.radio[0].set_value("📊 Manager")
+    app.run(timeout=30)
+    assert not app.exception
+    assert any(item.value == "Workforce" for item in app.header)
+    next(button for button in app.button if button.label == "BUILD WORKFORCE PLAN").click()
+    app.run(timeout=30)
+
+    assert not app.exception
+    metrics = {metric.label: metric.value for metric in app.metric}
+    assert int(metrics["Peak planned agents"]) > 0
+    assert float(metrics["Total agent-hours"]) > 0
+    visible_text = "\n".join(item.value for item in (*app.caption, *app.warning, *app.info))
+    assert "Erlang-C analytical staffing recommendation" in visible_text
+    assert "Theoretical Erlang-C predictions" in visible_text
+    assert "Dynamic 30-minute staffing" in visible_text
 
 
 def test_streamlit_offline_interaction_is_explicit_and_quality_scores_stay_unavailable():

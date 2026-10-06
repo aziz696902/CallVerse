@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 
 import streamlit as st
@@ -17,6 +18,13 @@ from callverse.forecasting.service import (
 from callverse.quality import QualityAnalyst, QualityEvaluationInput
 from callverse.quality.benchmark import load_policy_quality_benchmark
 from callverse.scenarios import SCENARIO_PRESETS, get_scenario
+from callverse.workforce.manager import (
+    build_workforce_plan,
+    compare_staffing_strategies,
+    default_workforce_config,
+    summarize_plan,
+    workforce_chart_rows,
+)
 from helppilot import config
 
 from .view_models import (
@@ -40,6 +48,9 @@ SCENARIO_NAMES = tuple(scenario.name for scenario in SCENARIO_PRESETS)
 PROJECT_ROOT = config.PROJECT_ROOT
 FORECAST_SERIES_PATH = PROJECT_ROOT / "data/processed/forecasting/demand_30min.csv"
 FORECAST_ARTIFACT_PATH = PROJECT_ROOT / "models/demand_forecast/selected_model.joblib"
+WORKFORCE_VALIDATION_PATH = (
+    PROJECT_ROOT / "data/processed/workforce/erlang_c_validation.json"
+)
 
 DEMO_MESSAGES = {
     "Grounded tracking": ("CUST-1003", "Track my order ORD-5003"),
@@ -456,6 +467,180 @@ def _forecast_panel() -> None:
         )
 
 
+def _workforce_panel() -> None:
+    st.header("Workforce")
+    st.caption(
+        "Erlang-C analytical staffing recommendation · transparent M/M/c baseline, "
+        "not a guaranteed operational outcome."
+    )
+    if not FORECAST_SERIES_PATH.is_file() or not FORECAST_ARTIFACT_PATH.is_file():
+        st.error("The Phase 9 forecast artifacts are required before workforce planning.")
+        return
+    _, forecast, _ = _load_forecast_view()
+    defaults = default_workforce_config()
+    first, second, third = st.columns(3)
+    target = float(
+        first.slider(
+            "Target service level",
+            min_value=0.50,
+            max_value=0.99,
+            value=defaults.target_service_level,
+            step=0.01,
+        )
+    )
+    occupancy = float(
+        second.slider(
+            "Maximum occupancy",
+            min_value=0.50,
+            max_value=0.95,
+            value=defaults.max_occupancy,
+            step=0.01,
+        )
+    )
+    buffer = float(
+        third.select_slider(
+            "Forecast safety buffer",
+            options=(0, 5, 10, 15, 20, 25, 30),
+            value=int(defaults.forecast_buffer_percent),
+            format_func=lambda value: f"{value}%",
+        )
+    )
+    fourth, fifth = st.columns(2)
+    max_agents = int(
+        fourth.number_input(
+            "Maximum agents considered",
+            min_value=1,
+            max_value=200,
+            value=defaults.max_agents,
+            step=1,
+        )
+    )
+    hold = int(
+        fifth.number_input(
+            "Intervals before reducing staffing",
+            min_value=1,
+            max_value=8,
+            value=defaults.reduction_hold_intervals,
+            step=1,
+        )
+    )
+    st.caption(
+        f"Calibrated mean AHT: {defaults.mean_aht_minutes:.3f} min · Service rate: "
+        f"{defaults.service_rate_per_hour:.3f} contacts/hour/agent · "
+        f"SLA threshold: {defaults.sla_wait_threshold_minutes:.1f} min. "
+        "The 80% target and 85% occupancy defaults are configurable V1 planning assumptions."
+    )
+    if st.button("BUILD WORKFORCE PLAN", type="primary", use_container_width=True):
+        config_for_plan = default_workforce_config(
+            target_service_level=target,
+            max_occupancy=occupancy,
+            forecast_buffer_percent=buffer,
+            max_agents=max_agents,
+            reduction_hold_intervals=hold,
+        )
+        st.session_state.manager_workforce_plan = build_workforce_plan(forecast, config_for_plan)
+
+    plan = st.session_state.get("manager_workforce_plan")
+    if plan is None:
+        st.info("Choose explicit planning assumptions and press BUILD WORKFORCE PLAN.")
+        return
+    summary = summarize_plan(plan)
+    cards = st.columns(4)
+    cards[0].metric("Peak planned agents", summary.maximum_agents)
+    cards[1].metric("Average planned agents", f"{summary.average_agents:.2f}")
+    cards[2].metric("Total agent-hours", f"{summary.total_agent_hours:.1f}")
+    cards[3].metric(
+        "Target-attainment slots", f"{summary.target_attainment_intervals} / {len(plan.points)}"
+    )
+    if summary.capacity_shortfall_intervals:
+        st.error(
+            f"Capacity shortfall in {summary.capacity_shortfall_intervals} intervals: "
+            "configured maximum staffing cannot satisfy both analytical targets."
+        )
+    else:
+        st.success("No analytical capacity shortfall under the selected assumptions.")
+
+    rows = workforce_chart_rows(plan)
+    st.subheader("Forecast demand")
+    st.line_chart(rows, x="timestamp", y="forecast_contacts", x_label="Forecast timestamp")
+    st.subheader("Raw requirement vs operationalized staffing")
+    st.line_chart(
+        rows,
+        x="timestamp",
+        y=["raw_agents", "recommended_agents"],
+        x_label="Forecast timestamp",
+    )
+    st.caption(
+        "The operational schedule delays reductions for the configured number of intervals; "
+        "raw Erlang-C requirements remain visible."
+    )
+
+    default_fixed = max(1, round(summary.average_agents))
+    fixed_agents = int(
+        st.number_input(
+            "Fixed staffing baseline",
+            min_value=1,
+            max_value=200,
+            value=default_fixed,
+            step=1,
+            key=f"fixed_baseline_{plan.forecast_origin.isoformat()}",
+        )
+    )
+    comparison = compare_staffing_strategies(plan, fixed_agents)
+    st.subheader("Analytical comparison · FIXED vs ERLANG-C")
+    st.dataframe(
+        [
+            {
+                "Strategy": item.strategy,
+                "Definition": item.baseline_definition,
+                "Agent-hours": item.total_agent_hours,
+                "Average agents": item.average_agents,
+                "Peak agents": item.peak_agents,
+                "Target slots": f"{item.target_attainment_intervals} / 48",
+                "Mean modeled utilization": f"{item.average_utilization:.1%}",
+                "Mean modeled service level": f"{item.average_service_level:.1%}",
+                "Shortfall slots": item.capacity_shortfall_intervals,
+            }
+            for item in (comparison.fixed, comparison.erlang_c)
+        ],
+        hide_index=True,
+        use_container_width=True,
+    )
+    peak_point = max(plan.points, key=lambda point: point.recommended_agents)
+    st.info("Peak-interval explanation: " + peak_point.explanation)
+
+    if WORKFORCE_VALIDATION_PATH.is_file():
+        validation = json.loads(WORKFORCE_VALIDATION_PATH.read_text(encoding="utf-8"))
+        with st.expander("Digital Twin validation · simulated five-seed means"):
+            st.warning(
+                "Theoretical Erlang-C predictions and simulated Digital Twin outcomes are "
+                "different model classes and are labelled separately."
+            )
+            st.dataframe(
+                [
+                    {
+                        "Case": case["case"],
+                        "Demand/hour": case["arrival_rate_per_hour"],
+                        "Agents": case["agents"],
+                        "Erlang utilization": case["erlang_c"]["utilization"],
+                        "Twin utilization": case["digital_twin"]["mean_occupancy"],
+                        "Erlang wait": case["erlang_c"]["expected_wait_minutes"],
+                        "Twin wait": case["digital_twin"]["mean_average_wait_minutes"],
+                        "Erlang SLA": case["erlang_c"]["service_level"],
+                        "Twin SLA": case["digital_twin"]["mean_sla"],
+                        "Twin abandonment": case["digital_twin"]["mean_abandonment"],
+                    }
+                    for case in validation["cases"]
+                ],
+                hide_index=True,
+                use_container_width=True,
+            )
+    st.warning(
+        "Dynamic 30-minute staffing inside the frozen Digital Twin is deliberately deferred. "
+        "Use Compare Decisions for explicit fixed-staffing simulation tests."
+    )
+
+
 def render_manager() -> None:
     st.title("CallVerse · Manager Control Room")
     st.caption("Operational Digital Twin metrics and individual interaction quality are separate.")
@@ -465,6 +650,7 @@ def render_manager() -> None:
             "Twin Monitor",
             "Compare Decisions",
             "Forecast",
+            "Workforce",
             "Interaction Lab",
             "Quality",
         ]
@@ -478,6 +664,8 @@ def render_manager() -> None:
     with tabs[3]:
         _forecast_panel()
     with tabs[4]:
-        _interaction_lab()
+        _workforce_panel()
     with tabs[5]:
+        _interaction_lab()
+    with tabs[6]:
         _quality_panel()

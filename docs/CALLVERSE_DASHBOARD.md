@@ -20,12 +20,13 @@ The sidebar provides three roles:
 3. **Manager Control Room** — operational simulation and selected-interaction
    inspection.
 
-The Manager Control Room contains six focused tabs:
+The Manager Control Room contains seven focused tabs:
 
 - Scenario Studio
 - Twin Monitor
 - Compare Decisions
 - Forecast
+- Workforce
 - Interaction Lab
 - Quality
 
@@ -142,7 +143,22 @@ actual history from forecast values and do not imply prediction intervals.
 
 Forecasts describe historical support-contact demand. They neither overwrite a
 manager's scenario assumptions nor recommend staffing. Workforce decisions remain
-out of scope until Phase 10.
+separate from the forecast service.
+
+## Workforce
+
+The Workforce tab consumes the 48-point forecast through the independent
+Workforce Manager service. It displays a clearly labelled Erlang-C analytical
+staffing recommendation, the forecast curve, raw interval requirements, a
+deterministically smoothed operational schedule, peak agents, total agent-hours,
+target attainment, and capacity-shortfall warnings.
+
+Managers configure the target service level, maximum occupancy, explicit forecast
+buffer, maximum search capacity, and reduction hold. Fixed staffing and Erlang-C
+plans are compared using theoretical metrics. A separate five-seed validation
+table labels calibrated Digital Twin results as simulated values rather than
+mixing them with theory. Dynamic capacity inside the frozen Twin is deliberately
+deferred; the existing fixed-staffing Compare Decisions workflow remains available.
 
 ## Quality panel
 

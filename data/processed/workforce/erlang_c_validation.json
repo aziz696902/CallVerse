@@ -1,0 +1,164 @@
+{
+  "version": "callverse-workforce-validation-v1",
+  "method": "fixed-capacity representative intervals; calibrated Digital Twin",
+  "dynamic_staffing": "deferred",
+  "configuration": {
+    "mean_aht_minutes": 3.1819173738114053,
+    "sla_wait_threshold_minutes": 2.0,
+    "target_service_level": 0.8,
+    "max_occupancy": 0.85,
+    "min_agents": 1,
+    "max_agents": 50,
+    "forecast_buffer_percent": 0.0,
+    "reduction_hold_intervals": 1,
+    "cost_per_agent_hour": null,
+    "service_rate_per_hour_per_agent": 18.85655501108441,
+    "simulation_duration_minutes": 480,
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505
+    ]
+  },
+  "scientific_note": "Erlang-C is an M/M/c no-abandonment approximation. The authoritative CallVerse Twin uses empirical service/patience distributions, abandonment, and a varying arrival profile, so disagreement is expected and calibration is not altered.",
+  "cases": [
+    {
+      "case": "low_demand",
+      "forecast_contacts_per_half_hour": 5.0,
+      "arrival_rate_per_hour": 10.0,
+      "agents": 2,
+      "staffing_basis": "minimum Erlang-C recommendation",
+      "erlang_c": {
+        "arrival_rate_per_hour": 10.0,
+        "service_rate_per_hour_per_agent": 18.85655501108441,
+        "agents": 2,
+        "offered_load": 0.5303195623019009,
+        "utilization": 0.26515978115095046,
+        "probability_wait": 0.11114755715053996,
+        "expected_wait_minutes": 0.24063894033176778,
+        "service_level": 0.9558722724219265,
+        "stable": true
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 75.0,
+        "mean_average_wait_minutes": 0.27135038798446687,
+        "mean_sla": 0.9611683455433455,
+        "mean_occupancy": 0.2961812563070361,
+        "mean_abandonment": 0.05148137003215662,
+        "mean_aht_minutes": 4.003696695975137
+      }
+    },
+    {
+      "case": "normal_demand",
+      "forecast_contacts_per_half_hour": 15.0,
+      "arrival_rate_per_hour": 30.0,
+      "agents": 3,
+      "staffing_basis": "minimum Erlang-C recommendation",
+      "erlang_c": {
+        "arrival_rate_per_hour": 30.0,
+        "service_rate_per_hour_per_agent": 18.85655501108441,
+        "agents": 3,
+        "offered_load": 1.5909586869057026,
+        "utilization": 0.5303195623019009,
+        "probability_wait": 0.27035640154454177,
+        "expected_wait_minutes": 0.6105227172555866,
+        "service_level": 0.888493198039581,
+        "stable": true
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 230.0,
+        "mean_average_wait_minutes": 0.5497545734130673,
+        "mean_sla": 0.9256098593525521,
+        "mean_occupancy": 0.5556533052457032,
+        "mean_abandonment": 0.09414760030452736,
+        "mean_aht_minutes": 3.8657337389626925
+      }
+    },
+    {
+      "case": "high_demand",
+      "forecast_contacts_per_half_hour": 25.0,
+      "arrival_rate_per_hour": 50.0,
+      "agents": 4,
+      "staffing_basis": "minimum Erlang-C recommendation",
+      "erlang_c": {
+        "arrival_rate_per_hour": 50.0,
+        "service_rate_per_hour_per_agent": 18.85655501108441,
+        "agents": 4,
+        "offered_load": 2.6515978115095042,
+        "utilization": 0.6628994528773761,
+        "probability_wait": 0.3729280184018021,
+        "expected_wait_minutes": 0.8800238912858437,
+        "service_level": 0.8402125087522011,
+        "stable": true
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 396.6,
+        "mean_average_wait_minutes": 0.7448875940821608,
+        "mean_sla": 0.8602339363023269,
+        "mean_occupancy": 0.687924148969368,
+        "mean_abandonment": 0.12422273669137376,
+        "mean_aht_minutes": 3.7735402208479867
+      }
+    },
+    {
+      "case": "near_saturation",
+      "forecast_contacts_per_half_hour": 35.0,
+      "arrival_rate_per_hour": 70.0,
+      "agents": 4,
+      "staffing_basis": "smallest stable integer above offered load; intentionally near saturation",
+      "erlang_c": {
+        "arrival_rate_per_hour": 70.0,
+        "service_rate_per_hour_per_agent": 18.85655501108441,
+        "agents": 4,
+        "offered_load": 3.7122369361133063,
+        "utilization": 0.9280592340283266,
+        "probability_wait": 0.845305460190572,
+        "expected_wait_minutes": 9.346898429664648,
+        "service_level": 0.2945583561132574,
+        "stable": true
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 569.0,
+        "mean_average_wait_minutes": 1.6026913388395543,
+        "mean_sla": 0.7059752545652545,
+        "mean_occupancy": 0.850679453126076,
+        "mean_abandonment": 0.24513218846274648,
+        "mean_aht_minutes": 3.80879372029127
+      }
+    }
+  ]
+}
