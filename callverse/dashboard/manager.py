@@ -9,6 +9,11 @@ import streamlit as st
 from callverse.customer_advisor import CallVerseCustomerAdvisor
 from callverse.customer_advisor_demo import deterministic_demo_runner
 from callverse.domain import RequestIntent, SupportRequest
+from callverse.forecasting.service import (
+    forecast_chart_rows,
+    forecast_next_24h,
+    forecast_summary,
+)
 from callverse.quality import QualityAnalyst, QualityEvaluationInput
 from callverse.quality.benchmark import load_policy_quality_benchmark
 from callverse.scenarios import SCENARIO_PRESETS, get_scenario
@@ -32,6 +37,9 @@ from .view_models import (
 )
 
 SCENARIO_NAMES = tuple(scenario.name for scenario in SCENARIO_PRESETS)
+PROJECT_ROOT = config.PROJECT_ROOT
+FORECAST_SERIES_PATH = PROJECT_ROOT / "data/processed/forecasting/demand_30min.csv"
+FORECAST_ARTIFACT_PATH = PROJECT_ROOT / "models/demand_forecast/selected_model.joblib"
 
 DEMO_MESSAGES = {
     "Grounded tracking": ("CUST-1003", "Track my order ORD-5003"),
@@ -378,11 +386,88 @@ def _quality_panel() -> None:
         )
 
 
+@st.cache_data
+def _load_forecast_view():
+    import pandas as pd
+
+    frame = pd.read_csv(FORECAST_SERIES_PATH, parse_dates=["timestamp"])
+    history = frame.set_index("timestamp")["contacts"]
+    forecast = forecast_next_24h(history, FORECAST_ARTIFACT_PATH)
+    return history, forecast, forecast_summary(forecast, history)
+
+
+def _forecast_panel() -> None:
+    st.header("Demand Forecast")
+    st.caption(
+        "Historical support-demand forecast · next 24 hours · 30-minute intervals. "
+        "This is separate from manager-defined scenarios."
+    )
+    if not FORECAST_SERIES_PATH.is_file() or not FORECAST_ARTIFACT_PATH.is_file():
+        st.error(
+            "Forecast artifacts are unavailable. Rebuild with "
+            "`uv run python -m callverse.forecasting.train`."
+        )
+        return
+    history, forecast, summary = _load_forecast_view()
+    first, second, third = st.columns(3)
+    first.metric("Predicted next-24h contacts", f"{summary['predicted_total_contacts']:.1f}")
+    second.metric("Peak 30-minute slot", summary["peak_timestamp"].strftime("%Y-%m-%d %H:%M"))
+    third.metric("Peak predicted contacts", f"{summary['peak_contacts']:.1f}")
+
+    st.subheader("Actual history vs future forecast")
+    st.line_chart(
+        forecast_chart_rows(history, forecast),
+        x="timestamp",
+        y=["Actual history", "Forecast"],
+        x_label="Historical and forecast timestamp (source time assumption)",
+    )
+    st.caption(
+        f"ACTUAL HISTORY ends {forecast.forecast_origin:%Y-%m-%d %H:%M}; "
+        f"FORECAST covers {forecast.points[0].timestamp:%Y-%m-%d %H:%M} through "
+        f"{forecast.points[-1].timestamp:%Y-%m-%d %H:%M}. No prediction interval is implied."
+    )
+    st.info(f"Peak demand is forecast around {summary['peak_timestamp']:%H:%M}.")
+    change = summary["next_2h_vs_recent_baseline_percent"]
+    if change is not None:
+        direction = "above" if change >= 0 else "below"
+        st.info(
+            f"Forecast demand in the next 2 hours is {abs(change):.1f}% {direction} "
+            "the equivalent recent baseline."
+        )
+    high_periods = summary["high_demand_periods"]
+    st.caption(
+        "High-demand periods (at least 80% of forecast peak): "
+        + (", ".join(item[11:16] for item in high_periods) if high_periods else "none")
+    )
+    st.warning(
+        "Demand signal only: Phase 9 does not recommend staffing levels or alter scenario demand."
+    )
+    with st.expander("Forecast reproducibility and limitations"):
+        st.json(
+            {
+                "model": forecast.model_name,
+                "model_version": forecast.model_version,
+                "forecast_origin": forecast.forecast_origin,
+                "horizon_slots": forecast.horizon,
+                "interval_minutes": forecast.interval_minutes,
+                "source": "Technion Anonymous Bank historical contact arrivals (1999)",
+                "delivery_signal_used": False,
+            }
+        )
+
+
 def render_manager() -> None:
     st.title("CallVerse · Manager Control Room")
     st.caption("Operational Digital Twin metrics and individual interaction quality are separate.")
     tabs = st.tabs(
-        ["Scenario Studio", "Twin Monitor", "Compare Decisions", "Interaction Lab", "Quality"]
+        [
+            "Scenario Studio",
+            "Twin Monitor",
+            "Compare Decisions",
+            "Forecast",
+            "Interaction Lab",
+            "Quality",
+        ]
     )
     with tabs[0]:
         _scenario_studio()
@@ -391,6 +476,8 @@ def render_manager() -> None:
     with tabs[2]:
         _compare_decisions()
     with tabs[3]:
-        _interaction_lab()
+        _forecast_panel()
     with tabs[4]:
+        _interaction_lab()
+    with tabs[5]:
         _quality_panel()

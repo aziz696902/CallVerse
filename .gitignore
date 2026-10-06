@@ -32,6 +32,11 @@ data/processed/classification/evaluation/*
 !data/processed/classification/evaluation/*.json
 !data/processed/classification/evaluation/*.csv
 !data/processed/classification/evaluation/*.png
+!data/processed/forecasting/
+data/processed/forecasting/*
+!data/processed/forecasting/demand_30min.csv
+!data/processed/forecasting/evaluation.json
+!data/processed/forecasting/model_metadata.json
 
 # Model cache
 .cache/
@@ -41,6 +46,9 @@ models/*
 !models/intent_classifier/
 models/intent_classifier/*
 !models/intent_classifier/tfidf_logistic.joblib
+!models/demand_forecast/
+models/demand_forecast/*
+!models/demand_forecast/selected_model.joblib
 checkpoints/
 artifacts/
 experiments/

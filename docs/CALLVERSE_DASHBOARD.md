@@ -20,11 +20,12 @@ The sidebar provides three roles:
 3. **Manager Control Room** — operational simulation and selected-interaction
    inspection.
 
-The Manager Control Room contains five focused tabs:
+The Manager Control Room contains six focused tabs:
 
 - Scenario Studio
 - Twin Monitor
 - Compare Decisions
+- Forecast
 - Interaction Lab
 - Quality
 
@@ -130,6 +131,18 @@ runs only after an explicit button press.
 The SimPy engine does not invoke the classifier, HelpPilot, or Quality Analyst
 for every generated contact. Therefore operational scenario results never show
 an invented “average scenario quality.”
+
+## Forecast
+
+The Forecast tab loads the selected Phase 9 artifact through the independent
+forecasting service. It shows the final 24 hours of actual historical demand
+beside 48 future half-hour predictions, predicted total contacts, the peak slot,
+peak demand, and deterministic high-demand summaries. Labels explicitly separate
+actual history from forecast values and do not imply prediction intervals.
+
+Forecasts describe historical support-contact demand. They neither overwrite a
+manager's scenario assumptions nor recommend staffing. Workforce decisions remain
+out of scope until Phase 10.
 
 ## Quality panel
 

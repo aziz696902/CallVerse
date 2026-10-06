@@ -61,6 +61,7 @@ class TechnionBuildResult:
     arrival_profile: tuple[dict[str, object], ...]
     service_wait_summary: tuple[dict[str, object], ...]
     abandonment_summary: tuple[dict[str, object], ...]
+    arrival_timestamps: tuple[datetime, ...]
 
 
 def _parse_clock(value: str) -> time:
@@ -279,4 +280,5 @@ def load_technion(directory: str | Path, *, require_full_year: bool = True) -> T
         arrival_profile,
         service_wait_summary,
         abandonment_summary,
+        tuple(call.arrival for call in calls),
     )

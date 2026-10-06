@@ -1,0 +1,42 @@
+{
+  "model_name": "lightgbm_poisson",
+  "model_version": "callverse-demand-v1",
+  "trained_through": "1999-12-31T23:30:00",
+  "selection_basis": "lowest validation rolling-origin 48-step MAE",
+  "candidate_names": [
+    "naive_previous_slot",
+    "seasonal_naive_daily",
+    "seasonal_naive_weekly",
+    "lightgbm_regression",
+    "lightgbm_poisson"
+  ],
+  "lightgbm_version": "4.7.0",
+  "selected_lightgbm_parameters": {
+    "boosting_type": "gbdt",
+    "class_weight": null,
+    "colsample_bytree": 0.9,
+    "importance_type": "split",
+    "learning_rate": 0.035,
+    "max_depth": 8,
+    "min_child_samples": 30,
+    "min_child_weight": 0.001,
+    "min_split_gain": 0.0,
+    "n_estimators": 240,
+    "n_jobs": 1,
+    "num_leaves": 31,
+    "objective": "poisson",
+    "random_state": 20261006,
+    "reg_alpha": 0.0,
+    "reg_lambda": 0.5,
+    "subsample": 0.9,
+    "subsample_for_bin": 200000,
+    "subsample_freq": 0,
+    "deterministic": true,
+    "force_col_wise": true,
+    "verbosity": -1
+  },
+  "artifact_path": "models/demand_forecast/selected_model.joblib",
+  "artifact_bytes": 337362,
+  "artifact_sha256": "50475aa28fd3b112f260fdb039a3dd6dddd3ba1bae2763ef5e0239d24209c888",
+  "rebuild_command": "uv run python -m callverse.forecasting.train"
+}
