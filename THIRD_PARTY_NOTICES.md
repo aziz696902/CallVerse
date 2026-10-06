@@ -25,3 +25,41 @@ The Phase 5 classifier uses Bitext's Customer Support LLM Chatbot Training Datas
 released on the official Bitext Hugging Face page under CDLA-Sharing-1.0. Only compact
 derived evaluation artifacts are tracked; see `docs/DATA_SOURCES.md` for the exact
 revision, file hash, schema, and analytical scope.
+
+## Call-Center-Intelligence-System
+
+- **Project:** Call Center Intelligence System
+- **Upstream repository:** https://github.com/ANI-IN/Call-Center-Intelligence-System
+- **Inspected revision:** `fed4b610742c1337147281fcec8f2cdcc0a79be5`
+- **Copyright:** Copyright (c) 2026 Animesh Kumar
+- **License:** MIT License
+- **Use in CallVerse:** The Quality Analyst adapts the upstream patterns of bounded
+  typed dimension scores, structured LLM output, explicit compliance flags,
+  deterministic weighted-score recomputation, and manager-level quality summaries.
+
+CallVerse implements its own delivery/e-commerce evidence contract, six-dimension
+rubric, hard guardrails, benchmark, and aggregation code. It does not copy the
+upstream audio/Whisper pipeline, Gradio UI, LangGraph workflow, database, report
+generator, or security pipeline.
+
+MIT License
+
+Copyright (c) 2026 Animesh Kumar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
