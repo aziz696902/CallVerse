@@ -10,7 +10,7 @@ from .customer_advisor import CallVerseCustomerAdvisor
 from .domain import RequestIntent, SupportRequest
 
 
-def _offline_runner(message: str, customer_id: str, request_id: str) -> dict:
+def deterministic_demo_runner(message: str, customer_id: str, request_id: str) -> dict:
     from helppilot.tools import check_refund_policy, get_tracking, set_run_context
 
     set_run_context(request_id, customer_id)
@@ -52,7 +52,7 @@ def main() -> None:
     parser.add_argument("message", nargs="?", default="Where is ORD-5003?")
     parser.add_argument("--customer-id", default="CUST-1003")
     args = parser.parse_args()
-    advisor = CallVerseCustomerAdvisor.from_local_artifact(runner=_offline_runner)
+    advisor = CallVerseCustomerAdvisor.from_local_artifact(runner=deterministic_demo_runner)
     request = SupportRequest(
         request_id="DEMO-001",
         customer_id=args.customer_id,

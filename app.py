@@ -1,7 +1,6 @@
-"""HelpPilot — Streamlit demo UI (two roles, async approval).
+"""CallVerse — one Streamlit app for support, approvals, and management.
 
-This single app serves TWO different humans, switched via the sidebar role toggle —
-because in reality a customer never approves their own refund:
+This single app serves three roles, switched with the sidebar:
 
   👤 Customer  — chats with the agent. When the AI proposes a sensitive action
                  (a refund), the customer is told a specialist will review it and
@@ -11,6 +10,9 @@ because in reality a customer never approves their own refund:
   🧑‍💼 Staff    — sees the pending-approval QUEUE (the `approvals` table). Each item
                  shows what the AI proposed, with full context, and Approve/Reject
                  resumes that durable thread out-of-band via Command(resume=...).
+
+  📊 Manager  — runs the existing CallVerse Digital Twin, compares a manual staffing
+                 decision, and separately inspects selected Advisor/Quality interactions.
 
 This works because LangGraph's interrupt() pauses the run to the SQLite checkpoint
 (keyed by thread_id) and returns control right away, so the staff decision can
@@ -24,9 +26,10 @@ import uuid
 
 import streamlit as st
 
+from callverse.dashboard.manager import render_manager
 from helppilot import config, db, graph
 
-st.set_page_config(page_title="HelpPilot", page_icon="🛟", layout="wide")
+st.set_page_config(page_title="CallVerse", page_icon="🛟", layout="wide")
 
 
 # ------------------------------------------------------------- cached data ---
@@ -224,15 +227,18 @@ def render_staff() -> None:
 # ------------------------------------------------------------- sidebar -------
 
 with st.sidebar:
-    st.header("🛟 HelpPilot")
-    st.caption("LangGraph · Groq · Chroma+reranker · LangSmith")
+    st.header("🛟 CallVerse")
+    st.caption("Digital Twin · HelpPilot · Quality Analyst")
 
+    roles = ["👤 Customer", "🧑‍💼 Staff", "📊 Manager"]
     st.session_state.role = st.radio(
-        "View as", ["👤 Customer", "🧑‍💼 Staff"],
-        index=0 if st.session_state.role == "👤 Customer" else 1,
-        help="Two humans, one agent: customers chat; staff approve sensitive actions.",
+        "View as",
+        roles,
+        index=roles.index(st.session_state.role) if st.session_state.role in roles else 0,
+        help="Customer support, staff approvals, and the manager control room share one app.",
     )
     is_customer = st.session_state.role == "👤 Customer"
+    is_staff = st.session_state.role == "🧑‍💼 Staff"
 
     # A live badge so staff always know the queue depth.
     queue_depth = len(db.get_pending_approvals())
@@ -242,51 +248,54 @@ with st.sidebar:
     customer_id = None
     if is_customer:
         customers = list_customers()
-        labels = [f"{cid} — {name}" for cid, name in customers]
-        idx = st.selectbox("You are", range(len(customers)), format_func=lambda i: labels[i])
-        new_id = customers[idx][0]
-        # Switching customer starts a clean conversation.
-        if st.session_state.get("customer_id") != new_id:
-            st.session_state.customer_id = new_id
-            new_thread()
-        customer_id = new_id
+        if not customers:
+            st.warning("No demo customers are seeded. Run `python -m helppilot.seed`.")
+        else:
+            labels = [f"{cid} — {name}" for cid, name in customers]
+            idx = st.selectbox("You are", range(len(customers)), format_func=lambda i: labels[i])
+            new_id = customers[idx][0]
+            # Switching customer starts a clean conversation.
+            if st.session_state.get("customer_id") != new_id:
+                st.session_state.customer_id = new_id
+                new_thread()
+            customer_id = new_id
 
-        if st.button("🔄 New conversation", use_container_width=True):
-            new_thread()
-            st.rerun()
+            if st.button("🔄 New conversation", use_container_width=True):
+                new_thread()
+                st.rerun()
 
-        # Test-data cheat sheet: this customer's orders + copy-paste prompts.
-        st.divider()
-        st.subheader("🧪 This customer's orders")
-        status_emoji = {"lost": "📦❌", "in_transit": "🚚", "delivered": "✅", "processing": "⏳"}
-        for o in orders_for(customer_id):
-            st.markdown(f"{status_emoji.get(o['status'], '•')} **{o['id']}** — {o['item']} "
-                        f"· ${o['amount']:.2f} · `{o['status']}`")
-            if _SUGGEST.get(o["status"]):
-                st.caption(f"try: “{_SUGGEST[o['status']].format(oid=o['id'])}”")
+            # Test-data cheat sheet: this customer's orders + copy-paste prompts.
+            st.divider()
+            st.subheader("🧪 This customer's orders")
+            status_emoji = {"lost": "📦❌", "in_transit": "🚚", "delivered": "✅", "processing": "⏳"}
+            for o in orders_for(customer_id):
+                st.markdown(f"{status_emoji.get(o['status'], '•')} **{o['id']}** — {o['item']} "
+                            f"· ${o['amount']:.2f} · `{o['status']}`")
+                if _SUGGEST.get(o["status"]):
+                    st.caption(f"try: “{_SUGGEST[o['status']].format(oid=o['id'])}”")
 
-        with st.expander("📚 All test data (every customer & order)"):
-            for cid, name in list_customers():
-                st.markdown(f"**{cid} — {name}**")
-                for o in orders_for(cid):
-                    st.caption(f"{o['id']} · {o['item']} · ${o['amount']:.2f} · {o['status']}")
+            with st.expander("📚 All test data (every customer & order)"):
+                for cid, name in list_customers():
+                    st.markdown(f"**{cid} — {name}**")
+                    for o in orders_for(cid):
+                        st.caption(f"{o['id']} · {o['item']} · ${o['amount']:.2f} · {o['status']}")
 
-        # Trace panel: mirrors the LangSmith trace for the last turn.
-        st.divider()
-        st.subheader("🔎 Trace panel")
-        state = st.session_state.get("last_state", {})
-        if state:
-            if state.get("route"):
-                st.markdown(f"**Triage route:** `{state['route']}`")
-                if state.get("triage_reason"):
-                    st.caption(state["triage_reason"])
-            for tc in state.get("tool_calls") or []:
-                st.markdown(f"- `{tc['name']}` {tc.get('args', {})}")
-            if state.get("citations"):
-                st.markdown("**Citations:** " + ", ".join(f"`{c}`" for c in state["citations"]))
-            review = state.get("review") or {}
-            if review:
-                st.markdown(f"**Reviewer:** {'✅ approved' if review.get('approved') else '❌ rejected'}")
+            # Trace panel: mirrors the LangSmith trace for the last turn.
+            st.divider()
+            st.subheader("🔎 Trace panel")
+            state = st.session_state.get("last_state", {})
+            if state:
+                if state.get("route"):
+                    st.markdown(f"**Triage route:** `{state['route']}`")
+                    if state.get("triage_reason"):
+                        st.caption(state["triage_reason"])
+                for tc in state.get("tool_calls") or []:
+                    st.markdown(f"- `{tc['name']}` {tc.get('args', {})}")
+                if state.get("citations"):
+                    st.markdown("**Citations:** " + ", ".join(f"`{c}`" for c in state["citations"]))
+                review = state.get("review") or {}
+                if review:
+                    st.markdown(f"**Reviewer:** {'✅ approved' if review.get('approved') else '❌ rejected'}")
 
     st.divider()
     if config.setup_tracing():
@@ -298,7 +307,12 @@ with st.sidebar:
 
 # ------------------------------------------------------------- main pane -----
 
-if is_customer:
+if is_customer and customer_id is not None:
     render_customer(customer_id)
-else:
+elif is_customer:
+    st.title("💬 Customer Support Chat")
+    st.info("Seed demo customers to start a support conversation.")
+elif is_staff:
     render_staff()
+else:
+    render_manager()
