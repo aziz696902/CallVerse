@@ -1,0 +1,299 @@
+{
+  "cancel_order": {
+    "count": 998,
+    "examples": [
+      "question about cancelling order {{Order Number}}",
+      "i have a question about cancelling oorder {{Order Number}}",
+      "i need help cancelling puchase {{Order Number}}"
+    ],
+    "target": "cancel_order",
+    "strength": "DIRECT",
+    "reason": "Explicit order cancellation."
+  },
+  "change_order": {
+    "count": 997,
+    "examples": [
+      "I try to change several bloody items of order {{Order Number}}",
+      "modifying purchase {{Order Number}}",
+      "want help adding an item to order {{Order Number}}"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "change_shipping_address": {
+    "count": 973,
+    "examples": [
+      "give me information about a delivery address modification",
+      "need to update my address",
+      "I entered a wrong address, update it"
+    ],
+    "target": "address_change",
+    "strength": "DIRECT",
+    "reason": "Explicit shipping-address change."
+  },
+  "check_cancellation_fee": {
+    "count": 950,
+    "examples": [
+      "I can't ifnd the bloody termination charge, I need help",
+      "what is the fee for canceling the contract?",
+      "could I check the withdrawal charge?"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "check_invoice": {
+    "count": 1000,
+    "examples": [
+      "show me invoice{{Invoice Number}}",
+      "need to see my invoicesfrom {{Person Name}}",
+      "I have to see my invoice from {{Person Name}}, help me"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "check_payment_methods": {
+    "count": 999,
+    "examples": [
+      "I try to list your available payment methoids",
+      "I nneed help to list the accepted payment methods",
+      "could you help me check what payment options are available?"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "check_refund_policy": {
+    "count": 997,
+    "examples": [
+      "i do not know hoow i could check ur reimbursement policy",
+      "help me check your money bck guarantee",
+      "need assistance to check in what cases can i request refunds"
+    ],
+    "target": "refund",
+    "strength": "COMBINED",
+    "reason": "Refund-policy request belongs to the broader refund intent."
+  },
+  "complaint": {
+    "count": 1000,
+    "examples": [
+      "help me to file a claim",
+      "where can i make a consumer claim against ur organization",
+      "want help to make a consumer complaint against ur company"
+    ],
+    "target": "complaint",
+    "strength": "DIRECT",
+    "reason": "Explicit complaint."
+  },
+  "contact_customer_service": {
+    "count": 1000,
+    "examples": [
+      "I want help to speak to customer support",
+      "do you have a free number to talk to customer assistance?",
+      "I try to see what hours customer service aailable is"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "contact_human_agent": {
+    "count": 999,
+    "examples": [
+      "I do not understand you, help me chatting with someone",
+      "can I talk to a person?",
+      "I can't speak with a live agent"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "create_account": {
+    "count": 997,
+    "examples": [
+      "new {{Account Type}} acount for wife",
+      "how to open a different fucking {{Account Type}} account for my father?",
+      "new {{Account Type}} account"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "delete_account": {
+    "count": 995,
+    "examples": [
+      "closing platinum account",
+      "I don't know how I can remove my standard account",
+      "what do i have to do to remove the {{Account Type}} account"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "delivery_options": {
+    "count": 995,
+    "examples": [
+      "could you help me check what delivery methods you offer?",
+      "can you help me see what shipping methods you offer?",
+      "do you ship to {{Delivery City}}?"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "delivery_period": {
+    "count": 999,
+    "examples": [
+      "need help seeing when my packageis going to arrive",
+      "I need to see how soon can I expect my damn order, help me",
+      "I don't know how to see how soon can I expect my parcel"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "edit_account": {
+    "count": 1000,
+    "examples": [
+      "correcting data on {{Account Type}} account",
+      "i have to edit my personal info",
+      "modifying info on {{Account Category}} account"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "get_invoice": {
+    "count": 999,
+    "examples": [
+      "i dont know what i need to do to download my bill #85632",
+      "want assistance to download invoice #85632",
+      "what do I need to do to get my bill from {{Person Name}}?"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "get_refund": {
+    "count": 997,
+    "examples": [
+      "how do I get a compensation of my money?",
+      "i do not know what i have to do to get my money back",
+      "I want assistace to request a compensation of my money"
+    ],
+    "target": "refund",
+    "strength": "COMBINED",
+    "reason": "Explicit refund request."
+  },
+  "newsletter_subscription": {
+    "count": 999,
+    "examples": [
+      "i try to unsubscribe to ur companu newsletter",
+      "need to cancel the company newslettef subscription help me",
+      "how can i cancel the subscription to the company newsletter"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "payment_issue": {
+    "count": 999,
+    "examples": [
+      "i cant make a payment where can i notify of an error",
+      "problem with payments",
+      "can you help me notifying of errors with online payment?"
+    ],
+    "target": "payment_issue",
+    "strength": "DIRECT",
+    "reason": "Explicit payment problem."
+  },
+  "place_order": {
+    "count": 998,
+    "examples": [
+      "I have to order something, can I get some help?",
+      "how do I order a product?",
+      "want help to earn an few of your item"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "recover_password": {
+    "count": 995,
+    "examples": [
+      "can I reset the PIN of my user profile?",
+      "I can't retrieve my goddamn user access key",
+      "i do not know how to recover the pin code of my user profile"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "registration_problems": {
+    "count": 999,
+    "examples": [
+      "I need support with my sign-up",
+      "can you help me to report errors with registrations?",
+      "ik do not know how i can notify of a sign-up problem"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "review": {
+    "count": 997,
+    "examples": [
+      "uhave a method to leave an opinion about ur services",
+      "I need help to leave a review about your products",
+      "do you have an address to leave some feedback?"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "set_up_shipping_address": {
+    "count": 997,
+    "examples": [
+      "error setting the shipping address up",
+      "I want help to sdt up the new shipping address",
+      "I have a trouble entering a shipping address"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "switch_account": {
+    "count": 1000,
+    "examples": [
+      "switch user",
+      "i dont know how to change to the {{Account Type}} account",
+      "i do not know how to switch to the {{Account Type}} account"
+    ],
+    "target": null,
+    "strength": "UNSUPPORTED / EXCLUDED",
+    "reason": "No defensible semantic match to a CallVerse intent."
+  },
+  "track_order": {
+    "count": 995,
+    "examples": [
+      "needx help to check the ETA of purchase {{Order Number}}",
+      "ETA of purchase {{Order Number}}",
+      "need to check the eta of order {{Order Number}}"
+    ],
+    "target": "tracking",
+    "strength": "DIRECT",
+    "reason": "Explicit order tracking."
+  },
+  "track_refund": {
+    "count": 998,
+    "examples": [
+      "can I see if there is anything new on the reimbursement?",
+      "I expect a refund of {{Refund Amount}} dollars",
+      "how to know if there are any updates on my reimbursement?"
+    ],
+    "target": "refund",
+    "strength": "COMBINED",
+    "reason": "Refund status belongs to the broader refund intent."
+  }
+}

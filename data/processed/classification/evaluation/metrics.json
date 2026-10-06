@@ -1,0 +1,425 @@
+{
+  "dataset_revision": "430d1a89bd93bd1fa23c16f29dd53e73f0087443",
+  "split_seed": 20261006,
+  "test_rows": 1004,
+  "majority_class": "refund",
+  "majority": {
+    "accuracy": 0.38247011952191234,
+    "macro_precision": 0.06374501992031872,
+    "macro_recall": 0.16666666666666666,
+    "macro_f1": 0.09221902017291067,
+    "weighted_f1": 0.21162611800636075,
+    "per_class": {
+      "address_change": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 144
+      },
+      "cancel_order": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 63
+      },
+      "complaint": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 150
+      },
+      "payment_issue": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 149
+      },
+      "refund": {
+        "precision": 0.38247011952191234,
+        "recall": 1.0,
+        "f1": 0.553314121037464,
+        "support": 384
+      },
+      "tracking": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 114
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        144,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        63,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        150,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        149,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        384,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        114,
+        0
+      ]
+    ]
+  },
+  "tfidf_logistic": {
+    "accuracy": 1.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "per_class": {
+      "address_change": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 144
+      },
+      "cancel_order": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 63
+      },
+      "complaint": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 150
+      },
+      "payment_issue": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 149
+      },
+      "refund": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 384
+      },
+      "tracking": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 114
+      }
+    },
+    "confusion_matrix": [
+      [
+        144,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        63,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        150,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        149,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        384,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        114
+      ]
+    ]
+  },
+  "transformer": {
+    "accuracy": 0.9920318725099602,
+    "macro_precision": 0.9892087014344068,
+    "macro_recall": 0.9803629132488192,
+    "macro_f1": 0.9840936709277036,
+    "weighted_f1": 0.9919306967812057,
+    "per_class": {
+      "address_change": {
+        "precision": 0.993103448275862,
+        "recall": 1.0,
+        "f1": 0.9965397923875432,
+        "support": 144
+      },
+      "cancel_order": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1": 0.9411764705882353,
+        "support": 63
+      },
+      "complaint": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 150
+      },
+      "payment_issue": {
+        "precision": 1.0,
+        "recall": 0.9932885906040269,
+        "f1": 0.9966329966329966,
+        "support": 149
+      },
+      "refund": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 384
+      },
+      "tracking": {
+        "precision": 0.9421487603305785,
+        "recall": 1.0,
+        "f1": 0.9702127659574468,
+        "support": 114
+      }
+    },
+    "confusion_matrix": [
+      [
+        144,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        56,
+        0,
+        0,
+        0,
+        7
+      ],
+      [
+        0,
+        0,
+        150,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        148,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        384,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        114
+      ]
+    ]
+  },
+  "transformer_base_model": "prajjwal1/bert-tiny",
+  "transformer_training_history": [
+    {
+      "epoch": 1,
+      "mean_training_loss": 1.3277040638891207,
+      "validation_macro_f1": 0.7722910904431045
+    },
+    {
+      "epoch": 2,
+      "mean_training_loss": 0.6377041187821603,
+      "validation_macro_f1": 0.7960094257524121
+    },
+    {
+      "epoch": 3,
+      "mean_training_loss": 0.3558632012735419,
+      "validation_macro_f1": 0.8705291596191369
+    },
+    {
+      "epoch": 4,
+      "mean_training_loss": 0.22093044915775054,
+      "validation_macro_f1": 0.9916619559072922
+    }
+  ],
+  "selection_rule": "Transformer selected only if validation macro-F1 exceeds TF-IDF by more than 0.005.",
+  "selected_model": "tfidf_logistic",
+  "validation_threshold_selection": {
+    "threshold": 0.5,
+    "coverage": 0.9980059820538385,
+    "review_rate": 0.001994017946161497,
+    "accepted_accuracy": 1.0,
+    "accepted_macro_f1": 1.0
+  },
+  "test_confidence_results": {
+    "threshold": 0.5,
+    "coverage": 1.0,
+    "review_rate": 0.0,
+    "accepted_accuracy": 1.0,
+    "accepted_macro_f1": 1.0
+  },
+  "final": {
+    "accuracy": 1.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "per_class": {
+      "address_change": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 144
+      },
+      "cancel_order": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 63
+      },
+      "complaint": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 150
+      },
+      "payment_issue": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 149
+      },
+      "refund": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 384
+      },
+      "tracking": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 114
+      }
+    },
+    "confusion_matrix": [
+      [
+        144,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        63,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        150,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        149,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        384,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        114
+      ]
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+actual,predicted,confidence,text
+cancel_order,tracking,0.6269750595092773,I don't know how I can camcel purchase {{Order Number}}
+cancel_order,tracking,0.5507497191429138,i can no longer pay for purchase {{Order Number}}
+cancel_order,tracking,0.680294394493103,I no longerr want purchase {{Order Number}}
+cancel_order,tracking,0.6749734878540039,need help with cfanceling order {{Order Number}}
+payment_issue,address_change,0.48014289140701294,I want to inform of pamyent issues
+cancel_order,tracking,0.6346282958984375,I need assistance tocancel order {{Order Number}}
+cancel_order,tracking,0.7160986661911011,i dont want purchase {{Order Number}}
+cancel_order,tracking,0.739847719669342,i do not know how i can canmcel order {{Order Number}}

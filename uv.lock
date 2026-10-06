@@ -812,11 +812,13 @@ dependencies = [
     { name = "langgraph-checkpoint-sqlite" },
     { name = "langsmith" },
     { name = "python-dotenv" },
+    { name = "scikit-learn" },
     { name = "sentence-transformers" },
     { name = "simpy" },
     { name = "streamlit" },
     { name = "tabulate" },
     { name = "torchvision" },
+    { name = "transformers" },
 ]
 
 [package.metadata]
@@ -828,11 +830,13 @@ requires-dist = [
     { name = "langgraph-checkpoint-sqlite", specifier = ">=2.0.0" },
     { name = "langsmith", specifier = ">=0.1.140" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "scikit-learn", specifier = ">=1.5.0" },
     { name = "sentence-transformers", specifier = ">=3.0.0" },
     { name = "simpy", specifier = ">=4.1.2" },
     { name = "streamlit", specifier = ">=1.38.0" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "torchvision", specifier = ">=0.20.0" },
+    { name = "transformers", specifier = ">=5.0.0" },
 ]
 
 [[package]]

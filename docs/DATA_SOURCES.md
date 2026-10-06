@@ -24,3 +24,20 @@ The archive used for this build had SHA-256 `110527823A296E3163566F5D10D687E1385
 The download archive used for this build had SHA-256 `967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784`.
 
 The sources describe different organizations and people. They are calibrated independently and are never row-wise merged. Only small aggregate artifacts are tracked.
+
+## Bitext Customer Support LLM Chatbot Training Dataset
+
+- **Publisher/source:** Bitext official Hugging Face organization
+- **Official page:** https://huggingface.co/datasets/bitext/Bitext-customer-support-llm-chatbot-training-dataset
+- **File:** `Bitext_Sample_Customer_Support_Training_Dataset_27K_responses-v11.csv`
+- **Revision:** `430d1a89bd93bd1fa23c16f29dd53e73f0087443`
+- **License:** CDLA-Sharing-1.0, as reported by the official dataset card
+- **Language:** English
+- **SHA-256:** `6F81102B0100B97B8468EB04368033A23206BF1FDE9D53500D5806EC1001A434`
+- **Actual shape:** 26,872 rows and the columns `flags`, `instruction`, `category`, `intent`, and `response`
+- **Actual label space:** 11 categories and 27 source intents
+- **CallVerse use:** intent detection from the `instruction` field only. Responses are not model inputs.
+
+The source is a hybrid synthetic dataset. It provides no defensible urgency target and
+does not directly support CallVerse `damaged_item` or `general`; those labels are not
+fabricated. The full CSV and prepared train/validation/test rows remain untracked.

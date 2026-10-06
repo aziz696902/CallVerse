@@ -67,3 +67,18 @@ The final project size is 1,383,493,581 bytes (about 1.29 GiB), including the un
 artifacts total 56,998 bytes. The largest remaining non-environment file is
 `olist_orders_dataset.csv` at 17,654,914 bytes. Exactly one `.venv` remains, and the
 project is far below the 8 GB target.
+
+## Phase 5 measurement — 2026-10-06
+
+Before Phase 5 the project measured 1,383,567,464 bytes. After retaining one ignored
+19,202,474-byte Bitext source CSV, ignored deterministic prepared splits, the selected
+133,576-byte TF-IDF model, and 35,629 bytes of tracked evaluation evidence, it measured
+1,406,017,321 bytes (about 1.31 GiB). Classification processed files total 1,061,328
+bytes, including 45,694 bytes of tracked evaluation evidence. All raw data now totals
+97,398,929 bytes.
+
+The experimental tiny-BERT checkpoint was removed because it did not outperform the
+linear baseline. Its 35,731,594-byte user-level Hugging Face cache and lock directory
+were also removed after evaluation. Zero transformer checkpoints remain. The largest
+new project file is the ignored Bitext CSV at 19,202,474 bytes. The environment remains
+the only `.venv` (1,304,551,556 bytes), and the project remains far below 8 GB.

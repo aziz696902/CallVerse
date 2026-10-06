@@ -20,3 +20,8 @@ Call-Center Data (free-use statement with acknowledgement and notification reque
 and the Olist Brazilian E-Commerce Public Dataset (official Kaggle page reports
 CC BY-NC-SA 4.0). Raw records are not tracked. See `docs/DATA_SOURCES.md` for official
 links, permitted analytical roles, attribution details, and source hashes.
+
+The Phase 5 classifier uses Bitext's Customer Support LLM Chatbot Training Dataset,
+released on the official Bitext Hugging Face page under CDLA-Sharing-1.0. Only compact
+derived evaluation artifacts are tracked; see `docs/DATA_SOURCES.md` for the exact
+revision, file hash, schema, and analytical scope.

@@ -25,6 +25,13 @@ data/processed/*
 data/processed/calibration/*
 !data/processed/calibration/*.json
 !data/processed/calibration/*.csv
+!data/processed/classification/
+data/processed/classification/*
+!data/processed/classification/evaluation/
+data/processed/classification/evaluation/*
+!data/processed/classification/evaluation/*.json
+!data/processed/classification/evaluation/*.csv
+!data/processed/classification/evaluation/*.png
 
 # Model cache
 .cache/

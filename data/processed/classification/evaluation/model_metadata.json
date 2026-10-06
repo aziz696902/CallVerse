@@ -1,0 +1,17 @@
+{
+  "model_name": "tfidf_logistic",
+  "model_version": "phase5-v1",
+  "model_type": "tfidf_logistic_regression",
+  "labels": [
+    "address_change",
+    "cancel_order",
+    "complaint",
+    "payment_issue",
+    "refund",
+    "tracking"
+  ],
+  "confidence_threshold": 0.5,
+  "dataset_revision": "430d1a89bd93bd1fa23c16f29dd53e73f0087443",
+  "artifact_path": "models/intent_classifier/tfidf_logistic.joblib",
+  "artifact_size_bytes": 133576
+}
