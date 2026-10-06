@@ -1,0 +1,120 @@
+{
+  "version": "callverse-ppo-workforce-v1",
+  "experimental": true,
+  "algorithm": "Stable-Baselines3 PPO",
+  "timesteps_per_seed": 50000,
+  "training_seeds": [
+    17,
+    29,
+    43
+  ],
+  "selection_rule": "median validation mean reward",
+  "selected_seed": 43,
+  "total_runtime_seconds": 131.96587659999204,
+  "candidate_results": [
+    {
+      "seed": 17,
+      "runtime_seconds": 43.8647723000031,
+      "validation_mean_reward": 57.35938644831908,
+      "validation_rewards": [
+        33.116203710590604,
+        35.28969240356391,
+        35.849586526367325,
+        37.83061504651406,
+        38.71880495154964,
+        41.08344325311745,
+        40.924341687553685,
+        38.78712846978374,
+        69.03053946404411,
+        68.90713699070187,
+        81.67394236282631,
+        81.47535372702264,
+        76.53566854873344,
+        76.78237640604937,
+        81.21264532798273,
+        80.53270429670441
+      ]
+    },
+    {
+      "seed": 29,
+      "runtime_seconds": 43.333252399999765,
+      "validation_mean_reward": 56.80694850855946,
+      "validation_rewards": [
+        32.20675467885015,
+        34.400964023727894,
+        34.92581346288948,
+        36.41033174871902,
+        37.295605248999934,
+        39.61412360527676,
+        40.2594443325963,
+        37.63804028186365,
+        68.33009663211368,
+        68.04225015025479,
+        81.75074148772903,
+        81.70091995872438,
+        76.93373028722823,
+        76.82096430082082,
+        81.5486103875665,
+        81.03278554959067
+      ]
+    },
+    {
+      "seed": 43,
+      "runtime_seconds": 41.14962480000395,
+      "validation_mean_reward": 57.06472192190322,
+      "validation_rewards": [
+        32.64045473104827,
+        34.658656045024884,
+        35.46117375363908,
+        37.04657329537671,
+        38.09685493692793,
+        40.561983620321534,
+        40.39335531955827,
+        37.9073505573044,
+        68.73308241612274,
+        68.48518429624555,
+        81.83308359289438,
+        81.71112930492691,
+        76.73909621887951,
+        76.73844436456278,
+        81.17132015907248,
+        80.85780813854612
+      ]
+    }
+  ],
+  "policy_network": [
+    32,
+    32
+  ],
+  "ppo_hyperparameters": {
+    "learning_rate": 0.0003,
+    "n_steps": 256,
+    "batch_size": 64,
+    "n_epochs": 5,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "ent_coef": 0.01
+  },
+  "environment_version": "callverse-workforce-rl-env-v1",
+  "observation_schema_version": "callverse-workforce-observation-v1",
+  "action_schema_version": "absolute-agents-1-to-20-v1",
+  "reward_version": "callverse-workforce-reward-v1",
+  "device": "cpu",
+  "training_split": "Phase 9 chronological training split",
+  "validation_split": "Phase 9 chronological validation split",
+  "forecast_signal": "seven-day seasonal lag; past observations only",
+  "reward_weights": {
+    "service_level": 2.0,
+    "waiting": 0.35,
+    "abandonment": 6.0,
+    "staffing": 0.2,
+    "overload": 1.5,
+    "staffing_change": 0.08
+  },
+  "versions": {
+    "python": "3.11.4",
+    "torch": "2.13.0+cpu",
+    "gymnasium": "1.4.0",
+    "stable_baselines3": "2.9.0"
+  }
+}

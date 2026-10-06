@@ -51,6 +51,14 @@ FORECAST_ARTIFACT_PATH = PROJECT_ROOT / "models/demand_forecast/selected_model.j
 WORKFORCE_VALIDATION_PATH = (
     PROJECT_ROOT / "data/processed/workforce/erlang_c_validation.json"
 )
+RL_MODEL_PATH = PROJECT_ROOT / "models/ppo_workforce/ppo_policy.zip"
+RL_METADATA_PATH = PROJECT_ROOT / "models/ppo_workforce/metadata.json"
+RL_EVALUATION_PATH = PROJECT_ROOT / "data/processed/rl/policy_evaluation.json"
+
+
+def rl_artifacts_available(paths=None) -> bool:
+    candidates = paths or (RL_MODEL_PATH, RL_METADATA_PATH, RL_EVALUATION_PATH)
+    return all(path.is_file() for path in candidates)
 
 DEMO_MESSAGES = {
     "Grounded tracking": ("CUST-1003", "Track my order ORD-5003"),
@@ -543,6 +551,7 @@ def _workforce_panel() -> None:
     plan = st.session_state.get("manager_workforce_plan")
     if plan is None:
         st.info("Choose explicit planning assumptions and press BUILD WORKFORCE PLAN.")
+        _rl_experiment_panel()
         return
     summary = summarize_plan(plan)
     cards = st.columns(4)
@@ -639,6 +648,86 @@ def _workforce_panel() -> None:
         "Dynamic 30-minute staffing inside the frozen Digital Twin is deliberately deferred. "
         "Use Compare Decisions for explicit fixed-staffing simulation tests."
     )
+    _rl_experiment_panel()
+
+
+def _rl_experiment_panel() -> None:
+    st.divider()
+    st.subheader("PPO Workforce Policy — Experimental")
+    st.caption(
+        "Research experiment only · Stable-Baselines3 PPO · not a production recommendation."
+    )
+    if not rl_artifacts_available():
+        st.info(
+            "PPO experiment artifacts are unavailable. Train with "
+            "`python -m callverse.rl.train --timesteps 50000`, then evaluate with "
+            "`python -m callverse.rl.evaluation`."
+        )
+        return
+    metadata = json.loads(RL_METADATA_PATH.read_text(encoding="utf-8"))
+    evaluation = json.loads(RL_EVALUATION_PATH.read_text(encoding="utf-8"))
+    strategies = evaluation["strategies"]
+    rows = []
+    for name in ("fixed", "erlang_c", "ppo"):
+        metrics = strategies[name]["metrics"]
+        rows.append(
+            {
+                "Strategy": name.upper(),
+                "Definition": (
+                    "learned experimental policy"
+                    if name == "ppo"
+                    else "analytical baseline"
+                    if name == "erlang_c"
+                    else f"constant {evaluation['fixed_agents']}-agent baseline"
+                ),
+                "Reward mean ± SD": (
+                    f"{metrics['reward']['mean']:.2f} ± "
+                    f"{metrics['reward']['standard_deviation']:.2f}"
+                ),
+                "Agent-hours/day": f"{metrics['total_agent_hours']['mean']:.1f}",
+                "Average / peak agents": (
+                    f"{metrics['average_staffing']['mean']:.1f} / "
+                    f"{metrics['peak_staffing']['mean']:.1f}"
+                ),
+                "Abandonment": f"{metrics['abandonment_rate']['mean']:.2%}",
+                "Service level": f"{metrics['service_level']['mean']:.2%}",
+                "Average wait": f"{metrics['average_wait_minutes']['mean']:.2f} min",
+                "Occupancy": f"{metrics['average_occupancy']['mean']:.2%}",
+                "Staffing changes": f"{metrics['staffing_changes']['mean']:.1f}",
+            }
+        )
+    st.dataframe(rows, hide_index=True, use_container_width=True)
+    st.error(
+        "PPO is not recommended: it achieved its higher environment reward by holding about "
+        "17 agents (408 agent-hours/day), versus about 118 agent-hours for Erlang-C. "
+        "This is overstaffing, not evidence that RL beats the analytical baseline."
+    )
+    trajectories = evaluation["representative_trajectory"]
+    chart_rows = []
+    for strategy, points in trajectories.items():
+        for point in points:
+            chart_rows.append(
+                {"slot": point["slot"], "strategy": strategy, "agents": point["agents"]}
+            )
+    st.line_chart(chart_rows, x="slot", y="agents", color="strategy")
+    with st.expander("Experiment reproducibility and limitations"):
+        st.json(
+            {
+                "selected_seed": metadata["selected_seed"],
+                "selection_rule": metadata["selection_rule"],
+                "timesteps_per_seed": metadata["timesteps_per_seed"],
+                "training_seeds": metadata["training_seeds"],
+                "training_runtime_seconds": metadata["total_runtime_seconds"],
+                "held_out_split": evaluation["held_out_split"],
+                "evaluation_seeds": evaluation["stochastic_seeds"],
+                "forecast_signal": evaluation["forecast_signal"],
+            }
+        )
+        st.warning(
+            "The compact RL environment batches arrivals into 30-minute decisions. Its fixed-"
+            "staffing cross-check has similar occupancy direction but materially different wait, "
+            "SLA, and abandonment from the calibrated continuous-time Digital Twin."
+        )
 
 
 def render_manager() -> None:

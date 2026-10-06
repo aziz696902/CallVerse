@@ -1,0 +1,159 @@
+{
+  "version": "callverse-rl-environment-crosscheck-v1",
+  "purpose": "directional validation only; the RL environment is not the Digital Twin",
+  "horizon_note": "RL cases use 24 hours; frozen Twin cases use 8 hours",
+  "cases": [
+    {
+      "case": "low_demand",
+      "contacts_per_half_hour": 5.0,
+      "agents": 2,
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "rl_environment": {
+        "mean_completed": 238.4,
+        "mean_completed_per_hour": 9.933333333333334,
+        "mean_wait_minutes": 3.4361459750603087,
+        "mean_service_level": 0.45718371335485475,
+        "mean_occupancy": 0.2778909538173581,
+        "mean_abandonment": 0.006666666666666666
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 75.0,
+        "mean_average_wait_minutes": 0.27135038798446687,
+        "mean_sla": 0.9611683455433455,
+        "mean_occupancy": 0.2961812563070361,
+        "mean_abandonment": 0.05148137003215662,
+        "mean_aht_minutes": 4.003696695975137,
+        "mean_completed": 70.6,
+        "mean_completed_per_hour": 8.825
+      }
+    },
+    {
+      "case": "normal_demand",
+      "contacts_per_half_hour": 15.0,
+      "agents": 3,
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "rl_environment": {
+        "mean_completed": 712.8,
+        "mean_completed_per_hour": 29.7,
+        "mean_wait_minutes": 7.879889936524554,
+        "mean_service_level": 0.1981252558128141,
+        "mean_occupancy": 0.5543892018214965,
+        "mean_abandonment": 0.01
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 230.0,
+        "mean_average_wait_minutes": 0.5497545734130673,
+        "mean_sla": 0.9256098593525521,
+        "mean_occupancy": 0.5556533052457032,
+        "mean_abandonment": 0.09414760030452736,
+        "mean_aht_minutes": 3.8657337389626925,
+        "mean_completed": 206.6,
+        "mean_completed_per_hour": 25.825
+      }
+    },
+    {
+      "case": "high_demand",
+      "contacts_per_half_hour": 25.0,
+      "agents": 4,
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "rl_environment": {
+        "mean_completed": 1179.8,
+        "mean_completed_per_hour": 49.15833333333333,
+        "mean_wait_minutes": 9.979053947069087,
+        "mean_service_level": 0.14461044745404208,
+        "mean_occupancy": 0.6791198945445232,
+        "mean_abandonment": 0.016833333333333332
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 396.6,
+        "mean_average_wait_minutes": 0.7448875940821608,
+        "mean_sla": 0.8602339363023269,
+        "mean_occupancy": 0.687924148969368,
+        "mean_abandonment": 0.12422273669137376,
+        "mean_aht_minutes": 3.7735402208479867,
+        "mean_completed": 343.8,
+        "mean_completed_per_hour": 42.975
+      }
+    },
+    {
+      "case": "near_saturation",
+      "contacts_per_half_hour": 35.0,
+      "agents": 4,
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "rl_environment": {
+        "mean_completed": 1536.8,
+        "mean_completed_per_hour": 64.03333333333333,
+        "mean_wait_minutes": 13.254778229518331,
+        "mean_service_level": 0.10607454575532729,
+        "mean_occupancy": 0.8900391251506609,
+        "mean_abandonment": 0.08523809523809524
+      },
+      "digital_twin": {
+        "replications": 5,
+        "seeds": [
+          101,
+          202,
+          303,
+          404,
+          505
+        ],
+        "mean_generated": 569.0,
+        "mean_average_wait_minutes": 1.6026913388395543,
+        "mean_sla": 0.7059752545652545,
+        "mean_occupancy": 0.850679453126076,
+        "mean_abandonment": 0.24513218846274648,
+        "mean_aht_minutes": 3.80879372029127,
+        "mean_completed": 421.0,
+        "mean_completed_per_hour": 52.625
+      }
+    }
+  ]
+}

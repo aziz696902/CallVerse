@@ -160,6 +160,21 @@ table labels calibrated Digital Twin results as simulated values rather than
 mixing them with theory. Dynamic capacity inside the frozen Twin is deliberately
 deferred; the existing fixed-staffing Compare Decisions workflow remains available.
 
+### Experimental PPO section
+
+When the reviewed Phase 11 model, metadata, and held-out evaluation artifacts exist,
+the Workforce tab also displays a clearly separated experimental PPO section. It
+compares fixed, Erlang-C, and PPO strategies on the same held-out dates and stochastic
+seeds, including mean and standard deviation for reward, abandonment, service level,
+wait, occupancy, agent-hours, and staffing changes. A representative staffing
+trajectory and exact training provenance are shown.
+
+The UI deliberately reports the negative result: PPO converged to roughly 17 agents
+in every interval and consumed 408 agent-hours/day. Its higher internal reward is not
+presented as a business win because Erlang-C used roughly 118 agent-hours/day. The
+section also warns that the compact batched RL environment is distinct from, and less
+authoritative than, the calibrated continuous-time Digital Twin.
+
 ## Quality panel
 
 Every selected interaction receives deterministic Quality Analyst guardrails.
@@ -208,10 +223,7 @@ held-out validated simulator.
 
 ## Limitations and future extensions
 
-V1 has no demand forecast, Erlang-C optimizer, automated workforce decision,
-cost model, weather/delivery causal mechanism, PPO, audio, or bad-review model.
-The Manager Control Room performs manual what-if analysis only.
-
-The next planned extension is Demand Forecasting V1. Workforce optimization
-must remain a later phase and should consume validated forecasts rather than be
-embedded into this dashboard prematurely.
+The PPO policy is experimental and must not automate staffing. V1 still has no
+validated cost model, weather/delivery causal mechanism, audio model, or bad-review
+prediction model. The Manager Control Room remains decision support; the calibrated
+Digital Twin and transparent analytical baselines remain authoritative.

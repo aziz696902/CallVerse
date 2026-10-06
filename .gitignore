@@ -40,6 +40,10 @@ data/processed/forecasting/*
 !data/processed/workforce/
 data/processed/workforce/*
 !data/processed/workforce/erlang_c_validation.json
+!data/processed/rl/
+data/processed/rl/*
+!data/processed/rl/policy_evaluation.json
+!data/processed/rl/environment_crosscheck.json
 
 # Model cache
 .cache/
@@ -52,6 +56,10 @@ models/intent_classifier/*
 !models/demand_forecast/
 models/demand_forecast/*
 !models/demand_forecast/selected_model.joblib
+!models/ppo_workforce/
+models/ppo_workforce/*
+!models/ppo_workforce/ppo_policy.zip
+!models/ppo_workforce/metadata.json
 checkpoints/
 artifacts/
 experiments/

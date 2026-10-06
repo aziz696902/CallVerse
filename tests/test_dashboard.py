@@ -276,6 +276,20 @@ def test_streamlit_workforce_view_builds_an_honestly_labelled_plan():
     assert "Dynamic 30-minute staffing" in visible_text
 
 
+def test_streamlit_workforce_view_shows_experimental_ppo_limitations():
+    app = AppTest.from_file("app.py", default_timeout=30).run()
+    app.sidebar.radio[0].set_value(app.sidebar.radio[0].options[-1])
+    app.run(timeout=30)
+
+    assert not app.exception
+    visible_text = "\n".join(
+        item.value for item in (*app.subheader, *app.caption, *app.error, *app.warning)
+    )
+    assert "PPO Workforce Policy — Experimental" in visible_text
+    assert "PPO is not recommended" in visible_text
+    assert "not a production recommendation" in visible_text
+
+
 def test_streamlit_offline_interaction_is_explicit_and_quality_scores_stay_unavailable():
     app = AppTest.from_file("app.py", default_timeout=30).run()
     app.sidebar.radio[0].set_value("📊 Manager")
