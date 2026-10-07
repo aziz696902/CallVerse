@@ -1,0 +1,145 @@
+{
+  "version": "callverse-live-llm-smoke-v1",
+  "timestamp": "2026-10-07T12:42:37+01:00",
+  "run_dates": ["2026-10-06", "2026-10-07"],
+  "purpose": "bounded integration smoke test; not a benchmark, accuracy study, production validation, or human evaluation",
+  "provider": "groq",
+  "models": {
+    "triage": "openai/gpt-oss-20b",
+    "solver": "openai/gpt-oss-120b",
+    "reviewer": "openai/gpt-oss-120b"
+  },
+  "secrets_stored": false,
+  "summary": {
+    "conceptual_cases": 6,
+    "successful_live_advisor_executions": 5,
+    "safe_preflight_without_llm": 1,
+    "completed_live_quality_evaluations": 3,
+    "transient_failures": 1
+  },
+  "cases": [
+    {
+      "case_id": "grounded_tracking",
+      "customer_id": "CUST-1003",
+      "order_id": "ORD-5003",
+      "success": true,
+      "latency_seconds": 11.37,
+      "predicted_intent": "tracking",
+      "classifier_confidence": 0.850195,
+      "routing_path": "classifier",
+      "tools": ["get_order", "get_tracking"],
+      "rag_sources": [],
+      "approval_state": "not_required",
+      "escalated": false,
+      "sanitized_result": "Reported the seeded in_transit status and tracking details returned by tools."
+    },
+    {
+      "case_id": "unknown_order",
+      "customer_id": "CUST-1003",
+      "order_id": "ORD-9999",
+      "success": true,
+      "latency_seconds": 1.797,
+      "predicted_intent": "tracking",
+      "classifier_confidence": 0.876966,
+      "routing_path": "safe_order_escalation",
+      "tools": ["get_order"],
+      "rag_sources": [],
+      "approval_state": "not_applicable",
+      "escalated": true,
+      "llm_invoked": false,
+      "sanitized_result": "Unknown order was not invented; request was escalated for human review."
+    },
+    {
+      "case_id": "refund_approval",
+      "customer_id": "CUST-1001",
+      "order_id": "ORD-5001",
+      "success": true,
+      "latency_seconds": 37.615,
+      "predicted_intent": "refund",
+      "classifier_confidence": 0.653056,
+      "routing_path": "classifier",
+      "tools": ["get_order", "check_refund_policy", "create_refund_draft"],
+      "rag_sources": ["callverse-damaged-item-demo", "lost-missing-packages", "refund-policy"],
+      "approval_state": "interrupted_human_approval_required",
+      "escalated": true,
+      "sanitized_result": "Refund remained a draft and paused before execution for human approval."
+    },
+    {
+      "case_id": "policy_rag",
+      "customer_id": "CUST-1002",
+      "success": true,
+      "latency_seconds": 10.238,
+      "predicted_intent": "refund",
+      "classifier_confidence": 0.759120,
+      "routing_path": "classifier",
+      "tools": ["check_refund_policy"],
+      "rag_sources": ["callverse-damaged-item-demo", "lost-missing-packages", "order-cancellation", "refund-policy"],
+      "approval_state": "not_required",
+      "escalated": true,
+      "sanitized_result": "Policy evidence was retrieved, but the Advisor escalated instead of answering directly.",
+      "quality": {
+        "status": "completed",
+        "overall_score": 2.75,
+        "dimensions": [3, 2, 4, 2, 2, 3],
+        "flags": ["missing_tool_usage", "escalation_without_answer"],
+        "supervisor_review": true,
+        "latency_seconds": 17.098
+      }
+    },
+    {
+      "case_id": "damaged_item_fallback",
+      "customer_id": "CUST-1004",
+      "order_id": "ORD-5004",
+      "success": true,
+      "latency_seconds": 47.071,
+      "predicted_intent": "address_change",
+      "classifier_confidence": 0.348904,
+      "routing_path": "helppilot_fallback",
+      "fallback_reason": "unsupported_damaged_item",
+      "tools": ["get_order", "check_refund_policy"],
+      "rag_sources": ["callverse-damaged-item-demo", "refund-policy"],
+      "approval_state": "not_required",
+      "escalated": false,
+      "sanitized_result": "Unsupported classifier intent safely fell back to HelpPilot and returned evidence-backed next steps.",
+      "quality": {
+        "status": "completed",
+        "overall_score": 4.0,
+        "dimensions": [4, 4, 4, 4, 4, 4],
+        "flags": ["intent_mismatch"],
+        "supervisor_review": false,
+        "latency_seconds": 2.653
+      }
+    },
+    {
+      "case_id": "angry_complaint",
+      "customer_id": "CUST-1005",
+      "order_id": "ORD-5005",
+      "success": true,
+      "latency_seconds": 14.587,
+      "predicted_intent": "complaint",
+      "classifier_confidence": 0.277064,
+      "routing_path": "helppilot_fallback",
+      "fallback_reason": "low_confidence",
+      "tools": ["get_order"],
+      "rag_sources": [],
+      "approval_state": "not_required",
+      "escalated": false,
+      "sanitized_result": "Used the verified processing state and avoided inventing a ship date.",
+      "quality": {
+        "status": "completed",
+        "overall_score": 3.2,
+        "dimensions": [2, 3, 4, 4, 4, 3],
+        "flags": ["UNVERIFIED_FACT"],
+        "supervisor_review": true,
+        "latency_seconds": 11.652
+      }
+    }
+  ],
+  "failures": [
+    {
+      "case_id": "damaged_item_initial_attempt",
+      "error_type": "RateLimitError",
+      "later_retry_succeeded": true
+    }
+  ]
+}

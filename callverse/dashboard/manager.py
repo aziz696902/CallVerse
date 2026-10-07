@@ -168,7 +168,7 @@ def _scenario_studio() -> None:
             }
         )
 
-    if st.button("RUN DIGITAL TWIN", type="primary", use_container_width=True):
+    if st.button("RUN DIGITAL TWIN", type="primary", width="stretch"):
         scenario = configure_scenario(
             preset_name,
             seed=seed,
@@ -229,7 +229,8 @@ def _compare_decisions() -> None:
         return
     st.caption(
         "The AFTER run keeps the same scenario, seed, demand, duration, and policy. "
-        "Only available agents change."
+        "Only available agents change. This is a simulated effect under identical seeded "
+        "conditions, not a production A/B test or guaranteed causal impact."
     )
     after_agents = int(
         st.number_input(
@@ -251,7 +252,7 @@ def _compare_decisions() -> None:
     if comparison is None:
         return
     st.info("Simulated effect under this scenario and seed; not a production causal guarantee.")
-    st.dataframe(comparison_table(comparison), use_container_width=True, hide_index=True)
+    st.dataframe(comparison_table(comparison), width="stretch", hide_index=True)
     st.caption(
         f"Same seed: {comparison.before.result.seed} · Policy: {comparison.before.policy_mode} · "
         f"Agents: {comparison.before.scenario.available_agents} → "
@@ -291,7 +292,7 @@ def _render_quality_result() -> None:
                 for name, item in dimensions
                 if item is not None
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
     if quality.flags:
@@ -332,6 +333,7 @@ def _interaction_lab() -> None:
     )
 
     if st.button("RUN SELECTED INTERACTION", type="primary"):
+        st.session_state.manager_interaction_error = None
         advisor = (
             CallVerseCustomerAdvisor.from_local_artifact(runner=deterministic_demo_runner)
             if mode == "Offline deterministic demo"
@@ -345,7 +347,14 @@ def _interaction_lab() -> None:
             arrival_time=0,
         )
         with st.spinner("Running selected interaction…"):
-            interaction = advisor.handle_with_trace(request)
+            try:
+                interaction = advisor.handle_with_trace(request)
+            except Exception as exc:  # noqa: BLE001 - provider failures must fail visibly
+                st.error(
+                    "Live provider unavailable; no deterministic response was substituted. "
+                    f"Error type: {type(exc).__name__}."
+                )
+                return
         evidence = QualityEvaluationInput.from_advisor_interaction(message, interaction)
         quality = QualityAnalyst().evaluate(evidence)
         st.session_state.manager_interaction = interaction
@@ -416,6 +425,10 @@ def _load_forecast_view():
 
 
 def _forecast_panel() -> None:
+    st.info(
+        "Historical support-demand forecasting from Technion generic contact-center data. "
+        "This is not a live production, courier, delivery-event, or weather-causal forecast."
+    )
     st.header("Demand Forecast")
     st.caption(
         "Historical support-demand forecast · next 24 hours · 30-minute intervals. "
@@ -476,6 +489,10 @@ def _forecast_panel() -> None:
 
 
 def _workforce_panel() -> None:
+    st.info(
+        "ERLANG-C ANALYTICAL STAFFING BASELINE: a transparent M/M/c recommendation, "
+        "not an optimal real-world schedule or guaranteed operational outcome."
+    )
     st.header("Workforce")
     st.caption(
         "Erlang-C analytical staffing recommendation · transparent M/M/c baseline, "
@@ -538,7 +555,7 @@ def _workforce_panel() -> None:
         f"SLA threshold: {defaults.sla_wait_threshold_minutes:.1f} min. "
         "The 80% target and 85% occupancy defaults are configurable V1 planning assumptions."
     )
-    if st.button("BUILD WORKFORCE PLAN", type="primary", use_container_width=True):
+    if st.button("BUILD WORKFORCE PLAN", type="primary", width="stretch"):
         config_for_plan = default_workforce_config(
             target_service_level=target,
             max_occupancy=occupancy,
@@ -613,7 +630,7 @@ def _workforce_panel() -> None:
             for item in (comparison.fixed, comparison.erlang_c)
         ],
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
     peak_point = max(plan.points, key=lambda point: point.recommended_agents)
     st.info("Peak-interval explanation: " + peak_point.explanation)
@@ -642,7 +659,7 @@ def _workforce_panel() -> None:
                     for case in validation["cases"]
                 ],
                 hide_index=True,
-                use_container_width=True,
+                width="stretch",
             )
     st.warning(
         "Dynamic 30-minute staffing inside the frozen Digital Twin is deliberately deferred. "
@@ -696,9 +713,10 @@ def _rl_experiment_panel() -> None:
                 "Staffing changes": f"{metrics['staffing_changes']['mean']:.1f}",
             }
         )
-    st.dataframe(rows, hide_index=True, use_container_width=True)
+    st.dataframe(rows, hide_index=True, width="stretch")
     st.error(
-        "PPO is not recommended: it achieved its higher environment reward by holding about "
+        "Operational recommendation: NOT ADOPTED. PPO achieved its higher environment reward "
+        "by holding about "
         "17 agents (408 agent-hours/day), versus about 118 agent-hours for Erlang-C. "
         "This is overstaffing, not evidence that RL beats the analytical baseline."
     )
@@ -731,6 +749,11 @@ def _rl_experiment_panel() -> None:
 
 
 def render_manager() -> None:
+    st.info(
+        "CallVerse V1 research decision-support prototype. Recommended demo: "
+        "1 Simulate, 2 Observe, 3 Forecast, 4 Plan workforce, 5 Test decision, "
+        "6 Inspect interaction, 7 Evaluate quality."
+    )
     st.title("CallVerse · Manager Control Room")
     st.caption("Operational Digital Twin metrics and individual interaction quality are separate.")
     tabs = st.tabs(

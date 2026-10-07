@@ -1,0 +1,63 @@
+{
+  "version": "callverse-final-demo-validation-v1",
+  "validated_at": "2026-10-07T12:42:37+01:00",
+  "all_seven_presets": {
+    "status": "passed",
+    "seeds": [101, 202, 303, 404, 505, 606, 707],
+    "total_runtime_seconds": 0.1763
+  },
+  "official_scenarios": {
+    "normal_day": {"seed": 101, "generated": 352, "sla": 1.0, "abandonment": 0.0, "occupancy": 0.346011},
+    "staff_shortage": {"seed": 404, "generated": 394, "sla": 0.647260, "abandonment": 0.246193, "occupancy": 0.850466},
+    "perfect_storm": {"seed": 707, "generated": 934, "sla": 0.279236, "abandonment": 0.539615, "occupancy": 0.984199}
+  },
+  "end_to_end": {
+    "scenario": "staff_shortage",
+    "seed": 404,
+    "twin": "passed",
+    "forecast": "passed",
+    "workforce": "passed",
+    "same_seed_comparison": "passed",
+    "offline_advisor": "passed",
+    "offline_quality_guardrails": "passed_with_scores_unavailable_as_designed",
+    "live_advisor": "passed_separately",
+    "live_quality": "passed_separately",
+    "ppo_research_view": "passed"
+  },
+  "same_seed_what_if": {
+    "before_agents": 3,
+    "after_agents": 5,
+    "before_sla": 0.647260,
+    "after_sla": 0.984085,
+    "before_abandonment": 0.246193,
+    "after_abandonment": 0.043147,
+    "before_wait_minutes": 2.112993,
+    "after_wait_minutes": 0.196441,
+    "scientific_label": "simulated effect under identical seeded conditions; not a production causal estimate"
+  },
+  "timings_seconds": {
+    "streamlit_cold_start": 16.7044,
+    "streamlit_twin_action": 0.7291,
+    "streamlit_workforce_action": 0.5623,
+    "streamlit_comparison_action": 0.5480,
+    "streamlit_offline_interaction_action": 1.2533,
+    "twin": 0.0208,
+    "forecast_load_and_generation": 0.1651,
+    "workforce_plan": 0.0031,
+    "before_after_simulation": 0.0173,
+    "offline_advisor_cold_start": 5.8110,
+    "offline_quality": 0.0002,
+    "ppo_load_and_inference": 3.5092
+  },
+  "streamlit_validation": {
+    "all_seven_tabs_rendered": true,
+    "single_session_end_to_end": true,
+    "exceptions": 0,
+    "observed_warnings": ["Streamlit use_container_width deprecation was observed and resolved before freeze"]
+  },
+  "quality_adversarial_regression": {
+    "tests": 3,
+    "status": "passed",
+    "behaviors": ["invented order status flagged high severity", "unauthorized refund capped", "hard flag survived favorable judge"]
+  }
+}

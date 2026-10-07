@@ -1,5 +1,9 @@
 # CallVerse Dashboard / Scenario Studio V1
 
+**Project implementation status: CallVerse V1 complete research prototype.** The
+recommended defense order is Simulate → Observe → Forecast → Plan workforce → Test a
+same-seed decision → Inspect an interaction → Evaluate quality.
+
 ## Purpose
 
 The Manager Control Room is the first visual management surface for CallVerse:
@@ -227,3 +231,15 @@ The PPO policy is experimental and must not automate staffing. V1 still has no
 validated cost model, weather/delivery causal mechanism, audio model, or bad-review
 prediction model. The Manager Control Room remains decision support; the calibrated
 Digital Twin and transparent analytical baselines remain authoritative.
+
+## Final provider and failure behavior
+
+The Customer view disables live chat when `GROQ_API_KEY` is absent while leaving the
+Manager and offline Interaction Lab usable. If a requested live call fails, the UI
+reports the provider error type and explicitly states that no deterministic response
+was substituted. The Interaction Lab never silently labels offline output as live.
+
+The Forecast view identifies its source as historical generic Technion contact-center
+demand and excludes production, courier, delivery-event, and weather-causal claims.
+The Workforce view names Erlang-C as the analytical staffing baseline, not an optimum.
+The PPO section states **Operational recommendation: NOT ADOPTED**.

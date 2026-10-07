@@ -129,7 +129,11 @@ def check_for_updates() -> int:
 def render_customer(customer_id: str) -> None:
     st.title("💬 Customer Support Chat")
     if not config.GROQ_API_KEY:
-        st.error("GROQ_API_KEY is not set. Add it to `.env` and restart to chat.")
+        st.error(
+            "Live Groq is unavailable because `GROQ_API_KEY` is not configured. "
+            "The Manager Control Room and its offline Interaction Lab remain available."
+        )
+        return
 
     # Poll for any staff decisions that landed since the last interaction.
     check_for_updates()
@@ -148,7 +152,14 @@ def render_customer(customer_id: str) -> None:
     if prompt := st.chat_input("Ask about an order, refund, or policy…"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.spinner("Thinking… (triage → solver → review)"):
-            res = graph.run_turn(prompt, customer_id, st.session_state.thread_id, app=app)
+            try:
+                res = graph.run_turn(prompt, customer_id, st.session_state.thread_id, app=app)
+            except Exception as exc:  # noqa: BLE001 - provider failures must stay user-facing
+                st.error(
+                    "Live provider unavailable; no offline response was substituted. "
+                    f"Error type: {type(exc).__name__}."
+                )
+                return
         st.session_state.last_state = res.get("state", {})
 
         if res["status"] == "interrupted":
@@ -260,7 +271,7 @@ with st.sidebar:
                 new_thread()
             customer_id = new_id
 
-            if st.button("🔄 New conversation", use_container_width=True):
+            if st.button("🔄 New conversation", width="stretch"):
                 new_thread()
                 st.rerun()
 

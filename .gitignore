@@ -44,6 +44,10 @@ data/processed/workforce/*
 data/processed/rl/*
 !data/processed/rl/policy_evaluation.json
 !data/processed/rl/environment_crosscheck.json
+!data/processed/final/
+data/processed/final/*
+!data/processed/final/live_llm_smoke.json
+!data/processed/final/demo_validation.json
 
 # Model cache
 .cache/

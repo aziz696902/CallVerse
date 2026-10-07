@@ -286,7 +286,7 @@ def test_streamlit_workforce_view_shows_experimental_ppo_limitations():
         item.value for item in (*app.subheader, *app.caption, *app.error, *app.warning)
     )
     assert "PPO Workforce Policy — Experimental" in visible_text
-    assert "PPO is not recommended" in visible_text
+    assert "Operational recommendation: NOT ADOPTED" in visible_text
     assert "not a production recommendation" in visible_text
 
 

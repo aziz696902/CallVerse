@@ -1,213 +1,153 @@
-# CallVerse
+# CallVerse V1
 
-CallVerse is a final-year Data Science project for building a digital twin of an
-e-commerce and delivery customer-support center. This first phase keeps the inherited
-customer-advisor application intact as a verified baseline; the internal `helppilot`
-package name is intentionally unchanged to avoid breaking working imports.
+CallVerse is a final-year Data Science research prototype for virtual
+support-center decision support. A manager can simulate demand, inspect operational
+consequences, forecast upcoming contact volume, build an analytical staffing plan,
+test a same-seed what-if decision, and inspect customer-service quality before making
+real-world decisions.
 
-**A customer-support agent that investigates on its own, but asks a human before it does anything irreversible.**
+**Project implementation status: V1 complete.** CallVerse is a reproducible research
+and engineering prototype, not a production workforce or customer-service system.
 
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-agent-1C3C3C)
-![Groq](https://img.shields.io/badge/Groq-gpt--oss-F55036)
-![Chroma](https://img.shields.io/badge/RAG-Chroma%20%2B%20reranker-4B32C3)
-![License](https://img.shields.io/badge/License-MIT-green)
+## Research question and result
 
-## Open-source foundation and attribution
+Can a calibrated support-center simulation, demand forecast, explainable Erlang-C
+baseline, and learned PPO policy provide useful evidence for staffing decisions?
 
-CallVerse builds on [HelpPilot](https://github.com/poysa213/HelpPilot), which provides
-the initial customer-support agent foundation. HelpPilot is distributed under the MIT
-License. Its upstream license and copyright notice are preserved verbatim in
-[`LICENSE`](LICENSE), and the inherited source history remains available in Git.
+The operational recommendation is the transparent **Erlang-C analytical baseline**.
+The experimental PPO policy trained successfully but converged to about 17 constant
+agents and 408 agent-hours/day, versus about 118 mean agent-hours for Erlang-C in the
+same RL evaluation environment. PPO is therefore **not adopted**.
 
-The HelpPilot code is third-party open-source work; CallVerse does not claim the
-inherited code as original CallVerse authorship.
+## Final architecture
 
-It reads a customer message, looks up their order, searches the help docs, and writes
-a reply that is backed by those docs. When it wants to do something sensitive — like
-give a refund — it stops and waits for a human to approve. Every run is one trace in
-LangSmith.
+```text
+Technion operations data + Olist delivery/review data + Bitext support text
+                              |
+                    calibration / evaluation
+                              |
+Scenario -> SimPy Digital Twin -> KPIs -> 24h forecast -> Erlang-C plan
+                  |                                      |
+                  +-------- same-seed what-if -----------+
 
-I built this to learn how to design an agent that is **safe and easy to follow**, not
-just one that answers questions.
+Customer -> TF-IDF intent classifier -> HelpPilot Advisor
+                                      -> SQLite tools / Chroma RAG / approval
+                                      -> Quality Analyst
 
-![correct](https://img.shields.io/badge/correct-86.7%25-brightgreen)
-![grounded](https://img.shields.io/badge/grounded-100%25-brightgreen)
-![refunds approved first](https://img.shields.io/badge/no%20refund%20without%20approval-100%25-brightgreen)
-![cost](https://img.shields.io/badge/cost-~%240.0008%2Fticket-blue)
-
-### Highlights
-
-- **5-node LangGraph** — triage → solver → approval → reviewer → respond.
-- **Human in the loop** — refunds pause on a durable SQLite checkpoint and resume only
-  when a person approves, even from a different screen or process.
-- **Real RAG** — Chroma vector search + a cross-encoder reranker, with citations.
-- **Grounding gate** — a separate reviewer model blocks any reply the docs don't support.
-- **Tested** — a 30-ticket eval with LLM-as-judge and a hard "no refund without approval" rule.
-
-The graph below is rendered by LangGraph itself (solid = fixed edges, dotted =
-conditional routing — triage can skip to respond for escalations, and reviewer can
-loop back to the solver):
-
-<p align="center">
-  <img src="docs/langgraph.png" alt="HelpPilot LangGraph flow" width="210">
-</p>
-
-## What it does
-
-Ask it *"my package never arrived, order ORD-5001"* and it will:
-
-1. decide the message needs tools (triage),
-2. look up the order and tracking, find it is lost, read the refund policy (solver),
-3. draft a refund and **pause for a human to approve it** (approval),
-4. check the reply is backed by the docs and has citations (reviewer),
-5. send the reply and save everything (respond).
-
-## The 5 steps
-
-| Step | Uses an LLM? | What it is for |
-|------|------|----------------|
-| **triage** | yes (small model) | Sort the message: simple answer, use tools, or send to a human. A cheap first pass. |
-| **solver** | yes (big model) | The main worker. Searches docs, calls tools, and *proposes* a reply and any action. It only drafts refunds — it never sends money. |
-| **approval** | no | Stops the run when a refund is proposed and waits for a person to approve or reject. |
-| **reviewer** | yes (big model) | Last check before sending: is the reply supported by the docs and cited? If not, it sends the work back to the solver (up to 2 times). |
-| **respond** | no | Cleans up: remove personal data, add citations, save to the database, send. |
-
-3 of the 5 steps use an LLM. Only 2 of them — solver and reviewer — use the big
-model to do real reasoning; triage uses a small model for a quick sort. The other
-two steps (approval and respond) are plain, predictable code. That keeps the agent
-easy to trust and easy to read.
-
-## Two people, not one
-
-A customer should never approve their own refund, and they should not have to wait.
-So the agent works like a real support team:
-
-- The **customer** chats. When the agent proposes a refund, the customer just sees
-  *"a specialist is reviewing this, we'll get back to you."* The chat ends there.
-- A **staff member** opens a separate view with a queue of pending refunds. They see
-  what the agent proposed and click Approve or Reject.
-- When staff decide, the answer is sent back to the customer.
-
-```mermaid
-sequenceDiagram
-    actor C as Customer
-    participant A as Agent
-    participant Q as Approval queue
-    actor S as Staff
-    C->>A: "my package never arrived"
-    A->>A: look up order, check policy, draft refund
-    A-->>Q: interrupt() — refund pending, run paused to SQLite
-    A-->>C: "a specialist is reviewing, we'll follow up"
-    Note over C: not blocked — the chat ends here
-    S->>Q: opens the queue, reads the AI's draft
-    S->>A: Approve — resume the same thread
-    A->>A: issue refund → review → finalize
-    A-->>C: "your refund is approved"
+PPO workforce environment -> experimental research result only (not Twin control)
 ```
 
-This is possible because of LangGraph's `interrupt()`. It saves the whole run to a
-SQLite file and stops. Later, a call to `resume_turn(thread_id, approved=...)` picks
-it up from the exact same place — even from a different screen or process. Nothing is
-lost and nobody is blocked.
+See [final architecture and implementation matrix](docs/CALLVERSE_ARCHITECTURE.md)
+for evidence boundaries and proposed-versus-implemented components.
 
-In the demo, both roles are in one app behind a sidebar switch, so you can try both
-sides yourself.
+## Quick start
 
-## RAG (searching the docs)
+Python 3.11 and `uv` are recommended.
 
-The document search is real (only the order/tracking data is fake):
-
-1. About 8 policy documents are split into chunks and stored in Chroma.
-2. A query pulls the 8 closest chunks.
-3. A cross-encoder reranks them and keeps the best 3. This model reads the question
-   and the passage together, so it is more accurate than plain similarity.
-4. Each chunk keeps its id, which becomes a citation like `[refund-policy]`.
-
-You can try the search on its own:
-
-```bash
-python -m helppilot.rag "my package never arrived, can I get a refund?"
-```
-
-## Tech
-
-- **LangGraph** for the agent, with a SQLite checkpointer for the pause/resume.
-- **Groq** for the models (`gpt-oss-20b` for triage, `gpt-oss-120b` for solving and review).
-- **Chroma** + a **cross-encoder reranker** for search.
-- **SQLite** for the data (customers, orders, tickets, logs, approvals).
-- **Streamlit** for the UI.
-- **LangSmith** for tracing.
-
-## Run it
-
-You need Python 3.11+ and a [Groq API key](https://console.groq.com/keys).
-A [LangSmith](https://smith.langchain.com/) key is optional (it adds tracing).
-
-```bash
-# install
-uv sync                          # or: pip install -r requirements.txt
-
-# add your keys
-cp .env.example .env             # then paste your GROQ_API_KEY
-
-# load the sample data and build the search index
+```powershell
+Set-Location "C:\Programs\Project_data_science\CallVerse"
+uv sync
+Copy-Item .env.example .env
+# Optionally place GROQ_API_KEY in the ignored .env file.
 uv run python -m helppilot.seed
-
-# start the app
 uv run streamlit run app.py
 ```
 
-Then, in the app:
+Open the Manager view for the complete offline demo. Without Groq, the Digital Twin,
+forecast, Workforce Manager, PPO research view, offline Interaction Lab, and
+deterministic Quality guardrails remain available. Live Advisor and structured Quality
+scoring are explicitly unavailable rather than silently replaced with fake LLM output.
 
-1. As **Customer** (Alice), type *"my package never arrived, order ORD-5001"*.
-2. Switch to **Staff** in the sidebar and approve the refund.
-3. Switch back to **Customer** to see the result.
+## Reproducibility commands
 
-## Evaluation
+```powershell
+# Full automated suite
+.\.venv\Scripts\python.exe -m pytest -q
 
-`python eval.py` runs about 30 test tickets through the agent and checks:
+# Digital Twin deterministic demo
+.\.venv\Scripts\python.exe -m callverse.simulation.demo
 
-- is the answer correct (judged by an LLM),
-- is it grounded in the retrieved docs,
-- does it escalate the right cases,
-- and one strict rule: **no refund is ever sent without approval.**
+# Rebuild/evaluate the 24-hour forecast
+.\.venv\Scripts\python.exe -m callverse.forecasting.train
 
-It also measures latency and estimated cost, prints a table, and writes the result
-to `EVAL_RESULTS.md`.
+# Rebuild Erlang-C versus fixed-Twin validation evidence
+.\.venv\Scripts\python.exe -m callverse.workforce.evaluation
 
-Last run (30 tickets):
+# Evaluate the already-trained PPO policy (no retraining)
+.\.venv\Scripts\python.exe -m callverse.rl.evaluation
 
-| Metric | Result |
-|--------|--------|
-| Correctness (LLM judge) | **86.7%** |
-| Groundedness (LLM judge) | **100%** |
-| Escalation correctness | **100%** |
-| No refund without approval | **100%** |
-| Avg latency / ticket | ~16s |
-| Cost / ticket | ~$0.0008 |
-
-The few correctness misses were still grounded and safe — I chose not to tune the
-prompts to the test set. See [`EVAL_RESULTS.md`](EVAL_RESULTS.md) for the full table.
-
-## Project structure
-
-```
-app.py                 Streamlit UI (customer chat + staff approval queue)
-eval.py                evaluation script
-helppilot/
-  config.py            model names, paths, tracing setup
-  db.py                SQLite schema and helpers
-  seed.py              load sample data + build the search index
-  kb_docs.py           the policy/FAQ documents
-  rag.py               search + rerank + citations
-  tools.py             the agent's tools (order lookup, refund, etc.)
-  graph.py             the 5-step LangGraph
-  eval_dataset.py      the test tickets
+# Offline classifier/Advisor integration demo
+.\.venv\Scripts\python.exe -m callverse.customer_advisor_demo
 ```
 
-## What I left out (on purpose)
+Optional live configuration belongs only in ignored `.env`:
 
-To keep the project small and clear, I did not build: email/Slack channels, hybrid
-search, background workers, billing, teams, or login. These would add size without
-making the core agent easier to understand.
+```dotenv
+GROQ_API_KEY=your_real_local_secret
+LANGSMITH_TRACING=false
+LANGSMITH_API_KEY=
+```
+
+LangSmith is optional. Never commit `.env`.
+
+## Implemented modules
+
+- calibrated, held-out-validated SimPy operational Digital Twin;
+- seven deterministic scenario presets and same-seed staffing what-if comparison;
+- six-class TF-IDF delivery-support intent classifier with safe fallback;
+- inherited MIT-licensed HelpPilot LangGraph Advisor, SQLite tools, Chroma RAG,
+  grounding review, durable refund approval, and escalation;
+- deterministic Quality guardrails plus optional structured Groq six-dimension judge;
+- rolling-origin 48-step LightGBM Poisson historical contact-demand forecast;
+- calibrated Erlang-C analytical staffing recommendation;
+- Stable-Baselines3 PPO workforce experiment, evaluated and rejected operationally;
+- one Streamlit application for Customer, Staff, and Manager roles.
+
+## Data and evidence boundaries
+
+- **Technion Anonymous Bank Call-Center Data:** generic contact-center arrivals,
+  service, waiting, and abandonment—not e-commerce customer records.
+- **Olist:** delivery lateness and review association only; it does not establish that
+  lateness caused a support contact.
+- **Bitext:** templated/synthetic-like support text used for intent classification;
+  perfect held-out TF-IDF scores must not be generalized to production language.
+
+See [data sources](docs/DATA_SOURCES.md),
+[final results](docs/CALLVERSE_FINAL_RESULTS.md), and the
+[demo guide](docs/CALLVERSE_DEMO_GUIDE.md).
+
+## Major verified results
+
+- Calibration uses 435,785 usable Technion contacts; held-out mean service time was
+  3.333 minutes and held-out queued-call abandonment was 23.28%.
+- TF-IDF logistic regression achieved 1.000 macro-F1 on the 1,004-row templated test
+  split and was selected over BERT-tiny by the predeclared validation rule.
+- LightGBM Poisson test MAE was 6.149 contacts/half-hour and RMSE was 10.018.
+- The final forecast contains 48 half-hour points and 251.744 predicted contacts.
+- The example Erlang-C plan used 42.5 agent-hours and met its analytical target in
+  48/48 intervals; this is not a guaranteed production outcome.
+- PPO reduced RL-environment wait and abandonment through severe overstaffing and is
+  not the operational policy.
+- Deterministic Quality safety fixtures pass; live Groq results are integration smoke
+  tests, not statistical or human evaluation.
+
+## Limitations
+
+There is no joined late-delivery-to-support-contact dataset, weather causal model,
+human evaluation of a large Advisor sample, bad-review prediction model, audio model,
+or dynamic staffing inside the frozen Digital Twin. Erlang-C uses simplified M/M/c
+assumptions. The PPO environment differs materially from the Twin. A Quality LLM
+judge is not human ground truth.
+
+## Documentation and attribution
+
+- [Final results](docs/CALLVERSE_FINAL_RESULTS.md)
+- [Defense/demo sequence](docs/CALLVERSE_DEMO_GUIDE.md)
+- [Dashboard](docs/CALLVERSE_DASHBOARD.md)
+- [PPO experiment](docs/CALLVERSE_PPO_WORKFORCE.md)
+- [Storage policy](docs/STORAGE_POLICY.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+CallVerse builds on the MIT-licensed
+[HelpPilot](https://github.com/poysa213/HelpPilot). Reuse scope, inspected revisions,
+and licenses are recorded in `THIRD_PARTY_NOTICES.md`.
