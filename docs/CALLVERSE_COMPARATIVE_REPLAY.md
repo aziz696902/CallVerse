@@ -67,9 +67,49 @@ mid-run capacity change. Shared randomness reduces variation but does not establ
 real-world impact. The right-hand choice remains a tested decision, not an optimality
 or forecasting guarantee.
 
-## Phase 2 animation plan
+## Phase 2 — Playback and operational view
 
-A later Comparative Replay Phase 2 may iterate over the already prepared frame tuple
-to add playback, pause/restart, speed control, and an animated operational view. Phase
-1 intentionally provides only the synchronized manual selector; no timers, autoplay,
-moving elements, or event-marker interface are implemented.
+Phase 2 adds a playback controller that consumes only the immutable synchronized
+frame tuple. The controller stores frame index, playing/paused state, replay speed,
+and end-of-replay state independently from the simulation data. Play advances exactly
+one frame at a time, Pause preserves the selected frame, Restart returns to frame zero
+without rebuilding either run, and manual scrubbing pauses playback. Repeated Play
+does not create another state machine, and the final frame stops automatically.
+
+Playback speed controls wall-clock UI pacing, not simulation-model time. The mapping
+is:
+
+| Replay speed | Wall-clock interval per stored frame |
+|---:|---:|
+| 0.5x | 4.00 seconds |
+| 1x | 2.00 seconds |
+| 2x | 1.00 second |
+| 4x | 0.50 seconds |
+| 8x | 0.25 seconds |
+
+The default is 4x, so the 32 transitions in the official 33-frame replay take about
+16 seconds plus Streamlit rendering time. Every step selects one existing
+`ComparativeFrame`; no playback control invokes the Digital Twin. A settings change
+stops playback and hides the stale comparison until it is rebuilt.
+
+Both sides always render from the same `ComparativeFrame`, which carries one frame
+index, elapsed minute, and simulated clock. The operational view keeps completed and
+abandoned counters visible, shows numeric queue and staffing values, and supplements
+them with accessible text markers:
+
+- advisor markers say `BUSY` or `FREE` and are capped at ten;
+- waiting-contact markers are capped at ten;
+- any hidden markers are represented by an explicit additional-count label;
+- numeric counts remain authoritative;
+- current snapshot pressure remains textual and is not overall-run health.
+
+This remains a replay of completed simulations, not live production telemetry. It
+does not modify staffing during a run, synthesize per-frame SLA/occupancy/wait/AHT, or
+claim that the assisted decision is optimal.
+
+## Phase 3 storytelling plan
+
+A later Comparative Replay Phase 3 may add evidence-backed decision markers,
+CallVerse-assisted narrative, and final visualization polish over the same stored
+frames. Phase 2 does not implement recommendation provenance, intervention events,
+automatic manager explanations, verdict animation, or export/video recording.

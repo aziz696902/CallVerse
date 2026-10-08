@@ -216,7 +216,7 @@ def test_streamlit_comparative_replay_empty_build_and_stale_states():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
     visible = "\n".join(item.value for item in (*app.subheader, *app.info, *app.caption))
     assert "COMPARATIVE SIMULATION REPLAY" in visible
-    assert "Build a baseline vs CallVerse-assisted comparison" in visible
+    assert "Build a synchronized comparison first" in visible
 
     next(button for button in app.button if button.label == "PREPARE OFFICIAL DEMO").click()
     app.run(timeout=30)

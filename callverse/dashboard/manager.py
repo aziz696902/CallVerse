@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 import uuid
 
 import streamlit as st
@@ -37,7 +38,6 @@ from .comparative_replay import (
     comparative_slider_key,
     comparison_matches_configuration,
     create_comparison_configuration,
-    select_comparative_frame,
 )
 from .decision_guidance import (
     PRODUCTION_AB_DISCLAIMER,
@@ -48,6 +48,23 @@ from .decision_guidance import (
     format_metric_delta,
     format_metric_value,
     recommended_decision_widget_state,
+)
+from .playback import (
+    DEFAULT_SPEED,
+    SUPPORTED_SPEEDS,
+    PlaybackState,
+    advance,
+    advisor_markers,
+    current_frame,
+    initial_playback_state,
+    pause,
+    play,
+    queue_markers,
+    restart,
+    scrub,
+    seconds_per_frame,
+    set_speed,
+    stop_for_stale_comparison,
 )
 from .scenario_guidance import (
     CenterStatus,
@@ -366,6 +383,10 @@ def _mark_comparative_manager_selected() -> None:
     )
 
 
+def _mark_comparative_manual_scrub() -> None:
+    st.session_state.comparative_manual_scrub_requested = True
+
+
 def _set_comparative_controls(
     *,
     scenario_name: str,
@@ -390,6 +411,20 @@ def _set_comparative_controls(
 def _render_comparative_side(side: ReplaySideFrame) -> None:
     st.markdown(f"#### {side.label}")
     st.caption(f"Fixed staffing for this completed run: {side.available_agents} advisors")
+    advisors = advisor_markers(side.busy_agents, side.free_agents)
+    st.markdown("**Advisor capacity**")
+    st.write(" · ".join(f"[{marker}]" for marker in advisors.markers))
+    if advisors.hidden_count:
+        st.caption(f"+ {advisors.hidden_count} additional advisors")
+    waiting = queue_markers(side.queue_size)
+    st.markdown("**Waiting contacts**")
+    if waiting.markers:
+        queue_text = " ".join("●" for _ in waiting.markers)
+        if waiting.hidden_count:
+            queue_text += f"  + {waiting.hidden_count} more"
+        st.write(queue_text)
+    else:
+        st.write("No contacts waiting")
     first = st.columns(3)
     first[0].metric("Current queue", side.queue_size)
     first[1].metric("Busy advisors", side.busy_agents)
@@ -485,6 +520,7 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             decision_source=DecisionSource.RECOMMENDED_DEMO,
         )
         st.session_state.manager_comparative_replay = None
+        st.session_state.manager_comparative_playback = None
         st.rerun()
     st.caption(
         "PREPARE OFFICIAL DEMO fills Staff Shortage · seed 404 · 3 → 5 advisors · "
@@ -585,43 +621,120 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             st.session_state.manager_comparative_replay = build_comparative_replay(
                 comparison_config
             )
+        initial_state = initial_playback_state(
+            len(st.session_state.manager_comparative_replay.frames)
+        )
+        initial_speed = float(
+            st.session_state.get("comparative_playback_speed", DEFAULT_SPEED)
+        )
+        st.session_state.manager_comparative_playback = set_speed(
+            initial_state, initial_speed
+        )
 
     replay: ComparativeReplay | None = st.session_state.get(
         "manager_comparative_replay"
     )
     if replay is None:
-        st.info(
-            "Build a baseline vs CallVerse-assisted comparison to inspect both simulations "
-            "on the same timeline."
-        )
+        st.info("Build a synchronized comparison first.")
         return
     if not comparison_matches_configuration(replay, comparison_config):
+        playback = st.session_state.get("manager_comparative_playback")
+        if playback is not None:
+            st.session_state.manager_comparative_playback = (
+                stop_for_stale_comparison(playback)
+            )
         st.warning(
             "The setup changed after this comparison was built. Build the comparison again "
             "before inspecting frames."
         )
         return
 
-    frame_index = st.select_slider(
+    playback: PlaybackState | None = st.session_state.get(
+        "manager_comparative_playback"
+    )
+    if playback is None or playback.frame_index >= len(replay.frames):
+        playback = initial_playback_state(len(replay.frames))
+        st.session_state.manager_comparative_playback = playback
+
+    slider_key = comparative_slider_key(comparison_config)
+    pending_slider_key = f"{slider_key}_pending"
+    pending_slider = st.session_state.pop(pending_slider_key, None)
+    manual_scrub_requested = st.session_state.pop(
+        "comparative_manual_scrub_requested", False
+    )
+    if pending_slider is not None and not manual_scrub_requested:
+        st.session_state[slider_key] = pending_slider
+    elif slider_key not in st.session_state:
+        st.session_state[slider_key] = playback.frame_index
+
+    controls = st.columns([1, 1, 1, 2])
+    if controls[0].button("PLAY", disabled=playback.is_playing or playback.reached_end):
+        playback = play(playback, len(replay.frames))
+    if controls[1].button("PAUSE", disabled=not playback.is_playing):
+        playback = pause(playback)
+    if controls[2].button("RESTART"):
+        playback = restart(playback, len(replay.frames))
+        st.session_state[slider_key] = playback.frame_index
+    selected_speed = float(
+        controls[3].selectbox(
+            "Playback speed",
+            SUPPORTED_SPEEDS,
+            index=SUPPORTED_SPEEDS.index(playback.speed_multiplier),
+            format_func=lambda speed: f"{speed:g}x",
+            key="comparative_playback_speed",
+            help=(
+                "Replay speed controls wall-clock pacing, not simulated time. "
+                "At 1x, one 15-minute simulation frame advances every 2 UI seconds."
+            ),
+        )
+    )
+    playback = set_speed(playback, selected_speed)
+    st.session_state.manager_comparative_playback = playback
+
+    selected_index = st.select_slider(
         "Synchronized simulated time",
         options=tuple(range(len(replay.frames))),
-        value=0,
         format_func=lambda index: (
             f"{replay.frames[index].simulated_clock} · "
             f"minute {replay.frames[index].simulation_minute:g}"
         ),
-        key=comparative_slider_key(comparison_config),
+        key=slider_key,
+        on_change=_mark_comparative_manual_scrub,
     )
-    frame = select_comparative_frame(replay, frame_index)
+    if selected_index != playback.frame_index:
+        playback = scrub(playback, selected_index, len(replay.frames))
+        st.session_state.manager_comparative_playback = playback
+    frame = current_frame(replay, playback)
+    assert frame.baseline.available_agents == replay.comparison.before.result.available_agents
+    assert frame.assisted.available_agents == replay.comparison.after.result.available_agents
     cadence = (
         f"{replay.snapshot_cadence_minutes:g} minutes"
         if replay.snapshot_cadence_minutes is not None
         else "variable"
     )
+    time_columns = st.columns([1, 2, 1])
+    time_columns[1].metric("SIMULATED TIME", frame.simulated_clock)
+    time_columns[1].caption(
+        f"Frame {frame.index + 1} / {frame.frame_count} · elapsed "
+        f"{frame.simulation_minute:g} simulated minutes"
+    )
+    st.progress(
+        frame.index / max(1, frame.frame_count - 1),
+        text=(
+            f"{replay.frames[0].simulated_clock} → {frame.simulated_clock} → "
+            f"{replay.frames[-1].simulated_clock}"
+        ),
+    )
     st.caption(
         f"Frame {frame.index + 1} of {frame.frame_count} · {frame.simulated_clock} · "
-        f"elapsed {frame.simulation_minute:g} minutes · snapshot cadence {cadence}"
+        f"snapshot cadence {cadence} · playback speed {playback.speed_multiplier:g}x"
     )
+    if playback.reached_end:
+        st.success("Replay complete")
+    elif playback.is_playing:
+        st.info("Replay playing")
+    else:
+        st.caption("Replay paused · manual scrubbing is available")
     baseline_column, assisted_column = st.columns(2)
     with baseline_column.container(border=True):
         _render_comparative_side(frame.baseline)
@@ -656,6 +769,13 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         "production causal estimate."
     )
     _render_comparative_final_summary(replay)
+
+    if playback.is_playing:
+        time.sleep(seconds_per_frame(playback.speed_multiplier))
+        playback = advance(playback, len(replay.frames))
+        st.session_state.manager_comparative_playback = playback
+        st.session_state[pending_slider_key] = playback.frame_index
+        st.rerun()
 
 
 def _twin_monitor() -> None:
