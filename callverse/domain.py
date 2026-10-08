@@ -107,7 +107,7 @@ class KpiSnapshot(DomainModel):
     abandonment_rate: float | None = Field(default=None, ge=0, le=1)
     average_handling_time: float | None = Field(default=None, ge=0)
     first_contact_resolution: float | None = Field(default=None, ge=0, le=1)
-    occupancy: float | None = Field(default=None, ge=0, le=1)
+    occupancy: float | None = Field(default=None, ge=0)
     customer_satisfaction: float | None = Field(default=None, ge=0, le=1)
     operating_cost: float | None = Field(default=None, ge=0)
 

@@ -79,6 +79,10 @@ progression:
    AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer. The
    example plan uses 1–5 agents, 42.5 agent-hours, and reaches its analytical target
    in 48/48 intervals.
+   Then run **FAIR WORKFORCE COMPARISON**: the fixed two-advisor baseline uses 48.0
+   agent-hours, while the predefined Forecast-to-Erlang-C schedule uses 42.5. Under
+   identical realized demand, show the actual simulated SLA, abandonment, and wait
+   results. Call this **workforce intelligence**, not proof of a production optimum.
 7. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
    **RUN COMPARISON**. State: “simulated effect under identical seeded conditions.”
 8. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic

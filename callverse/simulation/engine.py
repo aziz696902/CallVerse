@@ -24,10 +24,11 @@ from .models import (
     RequestOutcome,
     ScenarioComparison,
     SimulationResult,
+    StaffingMode,
+    StaffingSchedule,
     TimeSeriesSnapshot,
 )
 from .policies import DEFAULT_POLICY, SimulationPolicy
-
 
 _MESSAGES: dict[RequestIntent, str] = {
     RequestIntent.TRACKING: "Where is my order?",
@@ -61,6 +62,46 @@ class _RequestState:
     waiting_time: float | None = None
 
 
+class _ScheduledAdvisorPool:
+    """CallVerse-owned non-preemptive capacity gate using public SimPy events."""
+
+    def __init__(self, env: simpy.Environment, capacity: int) -> None:
+        self.env = env
+        self.capacity = capacity
+        self.count = 0
+        self.queue: list[simpy.Event] = []
+
+    def request(self) -> simpy.Event:
+        event = self.env.event()
+        self.queue.append(event)
+        self._dispatch()
+        return event
+
+    def cancel(self, event: simpy.Event) -> None:
+        if not event.triggered and event in self.queue:
+            self.queue.remove(event)
+
+    def release(self) -> None:
+        if self.count <= 0:
+            raise RuntimeError("cannot release an advisor that is not busy")
+        self.count -= 1
+        self._dispatch()
+
+    def set_capacity(self, capacity: int) -> None:
+        if capacity <= 0:
+            raise ValueError("scheduled advisor capacity must be positive")
+        self.capacity = capacity
+        self._dispatch()
+
+    def _dispatch(self) -> None:
+        while self.queue and self.count < self.capacity:
+            event = self.queue.pop(0)
+            if event.triggered:
+                continue
+            self.count += 1
+            event.succeed()
+
+
 def _weighted_choice(rng: Random, probabilities: dict) -> object:
     values = list(probabilities)
     return rng.choices(values, weights=[probabilities[value] for value in values], k=1)[0]
@@ -72,12 +113,18 @@ class _SupportCenterSimulation:
         scenario: ScenarioConfig,
         seed: int,
         policy: SimulationPolicy,
+        staffing_schedule: StaffingSchedule | None = None,
     ) -> None:
         self.scenario = scenario
         self.seed = seed
         self.policy = policy
+        self.staffing_schedule = staffing_schedule
         self.env = simpy.Environment()
-        self.advisors = simpy.Resource(self.env, capacity=scenario.available_agents)
+        self.advisors = (
+            simpy.Resource(self.env, capacity=scenario.available_agents)
+            if staffing_schedule is None
+            else _ScheduledAdvisorPool(self.env, staffing_schedule.slots[0].advisors)
+        )
         # Separate streams keep the generated workload stable across staffing changes.
         self.arrival_rng = Random(seed)
         self.attribute_rng = Random(seed + 1)
@@ -86,11 +133,20 @@ class _SupportCenterSimulation:
         self.snapshots: list[TimeSeriesSnapshot] = []
 
     def run(self) -> SimulationResult:
+        if self.staffing_schedule is not None:
+            self.env.process(self._apply_staffing_schedule())
         self.env.process(self._generate_arrivals())
         self.env.process(self._record_snapshots())
         self.env.run(until=self.scenario.simulation_duration)
         self._append_snapshot(self.scenario.simulation_duration)
         return self._build_result()
+
+    def _apply_staffing_schedule(self):
+        assert self.staffing_schedule is not None
+        assert isinstance(self.advisors, _ScheduledAdvisorPool)
+        for slot in self.staffing_schedule.slots[1:]:
+            yield self.env.timeout(slot.start_minute - self.env.now)
+            self.advisors.set_capacity(slot.advisors)
 
     def _generate_arrivals(self):
         base_rate = self.policy.base_arrival_rate_per_minute * self.scenario.demand_multiplier
@@ -157,6 +213,9 @@ class _SupportCenterSimulation:
         return _RequestState(request, customer, patience, handling)
 
     def _handle_request(self, state: _RequestState):
+        if isinstance(self.advisors, _ScheduledAdvisorPool):
+            yield from self._handle_scheduled_request(state)
+            return
         with self.advisors.request() as advisor_request:
             patience_timeout = self.env.timeout(state.patience_minutes)
             outcome = yield advisor_request | patience_timeout
@@ -174,6 +233,32 @@ class _SupportCenterSimulation:
             state.status = "completed"
             state.end_time = self.env.now
 
+    def _handle_scheduled_request(self, state: _RequestState):
+        assert isinstance(self.advisors, _ScheduledAdvisorPool)
+        advisor_request = self.advisors.request()
+        patience_timeout = self.env.timeout(state.patience_minutes)
+        outcome = yield advisor_request | patience_timeout
+
+        if advisor_request not in outcome:
+            if advisor_request.triggered:
+                self.advisors.release()
+            else:
+                self.advisors.cancel(advisor_request)
+            state.status = "abandoned"
+            state.waiting_time = self.env.now - state.request.arrival_time
+            state.end_time = self.env.now
+            return
+
+        state.status = "in_service"
+        state.service_start = self.env.now
+        state.waiting_time = self.env.now - state.request.arrival_time
+        try:
+            yield self.env.timeout(state.handling_minutes)
+            state.status = "completed"
+            state.end_time = self.env.now
+        finally:
+            self.advisors.release()
+
     def _record_snapshots(self):
         while True:
             self._append_snapshot(self.env.now)
@@ -184,6 +269,11 @@ class _SupportCenterSimulation:
             simulation_time=simulation_time,
             queue_size=len(self.advisors.queue),
             busy_agents=self.advisors.count,
+            available_agents=(
+                self.scenario.available_agents
+                if self.staffing_schedule is None
+                else self.advisors.capacity
+            ),
             completed_count=sum(state.status == "completed" for state in self.requests),
             abandoned_count=sum(state.status == "abandoned" for state in self.requests),
         )
@@ -216,7 +306,11 @@ class _SupportCenterSimulation:
             for state in served_states
             if state.service_start is not None
         )
-        capacity_minutes = self.scenario.available_agents * self.scenario.simulation_duration
+        capacity_minutes = (
+            self.scenario.available_agents * self.scenario.simulation_duration
+            if self.staffing_schedule is None
+            else self.staffing_schedule.total_agent_hours * 60
+        )
 
         average_wait = (
             sum(state.waiting_time or 0.0 for state in observed_wait_states)
@@ -259,7 +353,16 @@ class _SupportCenterSimulation:
             scenario_name=self.scenario.name,
             seed=self.seed,
             duration=self.scenario.simulation_duration,
-            available_agents=self.scenario.available_agents,
+            available_agents=(
+                self.scenario.available_agents
+                if self.staffing_schedule is None
+                else self.staffing_schedule.maximum_advisors
+            ),
+            staffing_mode=(
+                StaffingMode.FIXED
+                if self.staffing_schedule is None
+                else StaffingMode.SCHEDULED
+            ),
             ai_advisor_enabled=self.scenario.ai_advisor_enabled,
             sla_target_minutes=self.policy.sla_target_minutes,
             busy_advisor_minutes=busy_minutes,
@@ -317,6 +420,28 @@ def run_simulation(
     if actual_seed < 0:
         raise ValueError("seed must be non-negative")
     return _SupportCenterSimulation(scenario, actual_seed, policy).run()
+
+
+def run_scheduled_simulation(
+    scenario: ScenarioConfig,
+    staffing_schedule: StaffingSchedule,
+    *,
+    seed: int | None = None,
+    policy: SimulationPolicy = DEFAULT_POLICY,
+) -> SimulationResult:
+    """Run the opt-in non-preemptive scheduled-capacity Digital Twin."""
+
+    if abs(staffing_schedule.horizon_minutes - scenario.simulation_duration) > 1e-9:
+        raise ValueError("staffing schedule horizon must match simulation duration")
+    actual_seed = scenario.random_seed if seed is None else seed
+    if actual_seed < 0:
+        raise ValueError("seed must be non-negative")
+    return _SupportCenterSimulation(
+        scenario,
+        actual_seed,
+        policy,
+        staffing_schedule=staffing_schedule,
+    ).run()
 
 
 def compare_scenarios(

@@ -277,7 +277,7 @@ def test_streamlit_workforce_view_builds_an_honestly_labelled_plan():
     visible_text = "\n".join(item.value for item in (*app.caption, *app.warning, *app.info))
     assert "Erlang-C analytical staffing recommendation" in visible_text
     assert "Theoretical Erlang-C predictions" in visible_text
-    assert "Dynamic 30-minute staffing" in visible_text
+    assert "WORKFORCE INTELLIGENCE" in visible_text
 
 
 def test_streamlit_workforce_view_shows_experimental_ppo_limitations():

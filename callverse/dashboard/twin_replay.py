@@ -98,8 +98,8 @@ def build_replay_frame(
         raise ValueError("icon cap cannot be negative")
 
     snapshot = snapshots[frame_index]
-    available = run.result.available_agents
-    free = available - snapshot.busy_agents
+    available = snapshot.available_agents
+    free = max(available - snapshot.busy_agents, 0)
     pressure = replay_pressure(snapshot.queue_size, snapshot.busy_agents, available)
     pressure_fraction = {
         ReplayPressure.LOW: 0.20,

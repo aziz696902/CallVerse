@@ -11,6 +11,7 @@ import streamlit as st
 from callverse.customer_advisor import CallVerseCustomerAdvisor
 from callverse.customer_advisor_demo import deterministic_demo_runner
 from callverse.domain import RequestIntent, SupportRequest
+from callverse.forecasting.contracts import DemandForecast
 from callverse.forecasting.service import (
     forecast_chart_rows,
     forecast_next_24h,
@@ -19,6 +20,10 @@ from callverse.forecasting.service import (
 from callverse.quality import QualityAnalyst, QualityEvaluationInput
 from callverse.quality.benchmark import load_policy_quality_benchmark
 from callverse.scenarios import SCENARIO_PRESETS, get_scenario
+from callverse.workforce.dynamic import (
+    fair_timeline_rows,
+    run_fair_workforce_comparison,
+)
 from callverse.workforce.manager import (
     build_workforce_plan,
     compare_staffing_strategies,
@@ -941,7 +946,8 @@ def _twin_monitor() -> None:
 def _compare_decisions() -> None:
     st.header("Compare Decisions")
     st.caption(
-        "SIMULATED same-seed comparison · Test what happens when one staffing choice changes. "
+        "CAPACITY WHAT-IF · SIMULATED same-seed comparison · Test what happens when one "
+        "fixed staffing choice changes. "
         "Workforce separately answers what Erlang-C analytically recommends."
     )
     run: ManagerRun | None = st.session_state.get("manager_run")
@@ -1372,11 +1378,159 @@ def _forecast_panel() -> None:
         )
 
 
+def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
+    st.divider()
+    st.subheader("FAIR WORKFORCE COMPARISON")
+    st.caption(
+        "WORKFORCE INTELLIGENCE · Can forecast-aware scheduling allocate the same or "
+        "lower total staffing budget better over time? This is separate from the fixed "
+        "3→5 CAPACITY WHAT-IF."
+    )
+    st.write(
+        "**Fixed baseline:** 2 advisors throughout 24 hours.  "
+        "**CallVerse dynamic:** the existing default Forecast → Erlang-C plan, applied "
+        "at 30-minute boundaries."
+    )
+    st.caption(
+        "The experiment is predefined: seed 404, current forecast artifact, default "
+        "80% service target, 85% occupancy cap, 10% forecast buffer, and no PPO."
+    )
+    if st.button("RUN FAIR WORKFORCE COMPARISON", type="primary", width="stretch"):
+        with st.spinner("Running matched fixed and scheduled 24-hour simulations…"):
+            st.session_state.manager_fair_workforce_comparison = (
+                run_fair_workforce_comparison(forecast)
+            )
+
+    comparison = st.session_state.get("manager_fair_workforce_comparison")
+    if comparison is None:
+        st.info(
+            "Run the comparison to evaluate actual Digital Twin outcomes. Nothing auto-runs."
+        )
+        return
+
+    baseline_hours = comparison.baseline_schedule.total_agent_hours
+    callverse_hours = comparison.callverse_schedule.total_agent_hours
+    budget = st.columns(4)
+    budget[0].metric("Baseline agent-hours", f"{baseline_hours:.1f}")
+    budget[1].metric("CallVerse agent-hours", f"{callverse_hours:.1f}")
+    budget[2].metric(
+        "Budget difference", f"{comparison.resource_budget_delta_hours:+.1f} h"
+    )
+    budget[3].metric(
+        "CallVerse min / avg / max",
+        (
+            f"{comparison.callverse_schedule.minimum_advisors} / "
+            f"{comparison.callverse_schedule.average_advisors:.2f} / "
+            f"{comparison.callverse_schedule.maximum_advisors}"
+        ),
+    )
+    if comparison.fairness_satisfied:
+        st.success(f"RESOURCE BUDGET PASSES · {comparison.outcome.value}")
+    else:
+        st.error(f"RESOURCE BUDGET FAILS · {comparison.outcome.value}")
+
+    baseline = comparison.baseline_result
+    callverse = comparison.callverse_result
+    baseline_backlog = baseline.snapshots[-1].queue_size
+    callverse_backlog = callverse.snapshots[-1].queue_size
+    st.markdown("**SERVICE OUTCOME · actual simulated results**")
+    st.dataframe(
+        [
+            {
+                "Metric": "Generated contacts",
+                "Fixed baseline": f"{baseline.counts.generated:,}",
+                "CallVerse dynamic": f"{callverse.counts.generated:,}",
+                "Difference": f"{callverse.counts.generated - baseline.counts.generated:+,}",
+            },
+            {
+                "Metric": "Completed contacts",
+                "Fixed baseline": f"{baseline.counts.completed:,}",
+                "CallVerse dynamic": f"{callverse.counts.completed:,}",
+                "Difference": f"{callverse.counts.completed - baseline.counts.completed:+,}",
+            },
+            {
+                "Metric": "SLA",
+                "Fixed baseline": f"{baseline.kpis.sla:.2%}",
+                "CallVerse dynamic": f"{callverse.kpis.sla:.2%}",
+                "Difference": f"{(callverse.kpis.sla - baseline.kpis.sla) * 100:+.2f} pp",
+            },
+            {
+                "Metric": "Abandonment",
+                "Fixed baseline": f"{baseline.kpis.abandonment_rate:.2%}",
+                "CallVerse dynamic": f"{callverse.kpis.abandonment_rate:.2%}",
+                "Difference": (
+                    f"{(callverse.kpis.abandonment_rate - baseline.kpis.abandonment_rate) * 100:+.2f} pp"
+                ),
+            },
+            {
+                "Metric": "Average wait",
+                "Fixed baseline": f"{baseline.kpis.average_waiting_time:.2f} min",
+                "CallVerse dynamic": f"{callverse.kpis.average_waiting_time:.2f} min",
+                "Difference": (
+                    f"{callverse.kpis.average_waiting_time - baseline.kpis.average_waiting_time:+.2f} min"
+                ),
+            },
+            {
+                "Metric": "Occupancy",
+                "Fixed baseline": f"{baseline.kpis.occupancy:.2%}",
+                "CallVerse dynamic": f"{callverse.kpis.occupancy:.2%}",
+                "Difference": (
+                    f"{(callverse.kpis.occupancy - baseline.kpis.occupancy) * 100:+.2f} pp"
+                ),
+            },
+            {
+                "Metric": "Final backlog",
+                "Fixed baseline": f"{baseline_backlog:,}",
+                "CallVerse dynamic": f"{callverse_backlog:,}",
+                "Difference": f"{callverse_backlog - baseline_backlog:+,}",
+            },
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        "Same forecast-shaped realized demand, seed, customer mix, service distributions, "
+        "and patience distributions. Only fixed versus scheduled capacity differs."
+    )
+
+    with st.expander("30-minute schedule and operational evidence"):
+        st.dataframe(
+            fair_timeline_rows(comparison, forecast),
+            hide_index=True,
+            width="stretch",
+        )
+    with st.expander(
+        f"WORKFORCE PLAN CHANGES ({len(comparison.staffing_events)})"
+    ):
+        st.dataframe(
+            [
+                {
+                    "Time": event.timestamp.strftime("%H:%M"),
+                    "Previous advisors": event.previous_advisors,
+                    "Scheduled advisors": event.advisors,
+                    "Event": event.title,
+                }
+                for event in comparison.staffing_events
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "These are predefined workforce-plan changes, not manager manual interventions. "
+            "Staffing reductions never interrupt contacts already in service."
+        )
+    st.warning(
+        "Simulation evidence only. The schedule does not model named shifts, skills, labor "
+        "law, overtime, or a production optimum."
+    )
+
+
 def _workforce_panel() -> None:
     st.info(
-        "ANALYTICAL ERLANG-C BASELINE: Forecast estimates demand; Erlang-C converts it into a "
-        "staffing recommendation. Test a staffing choice separately in Compare Decisions. "
-        "This is not an optimal schedule or production guarantee."
+        "ANALYTICAL ERLANG-C BASELINE + DYNAMIC TWIN EVALUATION: Forecast estimates "
+        "demand; Erlang-C converts it into a staffing recommendation, and FAIR WORKFORCE "
+        "COMPARISON evaluates that predefined schedule in the Dynamic Twin. Fixed staffing "
+        "choices remain separate CAPACITY WHAT-IFS."
     )
     st.header("Workforce")
     st.caption(
@@ -1389,6 +1543,7 @@ def _workforce_panel() -> None:
         )
         return
     _, forecast, _ = _load_forecast_view()
+    _fair_workforce_comparison_panel(forecast)
     defaults = default_workforce_config()
     first, second, third = st.columns(3)
     target = float(
@@ -1553,9 +1708,10 @@ def _workforce_panel() -> None:
                 hide_index=True,
                 width="stretch",
             )
-    st.warning(
-        "Dynamic 30-minute staffing inside the frozen Digital Twin is deliberately deferred. "
-        "Use Compare Decisions for explicit fixed-staffing simulation tests."
+    st.info(
+        "The fixed 3→5 comparison remains a CAPACITY WHAT-IF. The fair comparison above "
+        "is WORKFORCE INTELLIGENCE: fixed capacity versus a predefined 30-minute schedule "
+        "under a lower total agent-hour budget."
     )
     _rl_experiment_panel()
 
@@ -1662,8 +1818,9 @@ def render_manager() -> None:
     with st.expander("Recommended demo path"):
         st.write(
             "Load Staff Shortage (seed 404, 3 agents, calibrated) → run the Digital Twin → "
-            "inspect replay → review Forecast → build Workforce plan → compare 3→5 agents → "
-            "run an Interaction Lab case → review Quality. Briefly show PPO after Erlang-C."
+            "inspect replay → review Forecast → run the fair Workforce comparison → optionally "
+            "compare fixed 3→5 capacity → run an Interaction Lab case → review Quality. "
+            "Briefly show PPO after Erlang-C."
         )
         st.caption("Each action remains explicit; this path does not auto-run any step.")
     tabs = st.tabs(

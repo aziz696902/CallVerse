@@ -125,3 +125,9 @@ patience behavior, KPI formulas, existing presets, Forecast, Erlang-C, PPO, Advi
 RAG, Quality, datasets, or artifacts. It does not invent per-frame SLA, occupancy,
 average wait, AHT, satisfaction, cost, or intermediate points. Comparative Replay
 development ends with this implementation.
+
+The fixed 3-to-5 and large-center comparisons are explicitly **capacity what-ifs**:
+they answer what happens when fixed capacity is added. The separate Fair Workforce
+Comparison answers the **workforce intelligence** question of whether a forecast-aware
+schedule can allocate a same-or-lower agent-hour budget more effectively. It does not
+replace or alter these frozen replays.
