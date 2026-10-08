@@ -178,7 +178,11 @@ def test_streamlit_hides_controls_until_build_then_exposes_operational_view():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
     assert not any(button.label == "PLAY" for button in app.button)
 
-    next(button for button in app.button if button.label == "PREPARE OFFICIAL DEMO").click()
+    next(
+        button
+        for button in app.button
+        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+    ).click()
     app.run(timeout=30)
     next(button for button in app.button if button.label == "BUILD COMPARISON").click()
     app.run(timeout=30)
@@ -223,14 +227,18 @@ def test_streamlit_hides_controls_until_build_then_exposes_operational_view():
 
 def test_streamlit_play_reaches_end_without_rerunning_simulation(monkeypatch):
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
-    next(button for button in app.button if button.label == "PREPARE OFFICIAL DEMO").click()
+    next(
+        button
+        for button in app.button
+        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+    ).click()
     app.run(timeout=30)
     next(button for button in app.button if button.label == "BUILD COMPARISON").click()
     app.run(timeout=30)
     next(box for box in app.selectbox if box.label == "Playback speed").set_value(8.0)
     app.run(timeout=30)
 
-    monkeypatch.setattr("callverse.dashboard.manager.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("callverse.dashboard.manager.sleep", lambda _seconds: None)
 
     def fail_if_called(*args, **kwargs):
         raise AssertionError("UI playback must not invoke the Digital Twin")

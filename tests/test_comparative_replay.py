@@ -218,7 +218,11 @@ def test_streamlit_comparative_replay_empty_build_and_stale_states():
     assert "COMPARATIVE SIMULATION REPLAY" in visible
     assert "Build a synchronized comparison first" in visible
 
-    next(button for button in app.button if button.label == "PREPARE OFFICIAL DEMO").click()
+    next(
+        button
+        for button in app.button
+        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+    ).click()
     app.run(timeout=30)
     inputs = {widget.label: widget.value for widget in app.number_input}
     assert inputs["Seed"] == 404

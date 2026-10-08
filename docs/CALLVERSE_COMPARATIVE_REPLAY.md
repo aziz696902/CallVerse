@@ -1,115 +1,127 @@
 # CallVerse Comparative Simulation Replay
 
-## Purpose
+## Purpose and fixed comparison contract
 
 Comparative Replay places two completed Digital Twin trajectories on one synchronized
-manual timeline. It supplements the existing single-run replay and Compare Decisions;
-it is not a new simulator and it is not live production telemetry.
+timeline. It supplements the existing single-run replay and Compare Decisions; it is
+not a new simulator or live production telemetry.
 
-## Two comparison sides
+- **FIXED STAFFING BASELINE** uses the calibrated Digital Twin with the initial fixed
+  staffing level.
+- **CALLVERSE-ASSISTED DECISION** uses the same Digital Twin and seeded workload, with
+  the tested staffing decision applied.
 
-- **FIXED STAFFING BASELINE** is the reference run with a fixed advisor count.
-- **CALLVERSE-ASSISTED DECISION** is the second run with a fixed staffing choice that
-  a manager prepares or tests using CallVerse.
+Both sides use the same scenario, seed, duration, demand multiplier, simulator mode,
+intent mix, persona mix, and remaining scenario settings. Only available advisors may
+differ. The assisted staffing level applies from simulation start; there is no dynamic
+mid-run intervention. "CallVerse-assisted" does not imply that every model is active,
+that the tested decision is optimal, or that an operational outcome is guaranteed.
 
-Both sides use the same existing Digital Twin, scenario, seed, duration, demand
-multiplier, simulator mode, intent mix, persona mix, and remaining scenario settings.
-Only available advisors may differ. “CallVerse-assisted” does not imply that every
-model is active at each frame, that the decision is optimal, or that an operational
-outcome is guaranteed.
+Using the same seed reduces random variation so the staffing decision can be compared
+under matched simulated demand. This is a controlled simulation comparison, not a
+production A/B test or causal estimate.
 
-The official teaching setup is Staff Shortage, seed 404, calibrated mode, three
-baseline advisors, and five assisted advisors. Five is a tested demonstration choice,
-not a globally optimal staffing claim.
+## Primary validated teaching demo
 
-## Synchronized timeline
+The primary setup is Staff Shortage, seed 404, calibrated mode, 480 simulated minutes,
+demand multiplier 1.15, and 3 baseline to 5 assisted advisors. Five is a tested
+demonstration choice, not a globally optimal staffing claim.
 
-The builder executes the baseline once and uses the existing staffing what-if path to
-execute the assisted run once. It requires the two snapshot timestamp sequences to be
-exactly equal; it raises an error rather than interpolating or silently pairing
-different times. The resulting immutable frames contain both sides at one simulated
-minute and clock time. Moving the manual selector reads a stored frame and does not
-invoke either simulation again.
+The builder executes each existing simulation path once. It requires the two snapshot
+timestamp sequences to be exactly equal and raises an error rather than interpolating
+or silently pairing different times. Its 33 immutable frames have a 15-minute cadence.
+Changing a setup field makes the completed comparison stale until it is rebuilt.
 
-Changing any visible scenario, seed, staffing, demand, duration, mode, or decision
-source makes stored frames stale and hides them until the comparison is rebuilt.
+## Playback and operational view
 
-## Available per-frame evidence
+Play, Pause, Restart, manual scrub, and 0.5x/1x/2x/4x/8x speed controls consume only
+stored frames. At 1x, each 15-minute simulated interval is displayed for two wall-clock
+seconds. Playback never invokes the simulator. Both sides always render from the same
+frame index and simulated clock.
 
-`TimeSeriesSnapshot` stores exactly:
+Advisor and waiting-contact markers are capped at ten. An explicit additional-count
+label represents hidden markers, while the formatted numeric total remains
+authoritative. This keeps the same view readable for both demonstrations.
 
-- simulated time;
-- current queue size;
-- busy advisors;
-- completed contacts so far;
-- abandoned contacts so far.
+## Phase 3 deterministic storytelling
 
-Available advisors comes from the completed run. Free advisors is the exact derived
-value `available advisors - busy advisors`, consistent with the SimPy resource
-invariant. Current snapshot pressure reuses the transparent existing queue/staffing
-rule. Each frame also exposes its index, total frame count, simulated clock, elapsed
-minutes, and the uniform cadence when one exists.
+The replay now includes a tested-decision card, permanent side definitions, an event
+list, a current-frame comparison, one queue trajectory, and a final manager summary.
+All story elements are deterministic; no LLM generates evidence or conclusions.
 
-The snapshot does **not** store generated contacts so far, per-frame occupancy, SLA,
-average wait, AHT, customer satisfaction, or cost. Comparative Replay does not invent
-or interpolate them. Final SLA, abandonment, average wait, occupancy, completed
-contacts, and backlog are read from the two normal completed results and formatted by
-the existing decision-guidance logic.
+Allowed event markers are simulation start/end and first observed queue emergence,
+sampled queue clearance, all-advisors-busy state, and MODERATE/HIGH/SEVERE snapshot
+pressure for each side. Every event points to an actual stored frame. The official run,
+for example, first shows the baseline queue, all advisors busy, and HIGH pressure at
+08:45. It does not show a fictional "manager adds advisors" event.
 
-Snapshot pressure describes the selected moment only. Completed and abandoned values
-are cumulative and may reflect earlier stress even when current pressure is low.
+The current-frame table separates two evidence types:
 
-## Scientific limitations
+- current queue and busy/free advisors are **current snapshot** state;
+- completed and abandoned contacts are **cumulative from simulation start**.
 
-This is a same-seed simulated controlled comparison, not a production A/B test or a
-causal estimate. Both runs keep staffing fixed throughout; there is no dynamic
-mid-run capacity change. Shared randomness reduces variation but does not establish
-real-world impact. The right-hand choice remains a tested decision, not an optimality
-or forecasting guarantee.
+The queue-size chart plots the two values in every `ComparativeReplay.frames` item on
+the shared simulated timeline. It performs no smoothing or interpolation and mixes no
+other units into the chart.
 
-## Phase 2 — Playback and operational view
+At the final frame, the manager summary becomes prominent and reuses the existing
+Compare Decisions KPI formatting and outcome classifier. For the official run it
+reports `STRONGLY IMPROVED`, the actual KPI changes, and the resource trade-off of two
+additional advisors. It does not implement a second outcome rule or infer monetary
+cost. The result remains evidence from this matched simulated scenario and does not
+establish a production optimum.
 
-Phase 2 adds a playback controller that consumes only the immutable synchronized
-frame tuple. The controller stores frame index, playing/paused state, replay speed,
-and end-of-replay state independently from the simulation data. Play advances exactly
-one frame at a time, Pause preserves the selected frame, Restart returns to frame zero
-without rebuilding either run, and manual scrubbing pauses playback. Repeated Play
-does not create another state machine, and the final frame stops automatically.
+## Secondary Large Center Stress Test
 
-Playback speed controls wall-clock UI pacing, not simulation-model time. The mapping
-is:
+The secondary option is a **simulated scalability demonstration**, not a separately
+calibrated or validated production scenario. It scales the unchanged Staff Shortage
+configuration proportionally from the official 3-to-5 staffing pattern. Seed 404,
+duration, mode, scenario mechanics, and all non-staffing configuration remain fixed.
+No alternative seed was tried.
 
-| Replay speed | Wall-clock interval per stored frame |
-|---:|---:|
-| 0.5x | 4.00 seconds |
-| 1x | 2.00 seconds |
-| 2x | 1.00 second |
-| 4x | 0.50 seconds |
-| 8x | 0.25 seconds |
+The candidate grid was specified before selection as 5x, 8x, and 10x demand/staffing.
+The selection rule was: choose the smallest candidate that generates more than 2,000
+contacts, builds comfortably below one second locally, remains interpretable, avoids
+pathological saturation on both sides, and does not make the assisted side trivially
+idle. Selection was not based solely on the largest KPI improvement.
 
-The default is 4x, so the 32 transitions in the official 33-frame replay take about
-16 seconds plus Streamlit rendering time. Every step selects one existing
-`ComparativeFrame`; no playback control invokes the Digital Twin. A settings change
-stops playback and hides the stale comparison until it is rebuilt.
+| Scale | Demand | Advisors | Generated | Baseline completed | Assisted completed | Baseline SLA | Assisted SLA | Baseline abandon | Assisted abandon | Baseline wait | Assisted wait | Baseline occupancy | Assisted occupancy | Final backlog B/A | Build runtime |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 5x | 5.75 | 15 -> 25 | 2,117 | 1,726 | 2,085 | 81.28% | 100.00% | 17.71% | 0.57% | 1.01 min | 0.02 min | 93.70% | 67.70% | 1 / 0 | 0.229 s |
+| 8x | 9.20 | 24 -> 40 | 3,358 | 2,845 | 3,330 | 89.06% | 100.00% | 14.44% | 0.12% | 0.77 min | <0.01 min | 93.99% | 67.00% | 4 / 0 | 0.419 s |
+| 10x | 11.50 | 30 -> 50 | 4,211 | 3,590 | 4,172 | 87.04% | 100.00% | 13.94% | 0.14% | 0.76 min | 0.01 min | 93.07% | 65.58% | 4 / 0 | 0.456 s |
 
-Both sides always render from the same `ComparativeFrame`, which carries one frame
-index, elapsed minute, and simulated clock. The operational view keeps completed and
-abandoned counters visible, shows numeric queue and staffing values, and supplements
-them with accessible text markers:
+The selected case is **5x: demand 5.75, 15 baseline advisors, and 25 assisted
+advisors**. It is already materially larger, meets the predefined threshold, has a
+non-trivial 67.70% assisted occupancy, and minimizes unnecessary local work.
 
-- advisor markers say `BUSY` or `FREE` and are capped at ten;
-- waiting-contact markers are capped at ten;
-- any hidden markers are represented by an explicit additional-count label;
-- numeric counts remain authoritative;
-- current snapshot pressure remains textual and is not overall-run health.
+Five-run local medians for the selected case were 0.124 s for the baseline simulation,
+0.123 s for the assisted simulation, 0.293 s for the complete comparison build, and
+0.00000032 s for stored-frame access. The measured Streamlit response was 0.641 s for
+build-and-render and 0.308 s for a scrub rerender on 2026-10-08. These timings describe
+this PC, not a general service-level guarantee.
 
-This remains a replay of completed simulations, not live production telemetry. It
-does not modify staffing during a run, synthesize per-frame SLA/occupancy/wait/AHT, or
-claim that the assisted decision is optimal.
+Scaling preserves the simulator's mechanisms but does not constitute empirical
+validation at that organization size. It does not validate CallVerse for a real center
+with the displayed contact volume, and it does not alter the existing scenario presets.
 
-## Phase 3 storytelling plan
+## Final demonstration instructions
 
-A later Comparative Replay Phase 3 may add evidence-backed decision markers,
-CallVerse-assisted narrative, and final visualization polish over the same stored
-frames. Phase 2 does not implement recommendation provenance, intervention events,
-automatic manager explanations, verdict animation, or export/video recording.
+1. Open **Twin Monitor > Comparative Simulation Replay**.
+2. For the defense route, select **PREPARE PRIMARY TEACHING DEMO**, inspect the tested
+   decision card, then choose **BUILD COMPARISON**.
+3. Play at 4x or scrub to 12:00. Explain that queue/busy values are snapshots while
+   completed/abandoned values are cumulative.
+4. Expand deterministic timeline events and point out that markers are stored-frame
+   evidence, not generated narration.
+5. Move to 16:00 and present the final outcome and +2-advisor trade-off.
+6. Optionally select **PREPARE LARGE CENTER STRESS TEST**, build the 15-to-25 case, and
+   demonstrate that the same synchronized playback and capped visuals remain usable.
+
+## Frozen boundaries
+
+Comparative Replay does not modify SimPy mechanics, calibration, arrival/service/
+patience behavior, KPI formulas, existing presets, Forecast, Erlang-C, PPO, Advisor,
+RAG, Quality, datasets, or artifacts. It does not invent per-frame SLA, occupancy,
+average wait, AHT, satisfaction, cost, or intermediate points. Comparative Replay
+development ends with this implementation.

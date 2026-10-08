@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-import time
 import uuid
+from time import sleep
 
 import streamlit as st
 
@@ -38,6 +38,14 @@ from .comparative_replay import (
     comparative_slider_key,
     comparison_matches_configuration,
     create_comparison_configuration,
+)
+from .comparative_story import (
+    build_final_manager_story,
+    current_frame_differences,
+    events_at_frame,
+    generate_replay_events,
+    large_center_configuration,
+    queue_trajectory_rows,
 )
 from .decision_guidance import (
     PRODUCTION_AB_DISCLAIMER,
@@ -410,7 +418,16 @@ def _set_comparative_controls(
 
 def _render_comparative_side(side: ReplaySideFrame) -> None:
     st.markdown(f"#### {side.label}")
-    st.caption(f"Fixed staffing for this completed run: {side.available_agents} advisors")
+    if side.label == BASELINE_LABEL:
+        st.caption(
+            "Uses the calibrated Digital Twin with the initial fixed staffing level."
+        )
+    else:
+        st.caption(
+            "Uses the same Digital Twin and seeded workload, with the tested staffing "
+            "decision applied."
+        )
+    st.caption(f"Fixed staffing for this completed run: {side.available_agents:,} advisors")
     advisors = advisor_markers(side.busy_agents, side.free_agents)
     st.markdown("**Advisor capacity**")
     st.write(" · ".join(f"[{marker}]" for marker in advisors.markers))
@@ -426,19 +443,22 @@ def _render_comparative_side(side: ReplaySideFrame) -> None:
     else:
         st.write("No contacts waiting")
     first = st.columns(3)
-    first[0].metric("Current queue", side.queue_size)
-    first[1].metric("Busy advisors", side.busy_agents)
-    first[2].metric("Free advisors", side.free_agents)
+    first[0].metric("Current queue", f"{side.queue_size:,}")
+    first[1].metric("Busy advisors", f"{side.busy_agents:,}")
+    first[2].metric("Free advisors", f"{side.free_agents:,}")
     second = st.columns(3)
-    second[0].metric("Available advisors", side.available_agents)
-    second[1].metric("Completed so far", side.completed_so_far)
-    second[2].metric("Abandoned so far", side.abandoned_so_far)
+    second[0].metric("Available advisors", f"{side.available_agents:,}")
+    second[1].metric("Completed so far", f"{side.completed_so_far:,}")
+    second[2].metric("Abandoned so far", f"{side.abandoned_so_far:,}")
     st.metric("Current snapshot pressure", side.snapshot_pressure.value)
 
 
-def _render_comparative_final_summary(replay: ComparativeReplay) -> None:
-    narrative = build_decision_narrative(replay.comparison)
-    with st.expander("Final result comparison"):
+def _render_comparative_final_summary(
+    replay: ComparativeReplay, *, prominent: bool
+) -> None:
+    story = build_final_manager_story(replay)
+
+    def render_content() -> None:
         st.caption(
             "Final-run KPIs use the existing Compare Decisions interpretation logic."
         )
@@ -450,13 +470,26 @@ def _render_comparative_final_summary(replay: ComparativeReplay) -> None:
                     ASSISTED_LABEL: format_metric_value(change, change.after),
                     "Difference": format_metric_delta(change),
                 }
-                for change in narrative.changes
+                for change in story.narrative.changes
             ],
             hide_index=True,
             width="stretch",
         )
-        st.write(f"**{narrative.outcome.value}:** {narrative.conclusion}")
+        st.write(
+            f"**{story.narrative.outcome.value}:** {story.narrative.conclusion}"
+        )
+        st.write(f"**Resource trade-off:** {story.staffing_trade_off}")
+        if story.service_effects:
+            st.write("**Service effects:** " + " · ".join(story.service_effects))
+        st.caption(story.scientific_boundary)
         st.caption(PRODUCTION_AB_DISCLAIMER)
+
+    if prominent:
+        st.subheader("FINAL MANAGER SUMMARY")
+        render_content()
+    else:
+        with st.expander("Final result comparison"):
+            render_content()
 
 
 def _comparative_replay_panel(run: ManagerRun | None) -> None:
@@ -494,7 +527,7 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             )
             st.session_state.comparative_inherited_run = run_signature
 
-    default = run.scenario if run is not None else get_scenario("normal_day")
+    default = run.scenario if run is not None else get_scenario("staff_shortage")
     if "comparative_scenario" not in st.session_state:
         _set_comparative_controls(
             scenario_name=default.name,
@@ -504,10 +537,15 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             demand_multiplier=default.demand_multiplier,
             duration_minutes=default.simulation_duration,
             policy_mode=run.policy_mode if run is not None else "calibrated",
-            decision_source=DecisionSource.MANAGER_SELECTED,
+            decision_source=(
+                DecisionSource.MANAGER_SELECTED
+                if run is not None
+                else DecisionSource.RECOMMENDED_DEMO
+            ),
         )
 
-    if st.button("PREPARE OFFICIAL DEMO"):
+    demo_buttons = st.columns(2)
+    if demo_buttons[0].button("PREPARE PRIMARY TEACHING DEMO"):
         official = get_scenario("staff_shortage")
         _set_comparative_controls(
             scenario_name=official.name,
@@ -522,9 +560,30 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         st.session_state.manager_comparative_replay = None
         st.session_state.manager_comparative_playback = None
         st.rerun()
+    if demo_buttons[1].button("PREPARE LARGE CENTER STRESS TEST"):
+        large = large_center_configuration()
+        _set_comparative_controls(
+            scenario_name=large.scenario_name,
+            seed=large.seed,
+            baseline_agents=large.baseline_agents,
+            assisted_agents=large.assisted_agents,
+            demand_multiplier=large.demand_multiplier,
+            duration_minutes=large.duration_minutes,
+            policy_mode=large.policy_mode,
+            decision_source=large.decision_source,
+        )
+        st.session_state.manager_comparative_replay = None
+        st.session_state.manager_comparative_playback = None
+        st.rerun()
     st.caption(
-        "PREPARE OFFICIAL DEMO fills Staff Shortage · seed 404 · 3 → 5 advisors · "
-        "calibrated mode. It does not run either simulation."
+        "PRIMARY — VALIDATED TEACHING DEMO: Staff Shortage · seed 404 · 3 → 5 advisors. "
+        "SECONDARY — SCALABILITY DEMO: Large Center Stress Test · seed 404 · "
+        "15 → 25 advisors. Preparing either setup does not run a simulation."
+    )
+    st.caption(
+        "Staff Shortage is the primary calibrated demonstration. Large Center Stress Test "
+        "scales the same mechanisms for computational and visual scalability; it is not "
+        "separately calibrated to a real large call center."
     )
 
     setup_one = st.columns(4)
@@ -567,7 +626,7 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         setup_two[0].number_input(
             "Comparison demand multiplier",
             min_value=0.1,
-            max_value=5.0,
+            max_value=20.0,
             step=0.05,
             key="comparative_demand",
             on_change=_mark_comparative_manager_selected,
@@ -604,6 +663,28 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         f"Both sides use the same {policy_mode} Digital Twin and the same seeded demand "
         "conditions. Only the tested staffing decision changes."
     )
+    with st.container(border=True):
+        st.markdown("### TESTED DECISION")
+        st.metric(
+            "Available advisors",
+            f"{baseline_agents:,} → {assisted_agents:,}",
+        )
+        st.write(
+            "**Everything else held constant:** scenario, seed, duration, demand, intent and "
+            "persona mixes, remaining scenario settings, and simulator mode."
+        )
+        st.write(f"**Decision source:** {decision_source.value}")
+        st.caption(
+            "Both sides receive identical seeded demand conditions. Using the same seed "
+            "reduces random variation so the staffing decision can be compared under matched "
+            "simulated demand."
+        )
+        st.caption("This is a controlled simulation comparison, not a production A/B test.")
+        if decision_source is DecisionSource.SCALABILITY_DEMO:
+            st.warning(
+                "Scalability demonstration only. Scaling preserves simulator mechanisms but "
+                "does not constitute empirical validation at this organization size."
+            )
 
     with st.expander("Changed and held-constant comparison settings"):
         st.write(f"**CHANGED:** Available advisors: {baseline_agents} → {assisted_agents}")
@@ -735,30 +816,59 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         st.info("Replay playing")
     else:
         st.caption("Replay paused · manual scrubbing is available")
+
+    replay_events = generate_replay_events(replay)
+    current_events = events_at_frame(replay_events, frame.index)
+    if current_events:
+        st.info(
+            "Current-frame events: "
+            + " · ".join(event.title for event in current_events)
+        )
+    with st.expander(f"Deterministic timeline events ({len(replay_events)})"):
+        st.dataframe(
+            [
+                {
+                    "Time": event.simulated_clock,
+                    "Side": event.side.title(),
+                    "Event": event.title,
+                    "Evidence": event.description,
+                }
+                for event in replay_events
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "Markers are deterministic first occurrences from stored frames. The assisted "
+            "staffing level applies from simulation start; no mid-run intervention occurs."
+        )
+
     baseline_column, assisted_column = st.columns(2)
     with baseline_column.container(border=True):
         _render_comparative_side(frame.baseline)
     with assisted_column.container(border=True):
         _render_comparative_side(frame.assisted)
 
-    st.markdown("**At this simulated time:**")
+    st.markdown(f"**AT {frame.simulated_clock} SIMULATED TIME**")
+    differences = current_frame_differences(frame)
     st.dataframe(
         [
             {
-                "Metric": "Current queue",
-                BASELINE_LABEL: frame.baseline.queue_size,
-                ASSISTED_LABEL: frame.assisted.queue_size,
-            },
-            {
-                "Metric": "Completed so far",
-                BASELINE_LABEL: frame.baseline.completed_so_far,
-                ASSISTED_LABEL: frame.assisted.completed_so_far,
-            },
-            {
-                "Metric": "Abandoned so far",
-                BASELINE_LABEL: frame.baseline.abandoned_so_far,
-                ASSISTED_LABEL: frame.assisted.abandoned_so_far,
-            },
+                "Metric": difference.metric,
+                BASELINE_LABEL: (
+                    f"{difference.baseline:,} / {frame.baseline.available_agents:,}"
+                    if difference.metric == "Busy advisors"
+                    else f"{difference.baseline:,}"
+                ),
+                ASSISTED_LABEL: (
+                    f"{difference.assisted:,} / {frame.assisted.available_agents:,}"
+                    if difference.metric == "Busy advisors"
+                    else f"{difference.assisted:,}"
+                ),
+                "Assisted difference": f"{difference.assisted_delta:+,}",
+                "Evidence type": difference.semantics,
+            }
+            for difference in differences
         ],
         hide_index=True,
         width="stretch",
@@ -768,10 +878,21 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         "stress in the run. Mid-run differences are descriptive simulated evidence, not a "
         "production causal estimate."
     )
-    _render_comparative_final_summary(replay)
+    st.markdown("**Queue size over simulated time**")
+    st.line_chart(
+        queue_trajectory_rows(replay),
+        x="simulation_time",
+        y=[BASELINE_LABEL, ASSISTED_LABEL],
+        x_label="Simulated minutes",
+    )
+    st.caption(
+        "Every point is an actual synchronized replay snapshot; no smoothing or "
+        "interpolation is applied."
+    )
+    _render_comparative_final_summary(replay, prominent=playback.reached_end)
 
     if playback.is_playing:
-        time.sleep(seconds_per_frame(playback.speed_multiplier))
+        sleep(seconds_per_frame(playback.speed_multiplier))
         playback = advance(playback, len(replay.frames))
         st.session_state.manager_comparative_playback = playback
         st.session_state[pending_slider_key] = playback.frame_index

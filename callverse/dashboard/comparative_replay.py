@@ -29,6 +29,7 @@ class DecisionSource(str, Enum):
     MANAGER_SELECTED = "Manager-selected decision"
     RECOMMENDED_DEMO = "Recommended demo decision"
     WORKFORCE_RECOMMENDATION = "Workforce recommendation"
+    SCALABILITY_DEMO = "Scalability demonstration"
 
 
 class ComparisonConfiguration(DomainModel):

@@ -68,22 +68,36 @@ progression:
 2. Point out generated contacts, wait, SLA, abandonment, occupancy, and AHT.
 3. In **Twin Monitor**, move the replay slider. Distinguish **current snapshot
    pressure** from the completed/abandoned counters accumulated earlier in the run.
-4. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
+4. Still in **Twin Monitor**, use **PREPARE PRIMARY TEACHING DEMO**, then **BUILD
+   COMPARISON**. Play or scrub the matched Staff Shortage 3-to-5 replay. Explain the
+   tested decision card, deterministic event markers, current-versus-cumulative
+   evidence, queue trajectory, and final manager summary. State: "controlled simulation
+   comparison, not a production A/B test."
+5. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
    48 half-hour points, 251.744 total predicted contacts, and 19:00 peak.
-5. In **Workforce**, press **BUILD WORKFORCE PLAN**. Explain the calibrated 3.182-minute
+6. In **Workforce**, press **BUILD WORKFORCE PLAN**. Explain the calibrated 3.182-minute
    AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer. The
    example plan uses 1–5 agents, 42.5 agent-hours, and reaches its analytical target
    in 48/48 intervals.
-6. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
+7. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
    **RUN COMPARISON**. State: “simulated effect under identical seeded conditions.”
-7. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
+8. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
    classifier/tool integration. If Groq quota is available, live mode may be shown and
    must remain labelled live.
-8. In **Quality**, show deterministic guardrails. Show six scores only if a real live
+9. In **Quality**, show deterministic guardrails. Show six scores only if a real live
    judge completed; otherwise explain the honest unavailable state.
-9. Return to **Workforce** and show **EXPERIMENTAL PPO POLICY — NOT ADOPTED**. Explain
+10. Return to **Workforce** and show **EXPERIMENTAL PPO POLICY — NOT ADOPTED**. Explain
    that it trained successfully but was not adopted because it held roughly 17 agents
    and used 408 agent-hours/day.
+
+## Optional scalability demonstration
+
+After the primary route, select **PREPARE LARGE CENTER STRESS TEST** in Comparative
+Replay and build the predefined seed-404, 5x configuration: demand multiplier 5.75 and
+15 baseline to 25 assisted advisors. Use it only to show that the same simulator,
+synchronized playback, storytelling, and capped visuals remain practical at a larger
+simulated scale. State that it is a simulated scalability demonstration and is not
+separately calibrated to a real large call center.
 
 ## Live interaction safety notes
 
@@ -104,6 +118,8 @@ progression:
 | Forecast load/generation | 0.11 s |
 | Workforce plan | <0.01 s direct / 0.44 s UI |
 | Same-seed before/after simulation | 0.02 s direct / 0.46 s UI |
+| Large-center comparison build | 0.293 s direct / 0.641 s UI |
+| Large-center stored-frame access / scrub | <0.001 ms direct / 0.308 s UI |
 | Offline Advisor cold start | 1.33 s |
 | Offline deterministic Quality | <0.01 s |
 | PPO model load and one inference | 1.69 s |
