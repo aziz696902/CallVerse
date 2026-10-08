@@ -27,6 +27,16 @@ from callverse.workforce.manager import (
 )
 from helppilot import config
 
+from .decision_guidance import (
+    PRODUCTION_AB_DISCLAIMER,
+    SAME_SEED_EXPLANATION,
+    ChangeAssessment,
+    DecisionOutcome,
+    build_decision_narrative,
+    format_metric_delta,
+    format_metric_value,
+    recommended_decision_widget_state,
+)
 from .scenario_guidance import (
     CenterStatus,
     get_scenario_guide,
@@ -309,24 +319,68 @@ def _compare_decisions() -> None:
     if run is None:
         st.info("Complete a Digital Twin run before testing a staffing decision.")
         return
-    st.caption(
-        "The AFTER run keeps the same scenario, seed, demand, duration, and policy. "
-        "Only available agents change. This is a simulated effect under identical seeded "
-        "conditions, not a production A/B test or guaranteed causal impact."
+
+    before_status = interpret_simulation_result(run.result).status.value.lower()
+    guide = get_scenario_guide(run.scenario.name)
+    st.info(
+        f"Inherited from Scenario Studio: **{guide.title}** · seed **{run.result.seed}** · "
+        f"**{run.policy_mode}** mode · **{run.scenario.available_agents} agents**."
+    )
+    st.subheader("1 · PROBLEM")
+    st.write(
+        f"{guide.title} with {run.scenario.available_agents} agents currently shows a "
+        f"**{before_status}** simulated center."
+    )
+    st.caption(SAME_SEED_EXPLANATION)
+    st.caption(PRODUCTION_AB_DISCLAIMER)
+
+    comparison_key = (
+        f"manager_after_agents_{run.scenario.name}_{run.result.seed}_"
+        f"{run.scenario.available_agents}"
+    )
+    official_demo_context = (
+        run.scenario.name == "staff_shortage"
+        and run.result.seed == 404
+        and run.scenario.available_agents == 3
+        and run.policy_mode == "calibrated"
+    )
+    if official_demo_context and st.button("PREPARE RECOMMENDED DECISION TEST"):
+        for key, value in recommended_decision_widget_state(comparison_key).items():
+            st.session_state[key] = value
+        st.session_state.manager_comparison = None
+        st.rerun()
+
+    st.subheader("2 · PROPOSED ACTION")
+    after_default = (
+        {}
+        if comparison_key in st.session_state
+        else {"value": run.scenario.available_agents + 2}
     )
     after_agents = int(
         st.number_input(
             "AFTER available agents",
             min_value=1,
-            value=run.scenario.available_agents + 2,
             step=1,
-            key=(
-                f"manager_after_agents_{run.scenario.name}_{run.result.seed}_"
-                f"{run.scenario.available_agents}"
-            ),
+            key=comparison_key,
+            **after_default,
         )
     )
-    if st.button("RUN BEFORE VS AFTER", type="primary"):
+    st.write(
+        f"Test available agents: **{run.scenario.available_agents} → {after_agents}**. "
+        "No other simulation input changes."
+    )
+    with st.expander("Changed and held-constant configuration", expanded=True):
+        st.write(
+            f"**CHANGED:** Available agents: {run.scenario.available_agents} → {after_agents}"
+        )
+        st.write("**HELD CONSTANT:**")
+        st.write(f"- Scenario: {guide.title}")
+        st.write(f"- Seed: {run.result.seed}")
+        st.write(f"- Simulator mode: {run.policy_mode}")
+        st.write(f"- Duration: {run.scenario.simulation_duration:g} simulated minutes")
+        st.write(f"- Demand multiplier: {run.scenario.demand_multiplier:g}x")
+        st.write("- Persona mix, request mix, and all other scenario settings")
+    if st.button("RUN COMPARISON", type="primary"):
         with st.spinner("Running fair same-seed comparison…"):
             st.session_state.manager_comparison = run_staffing_what_if(
                 run, after_agents
@@ -334,15 +388,73 @@ def _compare_decisions() -> None:
 
     comparison: DecisionComparison | None = st.session_state.get("manager_comparison")
     if comparison is None:
+        st.info("Prepare the staffing idea, then press RUN COMPARISON. Nothing auto-runs.")
         return
-    st.info(
-        "Simulated effect under this scenario and seed; not a production causal guarantee."
+
+    narrative = build_decision_narrative(comparison)
+    st.subheader("3 · SIMULATED EFFECT")
+    first_row = st.columns(3)
+    second_row = st.columns(3)
+    for column, change in zip((*first_row, *second_row), narrative.changes, strict=True):
+        delta_color = "off"
+        if change.assessment is not ChangeAssessment.NEUTRAL:
+            delta_color = "normal" if change.preference == "higher" else "inverse"
+        column.metric(
+            change.label,
+            (
+                f"{format_metric_value(change, change.before)} → "
+                f"{format_metric_value(change, change.after)}"
+            ),
+            delta=format_metric_delta(change),
+            delta_color=delta_color,
+        )
+
+    st.markdown("**Operational target checks**")
+    target_labels = {
+        "pass": "PASS",
+        "fail": "FAIL",
+        "warning": "CAUTION",
+        "unavailable": "N/A",
+    }
+    st.dataframe(
+        [
+            {
+                "Objective": f"{target.metric} {target.objective}",
+                "BEFORE": target_labels[target.before],
+                "AFTER": target_labels[target.after],
+            }
+            for target in narrative.targets
+        ],
+        width="stretch",
+        hide_index=True,
     )
-    st.dataframe(comparison_table(comparison), width="stretch", hide_index=True)
     st.caption(
-        f"Same seed: {comparison.before.result.seed} · Policy: {comparison.before.policy_mode} · "
-        f"Agents: {comparison.before.scenario.available_agents} → "
-        f"{comparison.after.scenario.available_agents}"
+        "Generated contacts are simulated arrivals. Completed contacts are those served within "
+        "the horizon; abandonment and remaining work can make completed totals differ. A higher "
+        "completed count alone does not prove a better configuration."
+    )
+    with st.expander("Detailed KPI table and reproducibility"):
+        st.dataframe(comparison_table(comparison), width="stretch", hide_index=True)
+        st.write(f"**CHANGED:** {narrative.changed_parameter}")
+        st.write("**HELD CONSTANT:** " + " · ".join(narrative.held_constant))
+
+    st.subheader("4 · MANAGER CONCLUSION")
+    outcome_message = f"{narrative.outcome.value}: {narrative.conclusion}"
+    if narrative.outcome in {
+        DecisionOutcome.STRONGLY_IMPROVED,
+        DecisionOutcome.IMPROVED,
+    }:
+        st.success(outcome_message)
+    elif narrative.outcome is DecisionOutcome.WORSENED:
+        st.error(outcome_message)
+    else:
+        st.warning(outcome_message)
+    st.write(narrative.trade_off)
+    st.info(narrative.next_step)
+    st.caption(
+        "Compare Decisions manually tests one staffing idea in the Digital Twin. Workforce "
+        "separately provides an Erlang-C analytical staffing recommendation; neither claims "
+        "this tested configuration is optimal."
     )
 
 

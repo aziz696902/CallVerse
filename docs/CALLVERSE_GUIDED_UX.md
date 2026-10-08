@@ -67,8 +67,59 @@ tests, interpretation targets are expert-defined, and suggested actions are anal
 guidance rather than guaranteed operational outcomes. Scenario mechanics, model
 artifacts, datasets, and numerical parameters remain unchanged.
 
-## Deferred to UX Phase 2
+## UX Phase 2 — Decision Guidance & Before/After Storytelling
 
-Decision Guidance & Before/After Storytelling may improve the Compare Decisions
-journey later. Animated replay, avatars, queue animation, new charts, and redesigns of
-Forecast, Workforce, Interaction Lab, and Quality remain out of scope.
+Compare Decisions now presents every completed staffing test as **Problem → Proposed
+Action → Simulated Effect → Manager Conclusion**. It inherits the latest Scenario
+Studio run, explicitly identifies the agent-count change, and lists the scenario,
+seed, simulator mode, duration, demand multiplier, and remaining configuration as held
+constant.
+
+Both runs use the same seed and scenario configuration to reduce random variation and
+make the staffing change easier to compare. This remains a simulated controlled
+comparison, not a production A/B test or a claim of real-world causality.
+
+### Delta and direction rules
+
+- SLA and occupancy use percentage-point deltas, not relative percentages.
+- abandonment also uses percentage-point deltas, with lower values preferred;
+- average wait uses absolute minutes, with lower values preferred;
+- completed and remaining contacts use absolute count differences;
+- completed contacts are useful context but do not alone prove a better decision;
+- occupancy is assessed relative to the 85% cap, so reducing already-healthy occupancy
+  is neutral rather than automatically better.
+
+Before/after checks reuse the Phase 1 targets: SLA at least 80%, abandonment below
+10%, and occupancy below 85%.
+
+### Deterministic outcome categories
+
+The primary material-change checks use SLA, abandonment, and wait. A change of at
+least two percentage points for SLA/abandonment or 0.25 minutes for wait is material.
+
+- `STRONGLY IMPROVED`: a previously unhealthy center becomes healthy, at least two
+  primary metrics materially improve, and none materially worsen;
+- `IMPROVED`: center status improves to healthy/under pressure with a material service
+  gain, or primary service gains occur without material worsening;
+- `MIXED TRADE-OFF`: service improves but the center remains overloaded/critical, or
+  another primary metric materially worsens;
+- `LITTLE CHANGE`: no primary metric changes materially;
+- `WORSENED`: primary service metrics materially deteriorate without an offsetting
+  improvement.
+
+The conclusion also states the added or removed advisor count without inventing a
+monetary cost. One deterministic next step follows the outcome.
+
+For the official Staff Shortage context, **PREPARE RECOMMENDED DECISION TEST** fills
+the after value with five agents. It neither runs the comparison nor injects KPI
+values.
+
+Compare Decisions is manual what-if testing. Workforce remains the separate Erlang-C
+analytical recommendation and neither feature labels the tested configuration as
+optimal.
+
+## Deferred to UX Phase 3
+
+Digital Twin Replay & Scenario Visualization may add a clearer time-based scenario
+story later. Animated replay, avatars, queue animation, and redesigns of Forecast,
+Workforce, Interaction Lab, and Quality remain out of scope.
