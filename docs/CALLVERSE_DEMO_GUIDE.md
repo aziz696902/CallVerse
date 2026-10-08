@@ -64,45 +64,35 @@ progression:
 
 ## Complete recommended demo path
 
-1. In **Scenario Studio**, choose **LOAD JURY STARTING SCENARIO**, then run the Staff
-   Shortage Digital Twin. Point out generated contacts, wait, SLA, abandonment,
-   occupancy, and AHT.
-2. In **Twin Monitor**, briefly choose **PREPARE CAPACITY WHAT-IF**, then **BUILD
-   COMPARISON**. The Staff Shortage seed-404 comparison remains 3→5 and asks: “What
-   happens if the center simply adds staffing capacity?” It is secondary evidence,
-   not the primary intelligence demonstration.
-3. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
+1. In **Scenario Studio**, introduce the calibrated Digital Twin concept using the Staff
+   Shortage scenario. Keep this brief; it establishes what the simulator measures.
+2. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
    48 half-hour points, 251.744 total predicted contacts, and 19:00 peak.
-4. In **Workforce**, use the **PRIMARY RECOMMENDED DEMO — WORKFORCE INTELLIGENCE**.
-   Press
-   **LOAD WORKFORCE INTELLIGENCE DEMO**, then **RUN FAIR COMPARISON**. Before playing,
-   point out 248 matched contacts, seed 404, and the fair 48.0 versus 42.5 agent-hour
-   budget. Press Play at 4x; the simulator has already completed and playback traverses
-   only stored snapshots. Observe quiet periods where CallVerse uses one advisor while
-   fixed staffing uses two. Pause or scrub through the real ramp: 17:30 (1→2), 18:00
+3. In **Workforce**, use **WORKFORCE INTELLIGENCE — SAME RESOURCE BUDGET**, the primary
+   recommended demo. Press **LOAD RECOMMENDED WORKFORCE DEMO**. Before running, show
+   the shared five-advisor workforce pool and equal 42.5-hour budgets. Then press
+   **RUN CONTROLLED COMPARISON**. The baseline distributes those resources uniformly
+   without forecast information; CallVerse uses the unchanged Forecast-to-Erlang-C plan.
+4. Play the synchronized replay at 8x. Both policies receive 248 identical realized
+   contacts with seed 404 and matching contact/service/patience draws. Pause around the
+   real CallVerse ramp: 17:30 (1→2), 18:00
    (2→3), 18:30 (3→4), and the 19:00 forecast peak (4→5, 24.77 predicted contacts).
-   Resume to 24:00 and show 42.5 versus 48.0 hours, 90.79% versus 60.92% SLA, 8.06%
-   versus 29.84% abandonment, and 228 versus 174 completed contacts. State:
-   “calibrated simulation evidence, not a production optimality guarantee.”
-
-   The planning controls below remain available for analytical inspection. Press
-   **BUILD WORKFORCE PLAN** only if time permits; explain the calibrated 3.182-minute
-   AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer.
-5. Only if asked about fairness or reproducibility, return to **Twin Monitor**, choose
-   **PREPARE SAME-STAFF CONTROL**, then **BUILD COMPARISON**. The seed-404 3→3 control
-   must produce identical final KPIs and all 33 identical frames. It tests equality; it
-   is not an improvement demonstration.
+   Explain: “CallVerse is using more capacity now, but it used less at other periods.
+   Both strategies have the same total daily staffing budget.”
+5. At 24:00 confirm 42.5 versus 42.5 agent-hours, then show the actual operational
+   result: SLA 57.86%→90.79%, abandonment 35.89%→8.06%, wait 3.18→0.54 minutes,
+   and completed 159→228. State that this is controlled Digital Twin evidence, not a
+   global optimum or guaranteed production impact.
 6. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
    classifier/tool integration. If Groq quota is available, live mode may be shown and
    must remain labelled live.
 7. In **Quality**, show deterministic guardrails. Show six scores only if a real live
    judge completed; otherwise explain the honest unavailable state.
 
-The primary intelligence evidence is not 3→5. It is the lower-budget dynamic staffing
-comparison: fixed two-advisor staffing uses 48.0 agent-hours while the CallVerse
-schedule uses 42.5 under the same realized demand. “Same-staff control” refers only to
-the 3→3 equality test; “same or lower total staffing budget” describes the Dynamic
-Workforce research question and does not mean equal instantaneous advisor counts.
+The 3→5 Capacity What-if is optional secondary evidence. The 3→3 Same-staff Control is
+an advanced technical reproducibility check and is not part of the main jury flow. The
+older fixed-48.0-hour versus dynamic-42.5-hour result remains documented as a separate
+resource-efficiency experiment.
 
 ## Optional scalability demonstration
 

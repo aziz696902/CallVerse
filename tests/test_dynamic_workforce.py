@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from inspect import signature
 
 import pytest
 from pydantic import ValidationError
@@ -35,8 +36,10 @@ from callverse.workforce.dynamic import (
     fair_timeline_rows,
     load_current_forecast,
     run_fair_workforce_comparison,
+    run_same_resource_workforce_comparison,
     schedule_from_workforce_plan,
     staffing_change_events,
+    uniform_resource_schedule,
 )
 from callverse.workforce.manager import (
     build_workforce_plan,
@@ -57,6 +60,11 @@ def workforce_plan(forecast):
 @pytest.fixture(scope="module")
 def fair_comparison(forecast):
     return run_fair_workforce_comparison(forecast)
+
+
+@pytest.fixture(scope="module")
+def same_resource_comparison(forecast):
+    return run_same_resource_workforce_comparison(forecast)
 
 
 def _schedule(values: tuple[int, ...], slot_minutes: float) -> StaffingSchedule:
@@ -148,6 +156,41 @@ def test_schedule_validation_and_exact_agent_hour_accounting():
             _capacity_test_scenario(),
             constant_staffing_schedule(advisors=2, horizon_minutes=30),
             policy=_capacity_test_policy(),
+        )
+
+
+def test_uniform_baseline_is_exact_deterministic_and_forecast_agnostic():
+    schedule = uniform_resource_schedule(
+        slot_count=48,
+        slot_minutes=30,
+        total_agent_hours=42.5,
+        max_advisors=5,
+    )
+
+    assert tuple(slot.advisors for slot in schedule.slots) == (
+        2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2,
+        2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1,
+        2, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2,
+        2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2,
+    )
+    assert schedule.total_agent_hours == 42.5
+    assert schedule.minimum_advisors == 1
+    assert schedule.maximum_advisors == 2
+    assert schedule.average_advisors == pytest.approx(1.7708333333333333)
+    assert schedule.staffing_changes == 22
+    assert set(signature(uniform_resource_schedule).parameters) == {
+        "slot_count",
+        "slot_minutes",
+        "total_agent_hours",
+        "max_advisors",
+    }
+    assert "No forecast" in " ".join(schedule.provenance)
+    with pytest.raises(ValueError, match="whole advisor-slot unit"):
+        uniform_resource_schedule(
+            slot_count=48,
+            slot_minutes=30,
+            total_agent_hours=42.51,
+            max_advisors=5,
         )
 
 
@@ -324,6 +367,71 @@ def test_main_fair_comparison_uses_matched_demand_and_actual_results(fair_compar
         )
 
 
+def test_primary_same_resource_comparison_is_exact_and_reports_actual_result(
+    same_resource_comparison,
+):
+    comparison = same_resource_comparison
+    baseline = comparison.baseline_result
+    callverse = comparison.callverse_result
+
+    assert comparison.seed == 404
+    assert comparison.shared_workforce_pool == 5
+    assert comparison.baseline_schedule.total_agent_hours == 42.5
+    assert comparison.callverse_schedule.total_agent_hours == 42.5
+    assert comparison.resource_budget_delta_hours == 0
+    assert comparison.resource_budget_equal
+    assert comparison.fairness_satisfied
+    assert comparison.baseline_schedule.maximum_advisors <= 5
+    assert comparison.callverse_schedule.maximum_advisors <= 5
+    assert baseline.counts.generated == callverse.counts.generated == 248
+    assert baseline.counts.completed == 159
+    assert callverse.counts.completed == 228
+    assert baseline.counts.abandoned == 89
+    assert callverse.counts.abandoned == 20
+    assert baseline.kpis.sla == pytest.approx(0.5786163522012578)
+    assert callverse.kpis.sla == pytest.approx(0.9078947368421053)
+    assert baseline.kpis.abandonment_rate == pytest.approx(0.3588709677419355)
+    assert callverse.kpis.abandonment_rate == pytest.approx(0.08064516129032258)
+    assert baseline.kpis.average_waiting_time == pytest.approx(3.184072303221076)
+    assert callverse.kpis.average_waiting_time == pytest.approx(0.5363577738102044)
+    assert baseline.kpis.occupancy == pytest.approx(0.2621966190427661)
+    assert callverse.kpis.occupancy == pytest.approx(0.3696561994731159)
+    assert baseline.snapshots[-1].queue_size == callverse.snapshots[-1].queue_size == 0
+    assert comparison.outcome is WorkforceComparisonOutcome.IMPROVED_SAME_BUDGET
+    assert baseline.staffing_mode is StaffingMode.SCHEDULED
+    assert callverse.staffing_mode is StaffingMode.SCHEDULED
+    assert len(comparison.baseline_staffing_events) == 22
+    assert len(comparison.staffing_events) == 6
+
+    assert len(baseline.request_records) == len(callverse.request_records) == 248
+    for result, schedule in (
+        (baseline, comparison.baseline_schedule),
+        (callverse, comparison.callverse_schedule),
+    ):
+        for snapshot in result.snapshots:
+            slot_index = min(
+                int(snapshot.simulation_time // schedule.slot_minutes),
+                len(schedule.slots) - 1,
+            )
+            assert snapshot.available_agents == schedule.slots[slot_index].advisors
+    for uniform, dynamic in zip(
+        baseline.request_records, callverse.request_records, strict=True
+    ):
+        assert (
+            uniform.arrival_time,
+            uniform.intent,
+            uniform.persona,
+            uniform.patience_minutes,
+            uniform.handling_minutes,
+        ) == (
+            dynamic.arrival_time,
+            dynamic.intent,
+            dynamic.persona,
+            dynamic.patience_minutes,
+            dynamic.handling_minutes,
+        )
+
+
 def test_fair_comparison_executes_both_real_simulator_paths_once(
     forecast, monkeypatch
 ):
@@ -348,6 +456,28 @@ def test_fair_comparison_executes_both_real_simulator_paths_once(
     assert calls == {"fixed": 1, "scheduled": 1}
     assert comparison.baseline_result.staffing_mode is StaffingMode.FIXED
     assert comparison.callverse_result.staffing_mode is StaffingMode.SCHEDULED
+
+
+def test_same_resource_comparison_runs_two_scheduled_policies_once(
+    forecast, monkeypatch
+):
+    from callverse.workforce import dynamic
+
+    scheduled_runner = dynamic.run_scheduled_simulation
+    schedules = []
+
+    def count_scheduled(scenario, schedule, **kwargs):
+        schedules.append(schedule)
+        return scheduled_runner(scenario, schedule, **kwargs)
+
+    monkeypatch.setattr(dynamic, "run_scheduled_simulation", count_scheduled)
+    comparison = dynamic.run_same_resource_workforce_comparison(forecast)
+
+    assert schedules == [
+        comparison.baseline_schedule,
+        comparison.callverse_schedule,
+    ]
+    assert comparison.resource_budget_equal
 
 
 def test_staffing_events_and_timeline_are_real_and_aligned(
@@ -391,13 +521,13 @@ def test_staffing_events_and_timeline_are_real_and_aligned(
         )
 
 
-def test_streamlit_fair_workforce_comparison_is_explicit_and_functional():
+def test_streamlit_same_resource_comparison_is_primary_and_functional():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
     visible = "\n".join(
         item.value
         for item in (*app.subheader, *app.caption, *app.info, *app.warning)
     )
-    assert "FAIR WORKFORCE COMPARISON" in visible
+    assert "SAME RESOURCE BUDGET" in visible
     assert "WORKFORCE INTELLIGENCE" in visible
     assert "CAPACITY WHAT-IF" in visible
     assert "Loading does not run" in visible
@@ -405,27 +535,32 @@ def test_streamlit_fair_workforce_comparison_is_explicit_and_functional():
     next(
         button
         for button in app.button
-        if button.label == "LOAD WORKFORCE INTELLIGENCE DEMO"
+        if button.label == "LOAD RECOMMENDED WORKFORCE DEMO"
     ).click()
     app.run(timeout=30)
     assert not app.exception
-    assert any(button.label == "RUN FAIR COMPARISON" for button in app.button)
+    assert any(button.label == "RUN CONTROLLED COMPARISON" for button in app.button)
     assert not any(metric.label == "SIMULATED CLOCK" for metric in app.metric)
+    metrics = {metric.label: metric.value for metric in app.metric}
+    assert metrics["Shared workforce pool"] == "5"
+    assert metrics["Uniform baseline budget"] == "42.5 h"
+    assert metrics["CallVerse budget"] == "42.5 h"
+    assert metrics["Budget difference"] == "+0.0 h"
 
     next(
         button
         for button in app.button
-        if button.label == "RUN FAIR COMPARISON"
+        if button.label == "RUN CONTROLLED COMPARISON"
     ).click()
     app.run(timeout=30)
 
     assert not app.exception
     metrics = {metric.label: metric.value for metric in app.metric}
     assert metrics["SIMULATED CLOCK"] == "00:00"
-    assert metrics["Fixed cumulative agent-hours"] == "0.00"
+    assert metrics["Uniform cumulative agent-hours"] == "0.00"
     assert metrics["CallVerse cumulative agent-hours"] == "0.00"
-    assert any("FAIRNESS PASSES" in item.value for item in app.success)
-    assert not any("FINAL 24-HOUR RESULT" in item.value for item in app.markdown)
+    assert any("CONTROLLED COMPARISON PASSES" in item.value for item in app.success)
+    assert not any("OPERATIONAL RESULT" in item.value for item in app.markdown)
 
     slider = next(
         slider
@@ -437,36 +572,39 @@ def test_streamlit_fair_workforce_comparison_is_explicit_and_functional():
     assert not app.exception
     metrics = {metric.label: metric.value for metric in app.metric}
     assert metrics["SIMULATED CLOCK"] == "24:00"
-    assert metrics["Fixed cumulative agent-hours"] == "48.00"
+    assert metrics["Uniform cumulative agent-hours"] == "42.50"
     assert metrics["CallVerse cumulative agent-hours"] == "42.50"
-    assert any("FINAL 24-HOUR RESULT" in item.value for item in app.markdown)
+    assert any("FAIR RESOURCE CHECK" in item.value for item in app.markdown)
+    assert any("OPERATIONAL RESULT" in item.value for item in app.markdown)
 
 
 def test_workforce_visual_frames_are_synchronized_and_resource_exact(
-    forecast, fair_comparison
+    forecast, same_resource_comparison
 ):
-    frames = build_workforce_visual_frames(fair_comparison, forecast)
+    frames = build_workforce_visual_frames(same_resource_comparison, forecast)
 
     assert len(frames) == 97
     assert frames[0].simulated_clock == "00:00"
     assert frames[48].simulated_clock == "12:00"
     assert frames[-1].simulated_clock == "24:00"
-    assert frames[-1].baseline_agent_hours == 48
+    assert frames[-1].baseline_agent_hours == 42.5
     assert frames[-1].callverse_agent_hours == 42.5
     assert frames[70].staffing_event is not None
     assert frames[70].simulated_clock == "17:30"
     assert frames[76].simulated_clock == "19:00"
     assert frames[76].forecast_contacts == pytest.approx(24.768775800639693)
-    assert cumulative_agent_hours(fair_comparison.callverse_schedule, 0) == 0
-    assert cumulative_agent_hours(fair_comparison.callverse_schedule, 1440) == 42.5
+    assert frames[4].baseline_staffing_event is not None
+    assert cumulative_agent_hours(same_resource_comparison.baseline_schedule, 1440) == 42.5
+    assert cumulative_agent_hours(same_resource_comparison.callverse_schedule, 0) == 0
+    assert cumulative_agent_hours(same_resource_comparison.callverse_schedule, 1440) == 42.5
 
 
 def test_workforce_charts_use_real_full_plan_and_revealed_snapshots(
-    forecast, fair_comparison
+    forecast, same_resource_comparison
 ):
-    frames = build_workforce_visual_frames(fair_comparison, forecast)
+    frames = build_workforce_visual_frames(same_resource_comparison, forecast)
     demand = demand_chart_rows(forecast, 1140)
-    staffing = staffing_step_rows(fair_comparison, 1140)
+    staffing = staffing_step_rows(same_resource_comparison, 1140)
     queue = queue_trajectory_rows(frames, 76)
 
     assert len(demand) == 48
@@ -475,8 +613,11 @@ def test_workforce_charts_use_real_full_plan_and_revealed_snapshots(
     )
     assert sum(row["Current time"] == row["Forecast contacts"] for row in demand) == 1
     assert len(staffing) == 96
-    assert staffing[0]["Fixed 2 advisors"] == 2
+    assert staffing[0]["Uniform baseline"] == 2
     assert staffing[-1]["simulation_minute"] == 1440
     assert len(queue) == 77
-    assert queue[-1]["Fixed 2 advisors"] == frames[76].baseline.queue_size
-    assert queue[-1]["CallVerse dynamic"] == frames[76].callverse.queue_size
+    assert queue[-1]["Uniform baseline"] == frames[76].baseline.queue_size
+    assert (
+        queue[-1]["CallVerse forecast-informed"]
+        == frames[76].callverse.queue_size
+    )

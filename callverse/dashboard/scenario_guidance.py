@@ -139,7 +139,7 @@ _GUIDES = {
         demo_recommended=True,
         scientific_note=(
             "Jury starting scenario; primary intelligence evidence comes from the separate "
-            "lower-budget Dynamic Workforce comparison."
+            "same-resource Dynamic Workforce comparison."
         ),
     ),
     "customer_crisis": ScenarioGuide(

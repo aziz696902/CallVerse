@@ -7,8 +7,10 @@ from .dynamic import (
     fair_timeline_rows,
     load_current_forecast,
     run_fair_workforce_comparison,
+    run_same_resource_workforce_comparison,
     schedule_from_workforce_plan,
     staffing_change_events,
+    uniform_resource_schedule,
 )
 from .erlang_c import evaluate_erlang_c, minimum_agents, offered_load, utilization
 from .manager import (
@@ -34,8 +36,10 @@ __all__ = [
     "minimum_agents",
     "offered_load",
     "run_fair_workforce_comparison",
+    "run_same_resource_workforce_comparison",
     "schedule_from_workforce_plan",
     "staffing_change_events",
     "summarize_plan",
+    "uniform_resource_schedule",
     "utilization",
 ]

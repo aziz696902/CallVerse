@@ -22,6 +22,7 @@ class WorkforceVisualFrame(DomainModel):
     callverse_agent_hours: float = Field(ge=0)
     baseline: TimeSeriesSnapshot
     callverse: TimeSeriesSnapshot
+    baseline_staffing_event: str | None = None
     staffing_event: str | None = None
     resource_explanation: str = Field(min_length=1)
 
@@ -72,19 +73,20 @@ def _resource_explanation(
 ) -> str:
     if callverse_advisors > baseline_advisors:
         reason = (
-            f"CallVerse schedules {callverse_advisors - baseline_advisors} more advisor(s) "
-            f"than fixed staffing as forecast demand reaches {forecast_contacts:.2f} contacts."
+            "CallVerse is using more of the shared daily staffing budget at this moment "
+            f"as forecast demand reaches {forecast_contacts:.2f} contacts."
         )
     elif callverse_advisors < baseline_advisors:
         reason = (
-            f"CallVerse schedules {baseline_advisors - callverse_advisors} fewer advisor(s) "
-            f"than fixed staffing while forecast demand is {forecast_contacts:.2f} contacts."
+            "The uniform baseline is using more of the shared daily staffing budget at "
+            f"this moment while forecast demand is {forecast_contacts:.2f} contacts."
         )
     else:
         reason = (
             f"Both policies expose {baseline_advisors} advisors while forecast demand is "
             f"{forecast_contacts:.2f} contacts."
         )
+    reason += " Both strategies have the same total daily staffing budget."
     if staffing_event is not None:
         reason += " The scheduled boundary changes capacity without interrupting active contacts."
     return reason
@@ -102,6 +104,10 @@ def build_workforce_visual_frames(
         raise ValueError("workforce comparison snapshot counts differ")
     event_by_minute = {
         event.simulation_minute: event.title for event in comparison.staffing_events
+    }
+    baseline_event_by_minute = {
+        event.simulation_minute: event.title
+        for event in comparison.baseline_staffing_events
     }
     frames = []
     frame_count = len(baseline_snapshots)
@@ -133,6 +139,7 @@ def build_workforce_visual_frames(
                 ),
                 baseline=baseline,
                 callverse=callverse,
+                baseline_staffing_event=baseline_event_by_minute.get(minute),
                 staffing_event=staffing_event,
                 resource_explanation=_resource_explanation(
                     baseline_advisors,
@@ -173,19 +180,19 @@ def staffing_step_rows(
     for index, slot in enumerate(slots):
         row = {
             "simulation_minute": slot.start_minute,
-            "Fixed 2 advisors": float(
+            "Uniform baseline": float(
                 comparison.baseline_schedule.slots[index].advisors
             ),
-            "CallVerse dynamic": float(slot.advisors),
+            "CallVerse forecast-informed": float(slot.advisors),
         }
         rows.append(row)
         rows.append(
             {
                 "simulation_minute": slot.end_minute,
-                "Fixed 2 advisors": float(
+                "Uniform baseline": float(
                     comparison.baseline_schedule.slots[index].advisors
                 ),
-                "CallVerse dynamic": float(slot.advisors),
+                "CallVerse forecast-informed": float(slot.advisors),
             }
         )
     return tuple(rows)
@@ -201,8 +208,8 @@ def queue_trajectory_rows(
     return tuple(
         {
             "simulation_minute": frame.simulation_minute,
-            "Fixed 2 advisors": frame.baseline.queue_size,
-            "CallVerse dynamic": frame.callverse.queue_size,
+            "Uniform baseline": frame.baseline.queue_size,
+            "CallVerse forecast-informed": frame.callverse.queue_size,
         }
         for frame in frames[: through_index + 1]
     )

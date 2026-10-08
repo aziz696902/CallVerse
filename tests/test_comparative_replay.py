@@ -312,7 +312,7 @@ def test_streamlit_demo_hierarchy_leads_with_workforce_intelligence():
         for item in (*app.markdown, *app.caption, *app.info, *app.subheader)
     )
 
-    assert "LOAD WORKFORCE INTELLIGENCE DEMO" in labels
+    assert "LOAD RECOMMENDED WORKFORCE DEMO" in labels
     assert "PREPARE CAPACITY WHAT-IF" in labels
     assert "PREPARE SAME-STAFF CONTROL" in labels
     assert "PRIMARY RECOMMENDED DEMO" in visible

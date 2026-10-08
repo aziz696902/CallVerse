@@ -8,12 +8,13 @@ allocates a staffing resource intelligently.
 
 The Dynamic Workforce Twin asks a stronger question:
 
-> Can CallVerse allocate staffing capacity better over time, using the same or lower
-> total staffing budget, than a simple fixed-staffing baseline?
+> With the same workforce pool, exact total staffing budget, and customer demand, can
+> CallVerse allocate staffing capacity better over time than a demand-unaware baseline?
 
-The primary experiment compares two advisors fixed throughout 24 hours with the
-existing Forecast-to-Erlang-C schedule. The budget is measured in agent-hours, not peak
-advisor count.
+The primary experiment compares a deterministic uniform 42.5-agent-hour schedule with
+the existing 42.5-agent-hour Forecast-to-Erlang-C schedule. Both have access to the same
+five-advisor workforce pool. The older fixed-two-advisor experiment is preserved below
+as secondary resource-efficiency evidence.
 
 ## 2. Fixed versus scheduled staffing
 
@@ -48,8 +49,16 @@ horizon coverage. For each slot:
 
 `agent-hours = advisors * interval minutes / 60`
 
-The schedule total is the exact sum. The primary fixed baseline uses 48 half-hour slots
-at two advisors, equivalent to true fixed staffing and exactly 48.0 agent-hours.
+The schedule total is the exact sum. The primary uniform baseline receives the exact
+same budget as the CallVerse plan. Its constructor accepts only slot count, slot length,
+total agent-hours, and maximum workforce pool; it cannot inspect forecast, demand, or
+simulation outcomes.
+
+For the current 85 advisor-slot units over 48 half-hour slots, every slot first receives
+one advisor. The remaining 37 units are placed at the midpoints of 37 equal partitions
+of the full horizon. Integer-floor ties resolve toward the earlier slot. This predefined
+rule is deterministic, temporally uniform, demand-agnostic, and was frozen before the
+outcome was evaluated.
 
 The existing default workforce plan recomputes to:
 
@@ -59,8 +68,9 @@ The existing default workforce plan recomputes to:
 - 6 staffing changes;
 - 48/48 analytical target-attainment slots.
 
-The CallVerse budget is therefore 5.5 agent-hours lower, or 11.46% below the fixed
-baseline. No monetary cost is inferred.
+Both primary schedules therefore use exactly 42.5 agent-hours. Intermediate staffing
+and cumulative hours can differ because the research variable is when capacity is
+deployed; both cumulative totals must converge at 24:00. No monetary cost is inferred.
 
 ## 4. Forecast to Erlang-C to schedule to Twin
 
@@ -92,7 +102,27 @@ Consequently, all 248 realized contacts have identical arrival times, intents,
 personas, patience draws, and handling draws across the two policies. Only capacity
 admission differs.
 
-## 6. Main experimental result
+## 6. Primary same-resource experimental result
+
+| Metric | Uniform baseline | CallVerse forecast-informed | CallVerse minus baseline |
+|---|---:|---:|---:|
+| Agent-hours | 42.5 | 42.5 | 0.0 |
+| Workforce pool | 5 | 5 | 0 |
+| Generated | 248 | 248 | 0 |
+| Completed | 159 | 228 | +69 |
+| SLA | 57.86% | 90.79% | +32.93 pp |
+| Abandonment | 35.89% | 8.06% | -27.82 pp |
+| Average wait | 3.18 min | 0.54 min | -2.65 min |
+| Occupancy | 26.22% | 36.97% | +10.75 pp |
+| Final backlog | 0 | 0 | 0 |
+
+All 248 contact records match on arrival, identity/order, intent, persona, patience,
+and handling draws. The actual classification is **BETTER ALLOCATION WITH SAME RESOURCE
+BUDGET**. In this calibrated simulation, the difference comes from allocation timing,
+not additional workforce resources. This is not proof of global optimality or guaranteed
+production impact.
+
+## 6a. Secondary resource-efficiency experiment
 
 | Metric | Fixed 2 advisors | CallVerse dynamic | Dynamic minus fixed |
 |---|---:|---:|---:|
@@ -138,11 +168,9 @@ The UI wording is “CallVerse staffing plan changes to N advisors.”
 - A focused 2-to-5 increase releases three already-waiting contacts exactly at the
   schedule boundary.
 
-No neutral 42.5-hour secondary baseline was added. Alternating one and two advisors or
-placing a half-hour arbitrarily would itself introduce a temporal allocation policy;
-without a defensible independent rule, it would not be a scientifically neutral
-control. The simple fixed two-advisor baseline is predefined, interpretable, and uses
-more—not less—total budget.
+The 3→3 Staff Shortage replay remains a reproducibility control: identical staffing,
+seed, and demand must produce identical trajectories. It is not an improvement demo.
+The 3→5 replay remains only a Capacity What-if.
 
 ## 9. Performance
 
@@ -178,10 +206,10 @@ The Workforce tab now presents the fair comparison as a synchronized 97-frame,
 and then runs the two simulations once. Play, pause, restart, speed, and scrub controls
 only traverse stored snapshots; playback never reruns the simulator.
 
-Before playback, the fairness banner names the 248 matched contacts, seed 404, and the
-48.0 versus 42.5 agent-hour budgets. Separate aligned charts show the known 48-slot
+Before playback, the fairness banner names the shared workforce pool, equal 42.5-hour
+budgets, seed 404, and matched workload. Separate aligned charts show the known 48-slot
 demand forecast and the exact step-shaped staffing schedule. The shared simulated clock
-drives symmetric fixed and dynamic operational panels containing current
+drives symmetric uniform and forecast-informed operational panels containing current
 busy/free/available/overhang/queue state and cumulative completed, abandoned, and
 agent-hour evidence. Queue history is revealed only through the inspected frame.
 
@@ -189,7 +217,8 @@ The six schedule events are exposed as predefined plan boundaries. The final ser
 table becomes prominent only at 24:00 and is derived from the stored comparison result.
 It states that this is calibrated simulation evidence, not a production optimality
 guarantee. The older fixed 3-to-5 replay remains a distinct **Capacity What-if**;
-the lower-budget scheduled experiment is **Workforce Intelligence**.
+the old 48.0-versus-42.5 result is **Resource-efficiency evidence**; and the equal-budget
+scheduled experiment is the primary **Workforce Intelligence** demo.
 
 No fake per-frame SLA, waiting-time, occupancy, named employee, or live telemetry is
 created. No Plotly or animation dependency was added; the visual uses the existing

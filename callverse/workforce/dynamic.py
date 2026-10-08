@@ -39,7 +39,7 @@ SUPPORT_PROFILE_PATH = PROJECT_ROOT / "data/processed/calibration/support_center
 
 class WorkforceComparisonOutcome(str, Enum):
     IMPROVED_LOWER_BUDGET = "IMPROVED WITH LOWER RESOURCE BUDGET"
-    IMPROVED_SAME_BUDGET = "IMPROVED WITH THE SAME RESOURCE BUDGET"
+    IMPROVED_SAME_BUDGET = "BETTER ALLOCATION WITH SAME RESOURCE BUDGET"
     MIXED = "MIXED"
     WORSENED = "WORSENED"
     LITTLE_CHANGE = "LITTLE CHANGE"
@@ -64,7 +64,10 @@ class WorkforcePolicyComparison(DomainModel):
     callverse_schedule: StaffingSchedule
     baseline_result: SimulationResult
     callverse_result: SimulationResult
+    baseline_staffing_events: tuple[StaffingChangeEvent, ...]
     staffing_events: tuple[StaffingChangeEvent, ...]
+    shared_workforce_pool: int = Field(ge=1)
+    resource_budget_equal: bool
     fairness_satisfied: bool
     resource_budget_delta_hours: float
     outcome: WorkforceComparisonOutcome
@@ -85,6 +88,13 @@ class WorkforcePolicyComparison(DomainModel):
             raise ValueError("workforce resource-budget delta is inconsistent")
         if self.fairness_satisfied != (expected_delta <= 1e-9):
             raise ValueError("workforce fairness flag is inconsistent")
+        if self.resource_budget_equal != (abs(expected_delta) <= 1e-9):
+            raise ValueError("same-resource budget flag is inconsistent")
+        if max(
+            self.baseline_schedule.maximum_advisors,
+            self.callverse_schedule.maximum_advisors,
+        ) > self.shared_workforce_pool:
+            raise ValueError("a staffing schedule exceeds the shared workforce pool")
         return self
 
 
@@ -121,6 +131,69 @@ def constant_staffing_schedule(
         source=source,
         provenance=("Constant integer staffing specified before simulation",),
     )
+
+
+def uniform_resource_schedule(
+    *,
+    slot_count: int,
+    slot_minutes: float,
+    total_agent_hours: float,
+    max_advisors: int,
+) -> StaffingSchedule:
+    """Spread an exact staffing budget uniformly without demand information.
+
+    Every slot receives the integer floor allocation. Remaining advisor-slot units
+    are placed at the midpoint of equally sized partitions of the full horizon;
+    integer-floor ties resolve toward the earlier slot.
+    """
+
+    if slot_count <= 0:
+        raise ValueError("uniform schedule requires at least one slot")
+    if slot_minutes <= 0:
+        raise ValueError("uniform schedule interval must be positive")
+    if max_advisors < 1:
+        raise ValueError("uniform schedule workforce pool must be positive")
+    advisor_slot_units = total_agent_hours * 60 / slot_minutes
+    rounded_units = round(advisor_slot_units)
+    if abs(advisor_slot_units - rounded_units) > 1e-9:
+        raise ValueError("staffing budget must equal a whole advisor-slot unit")
+    base_advisors, remainder = divmod(rounded_units, slot_count)
+    if base_advisors < 1:
+        raise ValueError("staffing budget must provide at least one advisor per slot")
+    if base_advisors + bool(remainder) > max_advisors:
+        raise ValueError("staffing budget exceeds the shared workforce pool")
+    extra_slots = (
+        {
+            ((2 * index + 1) * slot_count) // (2 * remainder)
+            for index in range(remainder)
+        }
+        if remainder
+        else set()
+    )
+    if len(extra_slots) != remainder:
+        raise ValueError("uniform placement did not produce unique slot positions")
+    schedule = StaffingSchedule(
+        slots=tuple(
+            StaffingSlot(
+                start_minute=index * slot_minutes,
+                end_minute=(index + 1) * slot_minutes,
+                advisors=base_advisors + (index in extra_slots),
+            )
+            for index in range(slot_count)
+        ),
+        slot_minutes=slot_minutes,
+        horizon_minutes=slot_count * slot_minutes,
+        source="Uniform demand-unaware resource baseline",
+        provenance=(
+            "No forecast, demand, or simulation outcome is accepted by this constructor",
+            "Integer floor allocation in every slot",
+            "Remainder placed at equal-partition midpoints across the full horizon",
+            "Integer-floor ties resolve toward the earlier slot",
+        ),
+    )
+    if abs(schedule.total_agent_hours - total_agent_hours) > 1e-9:
+        raise ValueError("uniform schedule did not preserve the exact staffing budget")
+    return schedule
 
 
 def schedule_from_workforce_plan(
@@ -160,6 +233,8 @@ def schedule_from_workforce_plan(
 def staffing_change_events(
     schedule: StaffingSchedule,
     forecast: DemandForecast,
+    *,
+    strategy_label: str = "CallVerse staffing plan",
 ) -> tuple[StaffingChangeEvent, ...]:
     events = []
     for index, (previous, current) in enumerate(
@@ -174,10 +249,7 @@ def staffing_change_events(
                 timestamp=forecast.points[index].timestamp,
                 previous_advisors=previous.advisors,
                 advisors=current.advisors,
-                title=(
-                    "CallVerse staffing plan changes to "
-                    f"{current.advisors} advisors"
-                ),
+                title=f"{strategy_label} changes to {current.advisors} advisors",
             )
         )
     return tuple(events)
@@ -276,13 +348,109 @@ def run_fair_workforce_comparison(
         callverse_schedule=callverse_schedule,
         baseline_result=baseline,
         callverse_result=callverse,
+        baseline_staffing_events=(),
         staffing_events=staffing_change_events(callverse_schedule, forecast),
+        shared_workforce_pool=max(
+            baseline_schedule.maximum_advisors,
+            callverse_schedule.maximum_advisors,
+        ),
+        resource_budget_equal=abs(resource_delta) <= 1e-9,
         fairness_satisfied=fairness,
         resource_budget_delta_hours=resource_delta,
         outcome=_comparison_outcome(
             baseline,
             callverse,
             fairness_satisfied=fairness,
+            resource_delta=resource_delta,
+        ),
+    )
+
+
+def run_same_resource_workforce_comparison(
+    forecast: DemandForecast,
+    *,
+    seed: int = FAIR_EXPERIMENT_SEED,
+) -> WorkforcePolicyComparison:
+    """Run the predefined equal-budget allocation experiment without tuning."""
+
+    plan = build_workforce_plan(forecast, default_workforce_config())
+    callverse_schedule = schedule_from_workforce_plan(plan, forecast)
+    shared_workforce_pool = callverse_schedule.maximum_advisors
+    baseline_schedule = uniform_resource_schedule(
+        slot_count=len(callverse_schedule.slots),
+        slot_minutes=callverse_schedule.slot_minutes,
+        total_agent_hours=callverse_schedule.total_agent_hours,
+        max_advisors=shared_workforce_pool,
+    )
+    forecast_total = sum(point.predicted_contacts for point in forecast.points)
+    calibrated_policy = build_calibrated_policy(
+        load_support_profile(SUPPORT_PROFILE_PATH)
+    )
+    demand_multiplier = forecast_total / (
+        calibrated_policy.base_arrival_rate_per_minute * FAIR_HORIZON_MINUTES
+    )
+    forecast_policy = replace(
+        calibrated_policy,
+        arrival_slot_multipliers=tuple(
+            point.predicted_contacts for point in forecast.points
+        ),
+    )
+    scenario = get_scenario("normal_day").model_copy(
+        update={
+            "name": "same_resource_workforce_forecast",
+            "description": (
+                "24-hour equal-budget uniform-versus-forecast allocation experiment"
+            ),
+            "simulation_duration": FAIR_HORIZON_MINUTES,
+            "simulation_start_minute_of_day": 0,
+            "random_seed": seed,
+            "demand_multiplier": demand_multiplier,
+            "available_agents": shared_workforce_pool,
+        }
+    )
+    baseline = run_scheduled_simulation(
+        scenario,
+        baseline_schedule,
+        seed=seed,
+        policy=forecast_policy,
+    )
+    callverse = run_scheduled_simulation(
+        scenario,
+        callverse_schedule,
+        seed=seed,
+        policy=forecast_policy,
+    )
+    resource_delta = (
+        callverse_schedule.total_agent_hours
+        - baseline_schedule.total_agent_hours
+    )
+    budget_equal = abs(resource_delta) <= 1e-9
+    return WorkforcePolicyComparison(
+        demand_source=(
+            "Existing 48-slot LightGBM forecast, mapped directly to matching "
+            "30-minute simulation intervals"
+        ),
+        forecast_origin=forecast.forecast_origin,
+        forecast_total_contacts=forecast_total,
+        seed=seed,
+        baseline_schedule=baseline_schedule,
+        callverse_schedule=callverse_schedule,
+        baseline_result=baseline,
+        callverse_result=callverse,
+        baseline_staffing_events=staffing_change_events(
+            baseline_schedule,
+            forecast,
+            strategy_label="Uniform baseline scheduled capacity",
+        ),
+        staffing_events=staffing_change_events(callverse_schedule, forecast),
+        shared_workforce_pool=shared_workforce_pool,
+        resource_budget_equal=budget_equal,
+        fairness_satisfied=budget_equal,
+        resource_budget_delta_hours=resource_delta,
+        outcome=_comparison_outcome(
+            baseline,
+            callverse,
+            fairness_satisfied=budget_equal,
             resource_delta=resource_delta,
         ),
     )

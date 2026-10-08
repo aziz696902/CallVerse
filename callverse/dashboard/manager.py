@@ -23,6 +23,9 @@ from callverse.scenarios import SCENARIO_PRESETS, get_scenario
 from callverse.workforce.dynamic import (
     fair_timeline_rows,
     run_fair_workforce_comparison,
+    run_same_resource_workforce_comparison,
+    schedule_from_workforce_plan,
+    uniform_resource_schedule,
 )
 from callverse.workforce.manager import (
     build_workforce_plan,
@@ -612,9 +615,9 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         "Preparing a setup does not run a simulation."
     )
     st.caption(
-        "PRIMARY RECOMMENDED DEMO: Workforce Intelligence compares fixed two-advisor "
-        "staffing with the dynamic 48-slot schedule under the same or lower total staffing "
-        "budget. Large Center Stress Test remains an optional scalability demonstration."
+        "PRIMARY RECOMMENDED DEMO: Workforce Intelligence compares a uniform baseline "
+        "with the dynamic 48-slot schedule using the same workforce pool and exact total "
+        "staffing budget. Large Center Stress Test remains optional."
     )
 
     setup_one = st.columns(4)
@@ -1606,7 +1609,9 @@ def _render_workforce_floor_side(title: str, snapshot) -> None:
 def _render_workforce_final_result(comparison) -> None:
     baseline = comparison.baseline_result
     callverse = comparison.callverse_result
-    fixed_label = f"Fixed · {comparison.baseline_schedule.total_agent_hours:.1f} h"
+    fixed_label = (
+        f"Uniform baseline · {comparison.baseline_schedule.total_agent_hours:.1f} h"
+    )
     dynamic_label = (
         f"CallVerse · {comparison.callverse_schedule.total_agent_hours:.1f} h"
     )
@@ -1654,7 +1659,25 @@ def _render_workforce_final_result(comparison) -> None:
             ),
         ),
     )
-    st.markdown("## FINAL 24-HOUR RESULT · ACTUAL SIMULATED OUTCOMES")
+    st.markdown("## FAIR RESOURCE CHECK")
+    resource_check = st.columns(4)
+    resource_check[0].metric(
+        "Maximum workforce",
+        f"{comparison.shared_workforce_pool} vs {comparison.shared_workforce_pool}",
+    )
+    resource_check[1].metric(
+        "Total agent-hours",
+        (
+            f"{comparison.baseline_schedule.total_agent_hours:.1f} vs "
+            f"{comparison.callverse_schedule.total_agent_hours:.1f}"
+        ),
+    )
+    resource_check[2].metric(
+        "Realized contacts",
+        f"{baseline.counts.generated} vs {callverse.counts.generated}",
+    )
+    resource_check[3].metric("Seed", comparison.seed)
+    st.markdown("## OPERATIONAL RESULT · ACTUAL SIMULATED OUTCOMES")
     st.success(comparison.outcome.value)
     st.dataframe(
         [
@@ -1669,33 +1692,37 @@ def _render_workforce_final_result(comparison) -> None:
         hide_index=True,
         width="stretch",
     )
-    saving_percent = (
-        comparison.baseline_schedule.total_agent_hours
-        - comparison.callverse_schedule.total_agent_hours
-    ) / comparison.baseline_schedule.total_agent_hours
-    st.info(
-        f"CallVerse achieved better simulated service with {saving_percent:.2%} fewer "
-        "total agent-hours by reallocating capacity toward higher-demand periods."
-    )
+    if comparison.outcome.value == "BETTER ALLOCATION WITH SAME RESOURCE BUDGET":
+        st.info(
+            "With the same workforce pool and the same total staffing budget, the "
+            "forecast-informed CallVerse schedule produced stronger simulated service by "
+            "deploying capacity at different times."
+        )
+    else:
+        st.info(
+            "Both policies used the same workforce pool and staffing budget; the displayed "
+            "classification reports the resulting allocation outcome without adjustment."
+        )
     st.caption(
-        "This is evidence from the calibrated simulation experiment, not a production "
-        "optimality guarantee."
+        "This demonstrates allocation performance inside the calibrated Digital Twin. "
+        "It does not prove global optimality or guaranteed production impact."
     )
 
 
 def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
     st.divider()
-    st.subheader("WORKFORCE INTELLIGENCE COMPARISON")
-    st.success("PRIMARY RECOMMENDED DEMO · WORKFORCE INTELLIGENCE")
-    st.markdown("**Same demand. Lower staffing budget. Smarter allocation.**")
+    st.subheader("WORKFORCE INTELLIGENCE · SAME RESOURCE BUDGET")
+    st.success("PRIMARY RECOMMENDED DEMO · SAME RESOURCES — SMARTER ALLOCATION")
+    st.markdown(
+        "**Same workforce resources. Same demand. Different allocation strategy.**"
+    )
     st.caption(
-        "SIMULATED · A synchronized 24-hour replay of fixed capacity versus the "
-        "predefined Forecast → Erlang-C schedule. This is separate from the fixed "
-        "3→5 CAPACITY WHAT-IF."
+        "SIMULATED · Uniform demand-unaware allocation versus the predefined "
+        "Forecast → Erlang-C schedule. The 3→5 Capacity What-if remains secondary."
     )
     st.write(
-        "Can CallVerse allocate the same or lower total staffing budget more effectively "
-        "over time?"
+        "With the same workforce resources and customer demand, can CallVerse allocate "
+        "staffing capacity better over time than a demand-unaware baseline?"
     )
     st.caption(
         "Predefined experiment: seed 404, current forecast artifact, 80% service target, "
@@ -1707,7 +1734,7 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
         forecast.model_version,
         tuple(point.predicted_contacts for point in forecast.points),
     )
-    if st.button("LOAD WORKFORCE INTELLIGENCE DEMO", width="stretch"):
+    if st.button("LOAD RECOMMENDED WORKFORCE DEMO", width="stretch"):
         st.session_state.manager_workforce_demo_prepared = signature
         for key in (
             "manager_fair_workforce_comparison",
@@ -1726,7 +1753,7 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
                 playback
             )
         message = (
-            "Load the defense demo to prepare its fixed inputs. Loading does not run "
+            "Load the recommended demo to prepare its controlled inputs. Loading does not run "
             "either simulation or reveal an outcome."
             if prepared_signature is None
             else "The forecast input changed. Reload the demo before running or replaying."
@@ -1734,22 +1761,51 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
         st.info(message)
         return
 
+    prepared_plan = build_workforce_plan(forecast, default_workforce_config())
+    prepared_callverse_schedule = schedule_from_workforce_plan(prepared_plan, forecast)
+    prepared_pool = prepared_callverse_schedule.maximum_advisors
+    prepared_baseline_schedule = uniform_resource_schedule(
+        slot_count=len(prepared_callverse_schedule.slots),
+        slot_minutes=prepared_callverse_schedule.slot_minutes,
+        total_agent_hours=prepared_callverse_schedule.total_agent_hours,
+        max_advisors=prepared_pool,
+    )
     with st.container(border=True):
-        st.markdown("### PREDEFINED FAIR TEST")
+        st.markdown("### CONTROLLED COMPARISON")
         st.write(
-            "**Fixed baseline:** 2 advisors throughout 24 hours.  "
-            "**CallVerse dynamic:** the existing default Forecast → Erlang-C plan at "
-            "30-minute boundaries."
+            "✓ Same workforce pool  \n✓ Same total staffing budget  \n"
+            "✓ Same realized contacts  \n✓ Same seed  \n"
+            "✓ Same service and patience draws"
         )
+        st.markdown("**ONLY DIFFERENCE: WHEN STAFFING CAPACITY IS DEPLOYED**")
         st.write(
-            "**Held constant:** forecast-shaped demand, seed 404, customer mix, service "
-            "and patience distributions, SLA definition, and simulator."
+            "**UNIFORM BASELINE:** Same staffing budget distributed without forecast "
+            "information.  \n**CALLVERSE FORECAST-INFORMED PLAN:** Same staffing budget "
+            "allocated according to predicted demand."
+        )
+        budget_cards = st.columns(4)
+        budget_cards[0].metric("Shared workforce pool", prepared_pool)
+        budget_cards[1].metric(
+            "Uniform baseline budget",
+            f"{prepared_baseline_schedule.total_agent_hours:.1f} h",
+        )
+        budget_cards[2].metric(
+            "CallVerse budget",
+            f"{prepared_callverse_schedule.total_agent_hours:.1f} h",
+        )
+        budget_cards[3].metric(
+            "Budget difference",
+            f"{prepared_callverse_schedule.total_agent_hours - prepared_baseline_schedule.total_agent_hours:+.1f} h",
+        )
+        st.caption(
+            f"Pool access: maximum {prepared_pool} advisors for both policies · seed 404 · "
+            "48 half-hour slots. Nothing has run yet."
         )
         st.caption("Only the staffing policy changes. Nothing has run yet.")
 
-    if st.button("RUN FAIR COMPARISON", type="primary", width="stretch"):
-        with st.spinner("Running the matched fixed and scheduled simulations once…"):
-            comparison = run_fair_workforce_comparison(forecast)
+    if st.button("RUN CONTROLLED COMPARISON", type="primary", width="stretch"):
+        with st.spinner("Running both equal-budget scheduled simulations once…"):
+            comparison = run_same_resource_workforce_comparison(forecast)
             frames = build_workforce_visual_frames(comparison, forecast)
             st.session_state.manager_fair_workforce_comparison = comparison
             st.session_state.manager_workforce_visual_frames = frames
@@ -1760,7 +1816,7 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
 
     comparison = st.session_state.get("manager_fair_workforce_comparison")
     if comparison is None:
-        st.info("Inputs are ready. Run the fair comparison; nothing auto-runs.")
+        st.info("Inputs are ready. Run the controlled comparison; nothing auto-runs.")
         return
     if st.session_state.get("manager_workforce_comparison_signature") != signature:
         playback = st.session_state.get("manager_workforce_playback")
@@ -1779,16 +1835,16 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
         st.session_state.manager_workforce_visual_frames = frames
     baseline_hours = comparison.baseline_schedule.total_agent_hours
     callverse_hours = comparison.callverse_schedule.total_agent_hours
-    saving_percent = (baseline_hours - callverse_hours) / baseline_hours
     st.success(
-        f"FAIRNESS PASSES · {comparison.baseline_result.counts.generated} contacts on both "
-        f"sides · seed {comparison.seed} · {baseline_hours:.1f} vs {callverse_hours:.1f} "
-        f"agent-hours · {comparison.resource_budget_delta_hours:+.1f} agent-hours · "
-        f"{saving_percent:.2%} fewer agent-hours"
+        f"CONTROLLED COMPARISON PASSES · pool {comparison.shared_workforce_pool} for both · "
+        f"{baseline_hours:.1f} vs {callverse_hours:.1f} agent-hours · difference "
+        f"{comparison.resource_budget_delta_hours:+.1f} h · "
+        f"{comparison.baseline_result.counts.generated} contacts on both · seed "
+        f"{comparison.seed}"
     )
     st.caption(
         "Same forecast-shaped realized demand, seed, customer mix, service distributions, "
-        "and patience distributions. Only fixed versus scheduled capacity differs."
+        "and patience distributions. Only the temporal staffing allocation policy differs."
     )
 
     playback: PlaybackState | None = st.session_state.get(
@@ -1883,40 +1939,45 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
     st.line_chart(
         staffing_step_rows(comparison, frame.simulation_minute),
         x="simulation_minute",
-        y=["Fixed 2 advisors", "CallVerse dynamic"],
+        y=["Uniform baseline", "CallVerse forecast-informed"],
         x_label="Simulated minute (00:00–24:00)",
     )
     st.info(frame.resource_explanation)
+    if frame.baseline_staffing_event:
+        st.info(f"UNIFORM EVENT · {frame.baseline_staffing_event}")
     if frame.staffing_event:
-        st.success(f"SCHEDULE EVENT · {frame.staffing_event}")
+        st.success(f"CALLVERSE EVENT · {frame.staffing_event}")
 
     resource_columns = st.columns(2)
     resource_columns[0].metric(
-        "Fixed cumulative agent-hours", f"{frame.baseline_agent_hours:.2f}"
+        "Uniform cumulative agent-hours", f"{frame.baseline_agent_hours:.2f}"
     )
     resource_columns[1].metric(
         "CallVerse cumulative agent-hours", f"{frame.callverse_agent_hours:.2f}"
     )
 
     st.markdown("### LIVE OPERATIONAL FLOOR · STORED SNAPSHOTS")
-    fixed_column, dynamic_column = st.columns(2)
-    with fixed_column.container(border=True):
-        _render_workforce_floor_side("FIXED · 2 ADVISORS", frame.baseline)
+    baseline_column, dynamic_column = st.columns(2)
+    with baseline_column.container(border=True):
+        _render_workforce_floor_side("UNIFORM BASELINE", frame.baseline)
     with dynamic_column.container(border=True):
-        _render_workforce_floor_side("CALLVERSE · DYNAMIC", frame.callverse)
+        _render_workforce_floor_side(
+            "CALLVERSE FORECAST-INFORMED PLAN", frame.callverse
+        )
 
     st.markdown("**Queue trajectory revealed through the current frame**")
     st.line_chart(
         workforce_queue_rows(frames, frame.index),
         x="simulation_minute",
-        y=["Fixed 2 advisors", "CallVerse dynamic"],
+        y=["Uniform baseline", "CallVerse forecast-informed"],
         x_label="Simulated minute",
     )
     st.caption(
         "Actual stored snapshots only; no smoothing, estimation, or replay-time simulation."
     )
     with st.expander(
-        f"PREDEFINED STAFFING EVENTS ({len(comparison.staffing_events)})"
+        "PREDEFINED STAFFING EVENTS "
+        f"({len(comparison.baseline_staffing_events) + len(comparison.staffing_events)})"
     ):
         st.dataframe(
             [
@@ -1928,7 +1989,10 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
                     "Change": f"{event.previous_advisors} → {event.advisors}",
                     "Evidence": event.title,
                 }
-                for event in comparison.staffing_events
+                for event in (
+                    *comparison.baseline_staffing_events,
+                    *comparison.staffing_events,
+                )
             ],
             hide_index=True,
             width="stretch",
@@ -1954,9 +2018,9 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
 def _workforce_panel() -> None:
     st.info(
         "ANALYTICAL ERLANG-C BASELINE + DYNAMIC TWIN EVALUATION: Forecast estimates "
-        "demand; Erlang-C converts it into a staffing recommendation, and FAIR WORKFORCE "
-        "COMPARISON evaluates that predefined schedule in the Dynamic Twin. Fixed staffing "
-        "choices remain separate CAPACITY WHAT-IFS."
+        "demand; Erlang-C converts it into a staffing recommendation, and the SAME-RESOURCE "
+        "comparison evaluates its timing against a uniform demand-unaware schedule. Fixed "
+        "staffing choices remain separate CAPACITY WHAT-IFS."
     )
     st.header("Workforce")
     st.caption(
@@ -2135,9 +2199,10 @@ def _workforce_panel() -> None:
                 width="stretch",
             )
     st.info(
-        "The fixed 3→5 comparison remains a CAPACITY WHAT-IF. The fair comparison above "
-        "is WORKFORCE INTELLIGENCE: fixed capacity versus a predefined 30-minute schedule "
-        "under a lower total agent-hour budget."
+        "The fixed 3→5 comparison remains a CAPACITY WHAT-IF. The primary comparison above "
+        "is WORKFORCE INTELLIGENCE: the same workforce pool and exact daily agent-hour "
+        "budget under uniform versus forecast-informed temporal allocation. The previous "
+        "48.0 vs 42.5 result remains documented as a resource-efficiency experiment."
     )
     _rl_experiment_panel()
 
@@ -2244,11 +2309,9 @@ def render_manager() -> None:
     with st.expander("Recommended demo path"):
         st.write(
             "Load Staff Shortage (seed 404, 3 agents, calibrated) → run the Digital Twin → "
-            "briefly inspect the 3→5 Capacity What-if → review Forecast → run the PRIMARY "
-            "RECOMMENDED DEMO, Workforce Intelligence → optionally show the 3→3 Same-staff "
-            "Control if asked about reproducibility → run an Interaction Lab case → review "
-            "Quality. The primary intelligence evidence is the lower-budget dynamic staffing "
-            "comparison, not 3→5."
+            "review Forecast → run the PRIMARY RECOMMENDED DEMO, same-resource Workforce "
+            "Intelligence → run an Interaction Lab case → review Quality. The 3→5 Capacity "
+            "What-if is optional; 3→3 is an advanced reproducibility control only."
         )
         st.caption("Each action remains explicit; this path does not auto-run any step.")
     tabs = st.tabs(
