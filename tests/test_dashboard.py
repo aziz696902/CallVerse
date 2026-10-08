@@ -205,19 +205,23 @@ def test_empty_quality_session_does_not_manufacture_aggregate():
 def test_streamlit_customer_staff_and_manager_views_load_without_exceptions():
     app = AppTest.from_file("app.py", default_timeout=30).run()
     assert not app.exception
-    assert any(item.value == "💬 Customer Support Chat" for item in app.title)
+    assert app.sidebar.radio[0].value == "📊 Manager Control Room"
+    assert any(item.value == "CallVerse · Manager Control Room" for item in app.title)
 
-    app.sidebar.radio[0].set_value("🧑‍💼 Staff")
+    app.sidebar.radio[0].set_value("💬 Customer Interaction Demo")
     app.run()
     assert not app.exception
-    assert any("Staff" in item.value for item in app.title)
+    assert any(item.value == "💬 Customer Interaction Demo" for item in app.title)
 
-    manager_app = AppTest.from_file("app.py", default_timeout=30).run()
-    manager_app.sidebar.radio[0].set_value("📊 Manager")
-    manager_app.run()
-    assert not manager_app.exception
-    assert any(item.value == "CallVerse · Manager Control Room" for item in manager_app.title)
-    assert {item.label for item in manager_app.tabs} == {
+    app.sidebar.radio[0].set_value("🧑‍💼 Human Approval Queue")
+    app.run()
+    assert not app.exception
+    assert any(item.value == "🧑‍💼 Human Approval Queue" for item in app.title)
+
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
+    app.run()
+    assert not app.exception
+    assert {item.label for item in app.tabs} == {
         "Scenario Studio",
         "Twin Monitor",
         "Compare Decisions",
@@ -230,7 +234,7 @@ def test_streamlit_customer_staff_and_manager_views_load_without_exceptions():
 
 def test_streamlit_manager_run_button_returns_real_kpis():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value("📊 Manager")
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run()
     next(button for button in app.button if button.label == "RUN DIGITAL TWIN").click()
     app.run(timeout=30)
@@ -244,7 +248,7 @@ def test_streamlit_manager_run_button_returns_real_kpis():
 
 def test_streamlit_forecast_view_is_reachable_and_honestly_labelled():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value("📊 Manager")
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
 
     assert not app.exception
@@ -259,7 +263,7 @@ def test_streamlit_forecast_view_is_reachable_and_honestly_labelled():
 
 def test_streamlit_workforce_view_builds_an_honestly_labelled_plan():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value("📊 Manager")
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
     assert not app.exception
     assert any(item.value == "Workforce" for item in app.header)
@@ -278,7 +282,7 @@ def test_streamlit_workforce_view_builds_an_honestly_labelled_plan():
 
 def test_streamlit_workforce_view_shows_experimental_ppo_limitations():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value(app.sidebar.radio[0].options[-1])
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
 
     assert not app.exception
@@ -292,7 +296,7 @@ def test_streamlit_workforce_view_shows_experimental_ppo_limitations():
 
 def test_streamlit_offline_interaction_is_explicit_and_quality_scores_stay_unavailable():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value("📊 Manager")
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run()
     next(button for button in app.button if button.label == "RUN SELECTED INTERACTION").click()
     app.run(timeout=30)

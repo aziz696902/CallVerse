@@ -1,17 +1,16 @@
 """CallVerse — one Streamlit app for support, approvals, and management.
 
-This single app serves three roles, switched with the sidebar:
+This single app presents the Manager Control Room as the primary experience, with two
+supporting operational views:
 
-  👤 Customer  — chats with the agent. When the AI proposes a sensitive action
-                 (a refund), the customer is told a specialist will review it and
-                 the conversation ENDS for them; they are never blocked. Later,
-                 once staff decide, the outcome shows up as a follow-up message.
+  💬 Customer Interaction Demo — chats with the agent. When the AI proposes a sensitive
+                 action (a refund), the customer is told a specialist will review it.
 
-  🧑‍💼 Staff    — sees the pending-approval QUEUE (the `approvals` table). Each item
+  🧑‍💼 Human Approval Queue — sees the pending-approval QUEUE. Each item
                  shows what the AI proposed, with full context, and Approve/Reject
                  resumes that durable thread out-of-band via Command(resume=...).
 
-  📊 Manager  — runs the existing CallVerse Digital Twin, compares a manual staffing
+  📊 Manager Control Room — runs the existing CallVerse Digital Twin, compares staffing
                  decision, and separately inspects selected Advisor/Quality interactions.
 
 This works because LangGraph's interrupt() pauses the run to the SQLite checkpoint
@@ -93,7 +92,7 @@ def actions_for_thread(thread_id: str) -> list[dict]:
 if "thread_id" not in st.session_state:
     new_thread()
 if "role" not in st.session_state:
-    st.session_state.role = "👤 Customer"
+    st.session_state.role = "📊 Manager Control Room"
 
 app = get_app()
 
@@ -127,7 +126,11 @@ def check_for_updates() -> int:
 
 
 def render_customer(customer_id: str) -> None:
-    st.title("💬 Customer Support Chat")
+    st.title("💬 Customer Interaction Demo")
+    st.caption(
+        "Supporting operational view. Demonstrates the Advisor pipeline: intent "
+        "classification, business tools, RAG, LLM response, escalation, and approval behavior."
+    )
     if not config.GROQ_API_KEY:
         st.error(
             "Live Groq is unavailable because `GROQ_API_KEY` is not configured. "
@@ -190,9 +193,11 @@ def render_customer(customer_id: str) -> None:
 # ================================================================ STAFF ========
 
 def render_staff() -> None:
-    st.title("🧑‍💼 Staff — Approval Queue")
-    st.caption("Sensitive actions the AI proposed. Approve to execute the refund; "
-               "reject to decline. Each decision resumes a durable, paused agent run.")
+    st.title("🧑‍💼 Human Approval Queue")
+    st.caption(
+        "Supporting operational view. Shows human-in-the-loop review for sensitive actions "
+        "such as refunds. Approve or reject to resume the durable, paused agent run."
+    )
 
     pending = db.get_pending_approvals()
     if not pending:
@@ -239,17 +244,27 @@ def render_staff() -> None:
 
 with st.sidebar:
     st.header("🛟 CallVerse")
-    st.caption("Digital Twin · HelpPilot · Quality Analyst")
+    st.caption("Manager-led simulation and support decision system")
 
-    roles = ["👤 Customer", "🧑‍💼 Staff", "📊 Manager"]
-    st.session_state.role = st.radio(
-        "View as",
+    st.markdown("**Main experience**")
+    st.caption("📊 Manager Control Room")
+    st.markdown("**Supporting operational views**")
+    st.caption("💬 Customer Interaction Demo · 🧑‍💼 Human Approval Queue")
+    roles = [
+        "📊 Manager Control Room",
+        "💬 Customer Interaction Demo",
+        "🧑‍💼 Human Approval Queue",
+    ]
+    if st.session_state.role not in roles:
+        st.session_state.role = roles[0]
+    st.radio(
+        "Open view",
         roles,
-        index=roles.index(st.session_state.role) if st.session_state.role in roles else 0,
-        help="Customer support, staff approvals, and the manager control room share one app.",
+        key="role",
+        help="The Manager Control Room is primary; supporting demos remain available here.",
     )
-    is_customer = st.session_state.role == "👤 Customer"
-    is_staff = st.session_state.role == "🧑‍💼 Staff"
+    is_customer = st.session_state.role == "💬 Customer Interaction Demo"
+    is_staff = st.session_state.role == "🧑‍💼 Human Approval Queue"
 
     # A live badge so staff always know the queue depth.
     queue_depth = len(db.get_pending_approvals())
@@ -321,7 +336,10 @@ with st.sidebar:
 if is_customer and customer_id is not None:
     render_customer(customer_id)
 elif is_customer:
-    st.title("💬 Customer Support Chat")
+    st.title("💬 Customer Interaction Demo")
+    st.caption(
+        "Supporting operational view for the Advisor pipeline, escalation, and approval behavior."
+    )
     st.info("Seed demo customers to start a support conversation.")
 elif is_staff:
     render_staff()

@@ -137,7 +137,7 @@ def test_guidance_layer_does_not_change_simulation_result():
 
 def test_dashboard_renders_guided_journey_and_scenario_card():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value("📊 Manager")
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
 
     assert not app.exception

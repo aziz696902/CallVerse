@@ -43,6 +43,12 @@ from .scenario_guidance import (
     interpret_simulation_result,
     recommended_demo_widget_state,
 )
+from .twin_replay import (
+    build_replay_frame,
+    replay_context,
+    replay_slider_key,
+    waiting_visual,
+)
 from .view_models import (
     DecisionComparison,
     ManagerRun,
@@ -282,12 +288,69 @@ def _scenario_studio() -> None:
     )
 
 
+def _render_twin_replay(run: ManagerRun) -> None:
+    st.subheader("Digital Twin Replay")
+    st.caption(
+        "The replay visualizes snapshots from the completed simulation. It does not run a "
+        "second simulation and does not change the result."
+    )
+    context = replay_context(run)
+    with st.container(border=True):
+        context_columns = st.columns(4)
+        context_columns[0].metric("Scenario", context.scenario_title)
+        context_columns[1].metric("Descriptive risk", context.risk_level)
+        context_columns[2].metric("Available agents", context.available_agents)
+        context_columns[3].metric("Seed / mode", f"{context.seed} / {context.policy_mode}")
+        st.write(f"**Manager question:** {context.manager_question}")
+
+    if not run.result.snapshots:
+        st.warning("Replay unavailable because this simulation result contains no snapshots.")
+        return
+
+    frame_index = st.slider(
+        "Replay time step",
+        min_value=0,
+        max_value=len(run.result.snapshots) - 1,
+        value=0,
+        key=replay_slider_key(run),
+    )
+    frame = build_replay_frame(run, frame_index)
+    frame_columns = st.columns(4)
+    frame_columns[0].metric(
+        "Simulated time", f"{frame.simulated_clock} · min {frame.simulation_minute:g}"
+    )
+    frame_columns[1].metric("Waiting contacts", frame.queue_size)
+    frame_columns[2].metric(
+        "Agents busy / free", f"{frame.busy_agents} / {frame.free_agents}"
+    )
+    frame_columns[3].metric("Queue pressure", frame.pressure.value)
+    st.progress(
+        frame.pressure_fraction,
+        text=f"Descriptive queue pressure: {frame.pressure.value}",
+    )
+    st.markdown(f"**Waiting:** {waiting_visual(frame)}")
+    st.write(
+        f"**Staffing:** {frame.busy_agents} busy · {frame.free_agents} free · "
+        f"{frame.available_agents} available"
+    )
+    flow_columns = st.columns(2)
+    flow_columns[0].metric("Cumulative completed", frame.completed_count)
+    flow_columns[1].metric("Cumulative abandoned", frame.abandoned_count)
+    st.caption(
+        "Completed and abandoned are cumulative snapshot counters. Per-snapshot generated "
+        "contacts, occupancy, SLA, and wait are not stored; final KPIs remain in Scenario Studio."
+    )
+
+
 def _twin_monitor() -> None:
     st.header("Twin Monitor")
     run: ManagerRun | None = st.session_state.get("manager_run")
     if run is None:
-        st.info("Run a scenario in Scenario Studio to populate operational monitoring.")
+        st.info("Run a Digital Twin scenario to unlock the replay.")
         return
+    _render_twin_replay(run)
+    st.divider()
+    st.subheader("Full-run monitoring")
     rows = timeline_rows(run.result)
     st.subheader("Queue size over simulated time")
     st.line_chart(
@@ -984,6 +1047,10 @@ def _rl_experiment_panel() -> None:
 
 def render_manager() -> None:
     st.title("CallVerse · Manager Control Room")
+    st.write(
+        "Use the Digital Twin to simulate demand, observe operational pressure, forecast "
+        "future workload, test staffing decisions, and inspect support quality."
+    )
     st.caption(
         "Operational Digital Twin metrics and individual interaction quality are separate."
     )

@@ -118,8 +118,57 @@ Compare Decisions is manual what-if testing. Workforce remains the separate Erla
 analytical recommendation and neither feature labels the tested configuration as
 optimal.
 
-## Deferred to UX Phase 3
+## UX Phase 3 — Navigation Hierarchy & Digital Twin Replay
 
-Digital Twin Replay & Scenario Visualization may add a clearer time-based scenario
-story later. Animated replay, avatars, queue animation, and redesigns of Forecast,
-Workforce, Interaction Lab, and Quality remain out of scope.
+### Navigation hierarchy
+
+The application now lands on **Manager Control Room**, the primary CallVerse
+experience. Its short introduction connects simulation, operational observation,
+forecasting, staffing tests, and quality inspection.
+
+Two supporting operational views remain available in the sidebar:
+
+- **Customer Interaction Demo** demonstrates the deeper Advisor pipeline, including
+  classification, tools, RAG, LLM response, escalation, and approval behavior.
+- **Human Approval Queue** demonstrates human review of sensitive actions.
+
+Interaction Lab and Quality remain inside Manager Control Room for compact manager
+inspection. The separate Customer view is a deeper end-user conversation demo; it is
+not another Advisor implementation.
+
+### Replay architecture
+
+Digital Twin Replay appears inside Twin Monitor after a scenario run. It reads the
+existing immutable `TimeSeriesSnapshot` sequence from the latest `ManagerRun`; moving
+the time-step slider selects a snapshot and never invokes the simulator again.
+
+Each frame shows:
+
+- human-readable simulated clock time and elapsed minute;
+- waiting queue size;
+- busy, free, and available advisors;
+- cumulative completed and abandoned contacts;
+- a deterministic descriptive queue-pressure level.
+
+The pressure label uses only actual queue size and instantaneous busy/available
+staffing: queue at least twice staffing is `SEVERE`, queue at least staffing is
+`HIGH`, any queue or at least 85% busy is `MODERATE`, and otherwise it is `LOW`. This
+is presentation guidance, not a learned score or cumulative occupancy metric.
+
+Queue icons are capped at ten with a numeric remainder, so large queues cannot expand
+the layout. Replay widget keys include scenario, seed, staffing, demand, duration, and
+policy mode, preventing a slider position from leaking into a different run.
+
+Snapshots do not store per-frame generated contacts, occupancy, SLA, or wait. The UI
+does not synthesize them; final KPIs remain in Scenario Studio. Completed and
+abandoned snapshot counters are explicitly labelled cumulative.
+
+The replay is always labelled simulation replay rather than live telemetry. It
+supplements the existing KPI cards and Twin Monitor charts. Frame construction is an
+in-memory view operation and does not add meaningful simulation latency.
+
+## Deferred to UX Phase 4
+
+Final Demo Polish & Usability Freeze may refine wording and the official presentation
+sequence. Automated playback, moving avatars, 3D visualization, and redesigns of
+Forecast, Workforce, Interaction Lab, and Quality remain out of scope.

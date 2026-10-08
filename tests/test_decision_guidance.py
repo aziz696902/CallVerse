@@ -191,7 +191,7 @@ def test_narrative_preserves_same_seed_context_and_does_not_mutate_comparison(
 
 def test_dashboard_renders_full_decision_story_without_auto_run():
     app = AppTest.from_file("app.py", default_timeout=30).run()
-    app.sidebar.radio[0].set_value(app.sidebar.radio[0].options[-1])
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
     next(
         button for button in app.button if button.label == "LOAD RECOMMENDED DEMO"

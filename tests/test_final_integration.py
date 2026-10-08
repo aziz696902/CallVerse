@@ -61,8 +61,11 @@ def test_app_without_groq_key_stays_available_and_labels_live_as_unavailable(mon
     monkeypatch.setattr(config, "GROQ_API_KEY", None)
     app = AppTest.from_file("app.py", default_timeout=30).run()
     assert not app.exception
+    assert app.sidebar.radio[0].value == "📊 Manager Control Room"
+    app.sidebar.radio[0].set_value("💬 Customer Interaction Demo")
+    app.run(timeout=30)
     assert any("Live Groq is unavailable" in item.value for item in app.error)
-    app.sidebar.radio[0].set_value(app.sidebar.radio[0].options[-1])
+    app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run(timeout=30)
     assert not app.exception
     visible = "\n".join(item.value for item in (*app.info, *app.caption))
