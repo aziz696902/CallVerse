@@ -27,6 +27,18 @@ from callverse.workforce.manager import (
 )
 from helppilot import config
 
+from .comparative_replay import (
+    ASSISTED_LABEL,
+    BASELINE_LABEL,
+    ComparativeReplay,
+    DecisionSource,
+    ReplaySideFrame,
+    build_comparative_replay,
+    comparative_slider_key,
+    comparison_matches_configuration,
+    create_comparison_configuration,
+    select_comparative_frame,
+)
 from .decision_guidance import (
     PRODUCTION_AB_DISCLAIMER,
     SAME_SEED_EXPLANATION,
@@ -348,6 +360,304 @@ def _render_twin_replay(run: ManagerRun) -> None:
     )
 
 
+def _mark_comparative_manager_selected() -> None:
+    st.session_state.comparative_decision_source = (
+        DecisionSource.MANAGER_SELECTED.value
+    )
+
+
+def _set_comparative_controls(
+    *,
+    scenario_name: str,
+    seed: int,
+    baseline_agents: int,
+    assisted_agents: int,
+    demand_multiplier: float,
+    duration_minutes: float,
+    policy_mode: str,
+    decision_source: DecisionSource,
+) -> None:
+    st.session_state.comparative_scenario = scenario_name
+    st.session_state.comparative_seed = seed
+    st.session_state.comparative_baseline_agents = baseline_agents
+    st.session_state.comparative_assisted_agents = assisted_agents
+    st.session_state.comparative_demand = demand_multiplier
+    st.session_state.comparative_duration = duration_minutes
+    st.session_state.comparative_mode = policy_mode
+    st.session_state.comparative_decision_source = decision_source.value
+
+
+def _render_comparative_side(side: ReplaySideFrame) -> None:
+    st.markdown(f"#### {side.label}")
+    st.caption(f"Fixed staffing for this completed run: {side.available_agents} advisors")
+    first = st.columns(3)
+    first[0].metric("Current queue", side.queue_size)
+    first[1].metric("Busy advisors", side.busy_agents)
+    first[2].metric("Free advisors", side.free_agents)
+    second = st.columns(3)
+    second[0].metric("Available advisors", side.available_agents)
+    second[1].metric("Completed so far", side.completed_so_far)
+    second[2].metric("Abandoned so far", side.abandoned_so_far)
+    st.metric("Current snapshot pressure", side.snapshot_pressure.value)
+
+
+def _render_comparative_final_summary(replay: ComparativeReplay) -> None:
+    narrative = build_decision_narrative(replay.comparison)
+    with st.expander("Final result comparison"):
+        st.caption(
+            "Final-run KPIs use the existing Compare Decisions interpretation logic."
+        )
+        st.dataframe(
+            [
+                {
+                    "Metric": change.label,
+                    BASELINE_LABEL: format_metric_value(change, change.before),
+                    ASSISTED_LABEL: format_metric_value(change, change.after),
+                    "Difference": format_metric_delta(change),
+                }
+                for change in narrative.changes
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.write(f"**{narrative.outcome.value}:** {narrative.conclusion}")
+        st.caption(PRODUCTION_AB_DISCLAIMER)
+
+
+def _comparative_replay_panel(run: ManagerRun | None) -> None:
+    st.divider()
+    st.subheader("COMPARATIVE SIMULATION REPLAY")
+    st.write(
+        "Inspect a fixed staffing baseline and a CallVerse-assisted decision at the same "
+        "simulated timestamp."
+    )
+    st.caption(
+        "This is a synchronized replay of two completed simulations, not live production "
+        "telemetry. CallVerse-assisted means the right-hand simulation applies a decision "
+        "supported or tested by CallVerse; it does not mean every model is active at every frame."
+    )
+
+    if run is not None:
+        run_signature = (
+            run.scenario.name,
+            run.result.seed,
+            run.scenario.available_agents,
+            run.scenario.demand_multiplier,
+            run.scenario.simulation_duration,
+            run.policy_mode,
+        )
+        if st.session_state.get("comparative_inherited_run") != run_signature:
+            _set_comparative_controls(
+                scenario_name=run.scenario.name,
+                seed=run.result.seed,
+                baseline_agents=run.scenario.available_agents,
+                assisted_agents=run.scenario.available_agents + 2,
+                demand_multiplier=run.scenario.demand_multiplier,
+                duration_minutes=run.scenario.simulation_duration,
+                policy_mode=run.policy_mode,
+                decision_source=DecisionSource.MANAGER_SELECTED,
+            )
+            st.session_state.comparative_inherited_run = run_signature
+
+    default = run.scenario if run is not None else get_scenario("normal_day")
+    if "comparative_scenario" not in st.session_state:
+        _set_comparative_controls(
+            scenario_name=default.name,
+            seed=default.random_seed,
+            baseline_agents=default.available_agents,
+            assisted_agents=default.available_agents + 2,
+            demand_multiplier=default.demand_multiplier,
+            duration_minutes=default.simulation_duration,
+            policy_mode=run.policy_mode if run is not None else "calibrated",
+            decision_source=DecisionSource.MANAGER_SELECTED,
+        )
+
+    if st.button("PREPARE OFFICIAL DEMO"):
+        official = get_scenario("staff_shortage")
+        _set_comparative_controls(
+            scenario_name=official.name,
+            seed=404,
+            baseline_agents=3,
+            assisted_agents=5,
+            demand_multiplier=official.demand_multiplier,
+            duration_minutes=official.simulation_duration,
+            policy_mode="calibrated",
+            decision_source=DecisionSource.RECOMMENDED_DEMO,
+        )
+        st.session_state.manager_comparative_replay = None
+        st.rerun()
+    st.caption(
+        "PREPARE OFFICIAL DEMO fills Staff Shortage · seed 404 · 3 → 5 advisors · "
+        "calibrated mode. It does not run either simulation."
+    )
+
+    setup_one = st.columns(4)
+    scenario_name = setup_one[0].selectbox(
+        "Scenario",
+        SCENARIO_NAMES,
+        key="comparative_scenario",
+        format_func=lambda name: get_scenario_guide(name).title,
+        on_change=_mark_comparative_manager_selected,
+    )
+    seed = int(
+        setup_one[1].number_input(
+            "Seed",
+            min_value=0,
+            step=1,
+            key="comparative_seed",
+            on_change=_mark_comparative_manager_selected,
+        )
+    )
+    baseline_agents = int(
+        setup_one[2].number_input(
+            "Baseline advisors",
+            min_value=1,
+            step=1,
+            key="comparative_baseline_agents",
+            on_change=_mark_comparative_manager_selected,
+        )
+    )
+    assisted_agents = int(
+        setup_one[3].number_input(
+            "CallVerse-assisted advisors",
+            min_value=1,
+            step=1,
+            key="comparative_assisted_agents",
+            on_change=_mark_comparative_manager_selected,
+        )
+    )
+    setup_two = st.columns(3)
+    demand_multiplier = float(
+        setup_two[0].number_input(
+            "Comparison demand multiplier",
+            min_value=0.1,
+            max_value=5.0,
+            step=0.05,
+            key="comparative_demand",
+            on_change=_mark_comparative_manager_selected,
+        )
+    )
+    duration_minutes = float(
+        setup_two[1].number_input(
+            "Comparison duration (minutes)",
+            min_value=30.0,
+            max_value=1440.0,
+            step=30.0,
+            key="comparative_duration",
+            on_change=_mark_comparative_manager_selected,
+        )
+    )
+    policy_mode = setup_two[2].selectbox(
+        "Comparison simulator mode",
+        ("calibrated", "prototype"),
+        key="comparative_mode",
+        on_change=_mark_comparative_manager_selected,
+    )
+    decision_source = DecisionSource(st.session_state.comparative_decision_source)
+    comparison_config = create_comparison_configuration(
+        scenario_name,
+        seed=seed,
+        duration_minutes=duration_minutes,
+        demand_multiplier=demand_multiplier,
+        baseline_agents=baseline_agents,
+        assisted_agents=assisted_agents,
+        policy_mode=policy_mode,
+        decision_source=decision_source,
+    )
+    st.info(
+        f"Both sides use the same {policy_mode} Digital Twin and the same seeded demand "
+        "conditions. Only the tested staffing decision changes."
+    )
+
+    with st.expander("Changed and held-constant comparison settings"):
+        st.write(f"**CHANGED:** Available advisors: {baseline_agents} → {assisted_agents}")
+        st.write("**HELD CONSTANT:**")
+        st.write(f"- Scenario: {get_scenario_guide(scenario_name).title}")
+        st.write(f"- Seed: {seed}")
+        st.write(f"- Duration: {duration_minutes:g} simulated minutes")
+        st.write(f"- Demand multiplier: {demand_multiplier:g}x")
+        st.write(f"- Simulator mode: {policy_mode}")
+        st.write("- Intent mix, persona mix, and all other scenario settings")
+        st.write(f"**Decision source:** {decision_source.value}")
+
+    if st.button("BUILD COMPARISON", type="primary", width="stretch"):
+        with st.spinner("Running the baseline and assisted Digital Twin simulations once…"):
+            st.session_state.manager_comparative_replay = build_comparative_replay(
+                comparison_config
+            )
+
+    replay: ComparativeReplay | None = st.session_state.get(
+        "manager_comparative_replay"
+    )
+    if replay is None:
+        st.info(
+            "Build a baseline vs CallVerse-assisted comparison to inspect both simulations "
+            "on the same timeline."
+        )
+        return
+    if not comparison_matches_configuration(replay, comparison_config):
+        st.warning(
+            "The setup changed after this comparison was built. Build the comparison again "
+            "before inspecting frames."
+        )
+        return
+
+    frame_index = st.select_slider(
+        "Synchronized simulated time",
+        options=tuple(range(len(replay.frames))),
+        value=0,
+        format_func=lambda index: (
+            f"{replay.frames[index].simulated_clock} · "
+            f"minute {replay.frames[index].simulation_minute:g}"
+        ),
+        key=comparative_slider_key(comparison_config),
+    )
+    frame = select_comparative_frame(replay, frame_index)
+    cadence = (
+        f"{replay.snapshot_cadence_minutes:g} minutes"
+        if replay.snapshot_cadence_minutes is not None
+        else "variable"
+    )
+    st.caption(
+        f"Frame {frame.index + 1} of {frame.frame_count} · {frame.simulated_clock} · "
+        f"elapsed {frame.simulation_minute:g} minutes · snapshot cadence {cadence}"
+    )
+    baseline_column, assisted_column = st.columns(2)
+    with baseline_column.container(border=True):
+        _render_comparative_side(frame.baseline)
+    with assisted_column.container(border=True):
+        _render_comparative_side(frame.assisted)
+
+    st.markdown("**At this simulated time:**")
+    st.dataframe(
+        [
+            {
+                "Metric": "Current queue",
+                BASELINE_LABEL: frame.baseline.queue_size,
+                ASSISTED_LABEL: frame.assisted.queue_size,
+            },
+            {
+                "Metric": "Completed so far",
+                BASELINE_LABEL: frame.baseline.completed_so_far,
+                ASSISTED_LABEL: frame.assisted.completed_so_far,
+            },
+            {
+                "Metric": "Abandoned so far",
+                BASELINE_LABEL: frame.baseline.abandoned_so_far,
+                ASSISTED_LABEL: frame.assisted.abandoned_so_far,
+            },
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        "Current snapshot pressure describes this moment; cumulative outcomes include earlier "
+        "stress in the run. Mid-run differences are descriptive simulated evidence, not a "
+        "production causal estimate."
+    )
+    _render_comparative_final_summary(replay)
+
+
 def _twin_monitor() -> None:
     st.header("Twin Monitor")
     st.caption(
@@ -357,33 +667,34 @@ def _twin_monitor() -> None:
     run: ManagerRun | None = st.session_state.get("manager_run")
     if run is None:
         st.info("Run a Digital Twin scenario to unlock the replay.")
-        return
-    _render_twin_replay(run)
-    st.divider()
-    st.subheader("Full-run monitoring")
-    rows = timeline_rows(run.result)
-    st.subheader("Queue size over simulated time")
-    st.line_chart(
-        rows, x="simulation_time", y="queue_size", x_label="Simulated minutes"
-    )
-    st.subheader("Busy agents over simulated time")
-    st.line_chart(
-        rows, x="simulation_time", y="busy_agents", x_label="Simulated minutes"
-    )
-    st.subheader("Cumulative completed and abandoned contacts")
-    st.line_chart(
-        rows,
-        x="simulation_time",
-        y=["completed", "abandoned"],
-        x_label="Simulated minutes",
-    )
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("Contacts by intent")
-        st.bar_chart(intent_mix_rows(run.result), x="intent", y="contacts")
-    with c2:
-        st.subheader("Contacts by persona")
-        st.bar_chart(persona_mix_rows(run.result), x="persona", y="contacts")
+    else:
+        _render_twin_replay(run)
+        st.divider()
+        st.subheader("Full-run monitoring")
+        rows = timeline_rows(run.result)
+        st.subheader("Queue size over simulated time")
+        st.line_chart(
+            rows, x="simulation_time", y="queue_size", x_label="Simulated minutes"
+        )
+        st.subheader("Busy agents over simulated time")
+        st.line_chart(
+            rows, x="simulation_time", y="busy_agents", x_label="Simulated minutes"
+        )
+        st.subheader("Cumulative completed and abandoned contacts")
+        st.line_chart(
+            rows,
+            x="simulation_time",
+            y=["completed", "abandoned"],
+            x_label="Simulated minutes",
+        )
+        c1, c2 = st.columns(2)
+        with c1:
+            st.subheader("Contacts by intent")
+            st.bar_chart(intent_mix_rows(run.result), x="intent", y="contacts")
+        with c2:
+            st.subheader("Contacts by persona")
+            st.bar_chart(persona_mix_rows(run.result), x="persona", y="contacts")
+    _comparative_replay_panel(run)
 
 
 def _compare_decisions() -> None:
