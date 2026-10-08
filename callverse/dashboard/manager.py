@@ -27,6 +27,12 @@ from callverse.workforce.manager import (
 )
 from helppilot import config
 
+from .scenario_guidance import (
+    CenterStatus,
+    get_scenario_guide,
+    interpret_simulation_result,
+    recommended_demo_widget_state,
+)
 from .view_models import (
     DecisionComparison,
     ManagerRun,
@@ -59,6 +65,7 @@ RL_EVALUATION_PATH = PROJECT_ROOT / "data/processed/rl/policy_evaluation.json"
 def rl_artifacts_available(paths=None) -> bool:
     candidates = paths or (RL_MODEL_PATH, RL_METADATA_PATH, RL_EVALUATION_PATH)
     return all(path.is_file() for path in candidates)
+
 
 DEMO_MESSAGES = {
     "Grounded tracking": ("CUST-1003", "Track my order ORD-5003"),
@@ -93,6 +100,38 @@ def _render_reproducibility(run: ManagerRun) -> None:
 
 def _render_run_summary(run: ManagerRun) -> None:
     st.subheader("Latest operational result")
+    interpretation = interpret_simulation_result(run.result)
+    status_message = f"CENTER STATUS · {interpretation.status.value}"
+    if interpretation.status is CenterStatus.HEALTHY:
+        st.success(status_message)
+    elif interpretation.status is CenterStatus.UNDER_PRESSURE:
+        st.warning(status_message)
+    else:
+        st.error(status_message)
+    st.markdown("**What this means**")
+    for reason in interpretation.reasons:
+        st.write(f"- {reason}")
+    st.markdown("**Operational objectives**")
+    outcome_labels = {
+        "pass": "PASS",
+        "fail": "FAIL",
+        "warning": "CAUTION",
+        "unavailable": "N/A",
+    }
+    objective_rows = [
+        {
+            "Objective": f"{check.metric} {check.objective}",
+            "Result": "N/A" if check.actual is None else f"{check.actual:.1%}",
+            "Check": outcome_labels[check.outcome],
+        }
+        for check in interpretation.target_checks
+    ]
+    st.dataframe(objective_rows, width="stretch", hide_index=True)
+    st.info(f"Suggested next step: {interpretation.next_step}")
+    st.caption(
+        "These are expert-defined V1 managerial targets, not learned thresholds. "
+        "The interpretation describes simulated evidence, not guaranteed real-world outcomes."
+    )
     _render_kpis(run)
     warnings = scenario_warnings(run.result)
     if warnings:
@@ -110,29 +149,66 @@ def _scenario_studio() -> None:
         "then test a decision before applying it."
     )
 
-    preset_name = st.selectbox("Scenario preset", SCENARIO_NAMES, key="manager_preset")
+    if st.button("LOAD RECOMMENDED DEMO"):
+        for key, value in recommended_demo_widget_state().items():
+            st.session_state[key] = value
+        st.session_state.manager_comparison = None
+        st.rerun()
+    st.caption(
+        "Recommended demo: Staff Shortage · seed 404 · calibrated mode · 3 agents. "
+        "Load the controls, then press RUN DIGITAL TWIN yourself."
+    )
+
+    preset_name = st.selectbox(
+        "Scenario preset",
+        SCENARIO_NAMES,
+        key="manager_preset",
+        format_func=lambda key: get_scenario_guide(key).title,
+    )
     preset = get_scenario(preset_name)
-    st.caption(preset.description or "")
+    guide = get_scenario_guide(preset_name)
+    with st.container(border=True):
+        title_column, risk_column = st.columns([4, 1])
+        title_column.subheader(guide.title)
+        risk_column.metric("Descriptive risk", guide.risk_level.value)
+        st.write(guide.short_description)
+        st.markdown(f"**Situation:** {guide.situation}")
+        st.markdown(f"**Manager question:** {guide.manager_question}")
+        st.markdown("**Operational objectives:** " + " · ".join(guide.objectives))
+        st.markdown(f"**Suggested action:** {guide.suggested_action}")
+        if guide.demo_recommended:
+            st.success(
+                "Recommended teaching demo: observe overload, then test higher staffing."
+            )
+        st.caption(guide.scientific_note)
     c1, c2, c3 = st.columns(3)
+    seed_key = f"manager_seed_{preset_name}"
+    seed_default = {} if seed_key in st.session_state else {"value": preset.random_seed}
     seed = int(
         c1.number_input(
             "Simulation seed",
             min_value=0,
-            value=preset.random_seed,
             step=1,
-            key=f"manager_seed_{preset_name}",
+            key=seed_key,
+            **seed_default,
         )
+    )
+    agents_key = f"manager_agents_{preset_name}"
+    agents_default = (
+        {} if agents_key in st.session_state else {"value": preset.available_agents}
     )
     agents = int(
         c2.number_input(
             "Available agents",
             min_value=1,
-            value=preset.available_agents,
             step=1,
-            key=f"manager_agents_{preset_name}",
+            key=agents_key,
+            **agents_default,
         )
     )
-    policy_mode = c3.selectbox("Policy mode", ("calibrated", "prototype"))
+    policy_mode = c3.selectbox(
+        "Policy mode", ("calibrated", "prototype"), key="manager_policy_mode"
+    )
     c4, c5 = st.columns(2)
     demand = float(
         c4.number_input(
@@ -182,7 +258,9 @@ def _scenario_studio() -> None:
 
     run: ManagerRun | None = st.session_state.get("manager_run")
     if run is None:
-        st.info("Choose assumptions and press RUN DIGITAL TWIN. The model does not auto-run.")
+        st.info(
+            "Choose assumptions and press RUN DIGITAL TWIN. The model does not auto-run."
+        )
         return
     _render_run_summary(run)
     comparison: DecisionComparison | None = st.session_state.get("manager_comparison")
@@ -202,9 +280,13 @@ def _twin_monitor() -> None:
         return
     rows = timeline_rows(run.result)
     st.subheader("Queue size over simulated time")
-    st.line_chart(rows, x="simulation_time", y="queue_size", x_label="Simulated minutes")
+    st.line_chart(
+        rows, x="simulation_time", y="queue_size", x_label="Simulated minutes"
+    )
     st.subheader("Busy agents over simulated time")
-    st.line_chart(rows, x="simulation_time", y="busy_agents", x_label="Simulated minutes")
+    st.line_chart(
+        rows, x="simulation_time", y="busy_agents", x_label="Simulated minutes"
+    )
     st.subheader("Cumulative completed and abandoned contacts")
     st.line_chart(
         rows,
@@ -246,12 +328,16 @@ def _compare_decisions() -> None:
     )
     if st.button("RUN BEFORE VS AFTER", type="primary"):
         with st.spinner("Running fair same-seed comparison…"):
-            st.session_state.manager_comparison = run_staffing_what_if(run, after_agents)
+            st.session_state.manager_comparison = run_staffing_what_if(
+                run, after_agents
+            )
 
     comparison: DecisionComparison | None = st.session_state.get("manager_comparison")
     if comparison is None:
         return
-    st.info("Simulated effect under this scenario and seed; not a production causal guarantee.")
+    st.info(
+        "Simulated effect under this scenario and seed; not a production causal guarantee."
+    )
     st.dataframe(comparison_table(comparison), width="stretch", hide_index=True)
     st.caption(
         f"Same seed: {comparison.before.result.seed} · Policy: {comparison.before.policy_mode} · "
@@ -270,7 +356,9 @@ def _render_quality_result() -> None:
         return
     st.subheader("Quality Analyst")
     st.write(f"Evaluation status: **{quality.status.value}**")
-    st.write(f"Supervisor review required: **{'yes' if quality.requires_supervisor_review else 'no'}**")
+    st.write(
+        f"Supervisor review required: **{'yes' if quality.requires_supervisor_review else 'no'}**"
+    )
     if quality.overall_score is None:
         st.info(
             "Structured quality judge unavailable/offline. No six-dimension or overall scores "
@@ -288,7 +376,11 @@ def _render_quality_result() -> None:
         )
         st.dataframe(
             [
-                {"Dimension": name, "Score": item.score, "Justification": item.justification}
+                {
+                    "Dimension": name,
+                    "Score": item.score,
+                    "Justification": item.justification,
+                }
                 for name, item in dimensions
                 if item is not None
             ],
@@ -298,11 +390,15 @@ def _render_quality_result() -> None:
     if quality.flags:
         st.error("Quality flags")
         for flag in quality.flags:
-            st.write(f"- **{flag.severity.value.upper()} · {flag.code}** — {flag.explanation}")
+            st.write(
+                f"- **{flag.severity.value.upper()} · {flag.code}** — {flag.explanation}"
+            )
     else:
         st.caption("No deterministic quality/compliance flags were observed.")
     if quality.guardrail_observations:
-        st.caption("Guardrail observations: " + ", ".join(quality.guardrail_observations))
+        st.caption(
+            "Guardrail observations: " + ", ".join(quality.guardrail_observations)
+        )
     if quality.customer_sentiment is not None:
         st.write(f"Customer sentiment: **{quality.customer_sentiment.value}**")
 
@@ -335,7 +431,9 @@ def _interaction_lab() -> None:
     if st.button("RUN SELECTED INTERACTION", type="primary"):
         st.session_state.manager_interaction_error = None
         advisor = (
-            CallVerseCustomerAdvisor.from_local_artifact(runner=deterministic_demo_runner)
+            CallVerseCustomerAdvisor.from_local_artifact(
+                runner=deterministic_demo_runner
+            )
             if mode == "Offline deterministic demo"
             else CallVerseCustomerAdvisor.from_local_artifact()
         )
@@ -375,7 +473,11 @@ def _interaction_lab() -> None:
     st.json(interaction_summary(interaction))
 
     evidence = _interaction_evidence()
-    if config.GROQ_API_KEY and evidence is not None and st.button("RUN LIVE QUALITY JUDGE"):
+    if (
+        config.GROQ_API_KEY
+        and evidence is not None
+        and st.button("RUN LIVE QUALITY JUDGE")
+    ):
         with st.spinner("Running structured Groq quality judgment…"):
             quality = QualityAnalyst.with_groq().evaluate(evidence)
         st.session_state.manager_quality_result = quality
@@ -387,7 +489,9 @@ def _interaction_lab() -> None:
 
 def _quality_panel() -> None:
     st.header("Quality")
-    st.caption("Individual Advisor evaluations only — never inferred from Digital Twin contacts.")
+    st.caption(
+        "Individual Advisor evaluations only — never inferred from Digital Twin contacts."
+    )
     history = list(st.session_state.get("manager_quality_history", []))
     summary = session_quality_summary(history)
     if summary is None:
@@ -398,15 +502,22 @@ def _quality_panel() -> None:
         c2.metric("Unavailable", summary["unavailable_count"])
         c3.metric("Supervisor review", summary["requires_supervisor_review_count"])
         if summary["average_overall_quality"] is None:
-            st.info("No completed structured-judge scores are available; no average is shown.")
+            st.info(
+                "No completed structured-judge scores are available; no average is shown."
+            )
         else:
-            st.metric("Average overall quality", f"{summary['average_overall_quality']:.2f} / 5")
+            st.metric(
+                "Average overall quality",
+                f"{summary['average_overall_quality']:.2f} / 5",
+            )
             st.json(summary["average_by_dimension"])
         st.write("Flags by severity", summary["compliance_flags_by_severity"])
         st.write("Sentiment distribution", summary["sentiment_distribution"])
 
     benchmark = load_policy_quality_benchmark()
-    with st.expander("Quality regression benchmark — policy fixtures, not real customers"):
+    with st.expander(
+        "Quality regression benchmark — policy fixtures, not real customers"
+    ):
         st.write(f"Cases defined: **{len(benchmark)}**")
         st.caption(
             "Benchmark scores use deterministic fake-judge fixtures for regression tests and "
@@ -442,8 +553,12 @@ def _forecast_panel() -> None:
         return
     history, forecast, summary = _load_forecast_view()
     first, second, third = st.columns(3)
-    first.metric("Predicted next-24h contacts", f"{summary['predicted_total_contacts']:.1f}")
-    second.metric("Peak 30-minute slot", summary["peak_timestamp"].strftime("%Y-%m-%d %H:%M"))
+    first.metric(
+        "Predicted next-24h contacts", f"{summary['predicted_total_contacts']:.1f}"
+    )
+    second.metric(
+        "Peak 30-minute slot", summary["peak_timestamp"].strftime("%Y-%m-%d %H:%M")
+    )
     third.metric("Peak predicted contacts", f"{summary['peak_contacts']:.1f}")
 
     st.subheader("Actual history vs future forecast")
@@ -499,7 +614,9 @@ def _workforce_panel() -> None:
         "not a guaranteed operational outcome."
     )
     if not FORECAST_SERIES_PATH.is_file() or not FORECAST_ARTIFACT_PATH.is_file():
-        st.error("The Phase 9 forecast artifacts are required before workforce planning.")
+        st.error(
+            "The Phase 9 forecast artifacts are required before workforce planning."
+        )
         return
     _, forecast, _ = _load_forecast_view()
     defaults = default_workforce_config()
@@ -563,7 +680,9 @@ def _workforce_panel() -> None:
             max_agents=max_agents,
             reduction_hold_intervals=hold,
         )
-        st.session_state.manager_workforce_plan = build_workforce_plan(forecast, config_for_plan)
+        st.session_state.manager_workforce_plan = build_workforce_plan(
+            forecast, config_for_plan
+        )
 
     plan = st.session_state.get("manager_workforce_plan")
     if plan is None:
@@ -576,7 +695,8 @@ def _workforce_panel() -> None:
     cards[1].metric("Average planned agents", f"{summary.average_agents:.2f}")
     cards[2].metric("Total agent-hours", f"{summary.total_agent_hours:.1f}")
     cards[3].metric(
-        "Target-attainment slots", f"{summary.target_attainment_intervals} / {len(plan.points)}"
+        "Target-attainment slots",
+        f"{summary.target_attainment_intervals} / {len(plan.points)}",
     )
     if summary.capacity_shortfall_intervals:
         st.error(
@@ -588,7 +708,9 @@ def _workforce_panel() -> None:
 
     rows = workforce_chart_rows(plan)
     st.subheader("Forecast demand")
-    st.line_chart(rows, x="timestamp", y="forecast_contacts", x_label="Forecast timestamp")
+    st.line_chart(
+        rows, x="timestamp", y="forecast_contacts", x_label="Forecast timestamp"
+    )
     st.subheader("Raw requirement vs operationalized staffing")
     st.line_chart(
         rows,
@@ -749,13 +871,18 @@ def _rl_experiment_panel() -> None:
 
 
 def render_manager() -> None:
-    st.info(
-        "CallVerse V1 research decision-support prototype. Recommended demo: "
-        "1 Simulate, 2 Observe, 3 Forecast, 4 Plan workforce, 5 Test decision, "
-        "6 Inspect interaction, 7 Evaluate quality."
-    )
     st.title("CallVerse · Manager Control Room")
-    st.caption("Operational Digital Twin metrics and individual interaction quality are separate.")
+    st.caption(
+        "Operational Digital Twin metrics and individual interaction quality are separate."
+    )
+    st.info(
+        "**1 Choose scenario** → **2 Observe** → **3 Forecast** → **4 Plan** → "
+        "**5 Test** → **6 Inspect interaction** → **7 Review quality**"
+    )
+    st.caption(
+        "CallVerse V1 research decision-support prototype. This guided journey keeps the "
+        "existing tabs available throughout."
+    )
     tabs = st.tabs(
         [
             "Scenario Studio",
