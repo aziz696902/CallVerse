@@ -107,6 +107,15 @@ from .view_models import (
     session_quality_summary,
     timeline_rows,
 )
+from .workforce_visualization import (
+    WorkforceVisualFrame,
+    build_workforce_visual_frames,
+    demand_chart_rows,
+    staffing_step_rows,
+)
+from .workforce_visualization import (
+    queue_trajectory_rows as workforce_queue_rows,
+)
 
 SCENARIO_NAMES = tuple(scenario.name for scenario in SCENARIO_PRESETS)
 PROJECT_ROOT = config.PROJECT_ROOT
@@ -499,10 +508,10 @@ def _render_comparative_final_summary(
 
 def _comparative_replay_panel(run: ManagerRun | None) -> None:
     st.divider()
-    st.subheader("COMPARATIVE SIMULATION REPLAY")
+    st.subheader("CAPACITY WHAT-IF · COMPARATIVE SIMULATION REPLAY")
     st.write(
-        "Inspect a fixed staffing baseline and a CallVerse-assisted decision at the same "
-        "simulated timestamp."
+        "What happens if the center simply adds staffing? Inspect the fixed baseline and "
+        "tested fixed-capacity decision at the same simulated timestamp."
     )
     st.caption(
         "This is a synchronized replay of two completed simulations, not live production "
@@ -1378,7 +1387,7 @@ def _forecast_panel() -> None:
         )
 
 
-def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
+def _legacy_fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
     st.divider()
     st.subheader("FAIR WORKFORCE COMPARISON")
     st.caption(
@@ -1523,6 +1532,381 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
         "Simulation evidence only. The schedule does not model named shifts, skills, labor "
         "law, overtime, or a production optimum."
     )
+
+
+def _render_workforce_floor_side(title: str, snapshot) -> None:
+    st.markdown(f"#### {title}")
+    st.caption("CURRENT CAPACITY AND PRESSURE")
+    stats = st.columns(3)
+    stats[0].metric("Busy", snapshot.busy_agents)
+    stats[1].metric("Free", snapshot.free_agents)
+    stats[2].metric("Queue", snapshot.queue_size)
+    st.caption(
+        f"Available {snapshot.available_agents} · overhang busy "
+        f"{snapshot.overhang_busy_agents}"
+    )
+    advisors = advisor_markers(snapshot.busy_agents, snapshot.free_agents, cap=10)
+    waiting = queue_markers(snapshot.queue_size, cap=10)
+    st.write(
+        "Advisors: "
+        + (" · ".join(advisors.markers) or "none")
+        + (f" · +{advisors.hidden_count} hidden" if advisors.hidden_count else "")
+    )
+    st.write(
+        "Queue: "
+        + (" · ".join(waiting.markers) or "empty")
+        + (f" · +{waiting.hidden_count} hidden" if waiting.hidden_count else "")
+    )
+    totals = st.columns(2)
+    st.caption("CUMULATIVE FLOW")
+    totals[0].metric("Completed", snapshot.completed_count)
+    totals[1].metric("Abandoned", snapshot.abandoned_count)
+
+
+def _render_workforce_final_result(comparison) -> None:
+    baseline = comparison.baseline_result
+    callverse = comparison.callverse_result
+    fixed_label = f"Fixed · {comparison.baseline_schedule.total_agent_hours:.1f} h"
+    dynamic_label = (
+        f"CallVerse · {comparison.callverse_schedule.total_agent_hours:.1f} h"
+    )
+    rows = (
+        (
+            "Completed",
+            f"{baseline.counts.completed:d}",
+            f"{callverse.counts.completed:d}",
+            f"{callverse.counts.completed - baseline.counts.completed:+d}",
+        ),
+        (
+            "SLA",
+            f"{baseline.kpis.sla:.2%}",
+            f"{callverse.kpis.sla:.2%}",
+            f"{(callverse.kpis.sla - baseline.kpis.sla) * 100:+.2f} pp",
+        ),
+        (
+            "Abandonment",
+            f"{baseline.kpis.abandonment_rate:.2%}",
+            f"{callverse.kpis.abandonment_rate:.2%}",
+            (
+                f"{(callverse.kpis.abandonment_rate - baseline.kpis.abandonment_rate) * 100:+.2f} pp"
+            ),
+        ),
+        (
+            "Average wait",
+            f"{baseline.kpis.average_waiting_time:.2f} min",
+            f"{callverse.kpis.average_waiting_time:.2f} min",
+            (
+                f"{callverse.kpis.average_waiting_time - baseline.kpis.average_waiting_time:+.2f} min"
+            ),
+        ),
+        (
+            "Occupancy",
+            f"{baseline.kpis.occupancy:.2%}",
+            f"{callverse.kpis.occupancy:.2%}",
+            f"{(callverse.kpis.occupancy - baseline.kpis.occupancy) * 100:+.2f} pp",
+        ),
+        (
+            "Final backlog",
+            f"{baseline.snapshots[-1].queue_size:d}",
+            f"{callverse.snapshots[-1].queue_size:d}",
+            (
+                f"{callverse.snapshots[-1].queue_size - baseline.snapshots[-1].queue_size:+d}"
+            ),
+        ),
+    )
+    st.markdown("## FINAL 24-HOUR RESULT · ACTUAL SIMULATED OUTCOMES")
+    st.success(comparison.outcome.value)
+    st.dataframe(
+        [
+            {
+                "Metric": metric,
+                fixed_label: fixed,
+                dynamic_label: dynamic,
+                "Difference": delta,
+            }
+            for metric, fixed, dynamic, delta in rows
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    saving_percent = (
+        comparison.baseline_schedule.total_agent_hours
+        - comparison.callverse_schedule.total_agent_hours
+    ) / comparison.baseline_schedule.total_agent_hours
+    st.info(
+        f"CallVerse achieved better simulated service with {saving_percent:.2%} fewer "
+        "total agent-hours by reallocating capacity toward higher-demand periods."
+    )
+    st.caption(
+        "This is evidence from the calibrated simulation experiment, not a production "
+        "optimality guarantee."
+    )
+
+
+def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
+    st.divider()
+    st.subheader("WORKFORCE INTELLIGENCE COMPARISON")
+    st.markdown("**Same demand. Lower staffing budget. Smarter allocation.**")
+    st.caption(
+        "SIMULATED · A synchronized 24-hour replay of fixed capacity versus the "
+        "predefined Forecast → Erlang-C schedule. This is separate from the fixed "
+        "3→5 CAPACITY WHAT-IF."
+    )
+    st.write(
+        "Can CallVerse allocate a lower staffing budget more effectively over time?"
+    )
+    st.caption(
+        "Predefined experiment: seed 404, current forecast artifact, 80% service target, "
+        "85% occupancy cap, 10% forecast buffer, and no PPO."
+    )
+    signature = (
+        forecast.forecast_origin.isoformat(),
+        forecast.model_name,
+        forecast.model_version,
+        tuple(point.predicted_contacts for point in forecast.points),
+    )
+    if st.button("LOAD WORKFORCE INTELLIGENCE DEMO", width="stretch"):
+        st.session_state.manager_workforce_demo_prepared = signature
+        for key in (
+            "manager_fair_workforce_comparison",
+            "manager_workforce_visual_frames",
+            "manager_workforce_playback",
+            "manager_workforce_comparison_signature",
+            "manager_workforce_replay_position",
+        ):
+            st.session_state.pop(key, None)
+
+    prepared_signature = st.session_state.get("manager_workforce_demo_prepared")
+    if prepared_signature != signature:
+        playback = st.session_state.get("manager_workforce_playback")
+        if playback is not None:
+            st.session_state.manager_workforce_playback = stop_for_stale_comparison(
+                playback
+            )
+        message = (
+            "Load the defense demo to prepare its fixed inputs. Loading does not run "
+            "either simulation or reveal an outcome."
+            if prepared_signature is None
+            else "The forecast input changed. Reload the demo before running or replaying."
+        )
+        st.info(message)
+        return
+
+    with st.container(border=True):
+        st.markdown("### PREDEFINED FAIR TEST")
+        st.write(
+            "**Fixed baseline:** 2 advisors throughout 24 hours.  "
+            "**CallVerse dynamic:** the existing default Forecast → Erlang-C plan at "
+            "30-minute boundaries."
+        )
+        st.write(
+            "**Held constant:** forecast-shaped demand, seed 404, customer mix, service "
+            "and patience distributions, SLA definition, and simulator."
+        )
+        st.caption("Only the staffing policy changes. Nothing has run yet.")
+
+    if st.button("RUN FAIR COMPARISON", type="primary", width="stretch"):
+        with st.spinner("Running the matched fixed and scheduled simulations once…"):
+            comparison = run_fair_workforce_comparison(forecast)
+            frames = build_workforce_visual_frames(comparison, forecast)
+            st.session_state.manager_fair_workforce_comparison = comparison
+            st.session_state.manager_workforce_visual_frames = frames
+            st.session_state.manager_workforce_playback = initial_playback_state(
+                len(frames)
+            )
+            st.session_state.manager_workforce_comparison_signature = signature
+
+    comparison = st.session_state.get("manager_fair_workforce_comparison")
+    if comparison is None:
+        st.info("Inputs are ready. Run the fair comparison; nothing auto-runs.")
+        return
+    if st.session_state.get("manager_workforce_comparison_signature") != signature:
+        playback = st.session_state.get("manager_workforce_playback")
+        if playback is not None:
+            st.session_state.manager_workforce_playback = stop_for_stale_comparison(
+                playback
+            )
+        st.warning("This stored result is stale. Reload and rerun the fair comparison.")
+        return
+
+    frames: tuple[WorkforceVisualFrame, ...] | None = st.session_state.get(
+        "manager_workforce_visual_frames"
+    )
+    if not frames:
+        frames = build_workforce_visual_frames(comparison, forecast)
+        st.session_state.manager_workforce_visual_frames = frames
+    baseline_hours = comparison.baseline_schedule.total_agent_hours
+    callverse_hours = comparison.callverse_schedule.total_agent_hours
+    saving_percent = (baseline_hours - callverse_hours) / baseline_hours
+    st.success(
+        f"FAIRNESS PASSES · {comparison.baseline_result.counts.generated} contacts on both "
+        f"sides · seed {comparison.seed} · {baseline_hours:.1f} vs {callverse_hours:.1f} "
+        f"agent-hours · {comparison.resource_budget_delta_hours:+.1f} agent-hours · "
+        f"{saving_percent:.2%} fewer agent-hours"
+    )
+    st.caption(
+        "Same forecast-shaped realized demand, seed, customer mix, service distributions, "
+        "and patience distributions. Only fixed versus scheduled capacity differs."
+    )
+
+    playback: PlaybackState | None = st.session_state.get(
+        "manager_workforce_playback"
+    )
+    if playback is None or playback.frame_index >= len(frames):
+        playback = initial_playback_state(len(frames))
+    slider_key = "manager_workforce_replay_position"
+    pending = st.session_state.pop("manager_workforce_replay_pending", None)
+    manual = st.session_state.pop("manager_workforce_manual_scrub", False)
+    if pending is not None and not manual:
+        st.session_state[slider_key] = pending
+    elif slider_key not in st.session_state:
+        st.session_state[slider_key] = playback.frame_index
+
+    controls = st.columns([1, 1, 1, 2])
+    if controls[0].button(
+        "PLAY",
+        key="workforce_play",
+        disabled=playback.is_playing or playback.reached_end,
+    ):
+        playback = play(playback, len(frames))
+    if controls[1].button(
+        "PAUSE", key="workforce_pause", disabled=not playback.is_playing
+    ):
+        playback = pause(playback)
+    if controls[2].button("RESTART", key="workforce_restart"):
+        playback = restart(playback, len(frames))
+        st.session_state[slider_key] = 0
+    selected_speed = float(
+        controls[3].selectbox(
+            "Playback speed",
+            SUPPORTED_SPEEDS,
+            index=SUPPORTED_SPEEDS.index(playback.speed_multiplier),
+            format_func=lambda speed: f"{speed:g}x",
+            key="workforce_playback_speed",
+            help="Wall-clock pacing only; simulations are not rerun during playback.",
+        )
+    )
+    playback = set_speed(playback, selected_speed)
+    st.session_state.manager_workforce_playback = playback
+
+    selected_index = st.select_slider(
+        "Synchronized 24-hour simulated time",
+        options=tuple(range(len(frames))),
+        format_func=lambda index: (
+            f"{frames[index].simulated_clock} · frame {index + 1}/{len(frames)}"
+        ),
+        key=slider_key,
+        on_change=lambda: st.session_state.update(
+            manager_workforce_manual_scrub=True
+        ),
+    )
+    if selected_index != playback.frame_index:
+        playback = scrub(playback, selected_index, len(frames))
+        st.session_state.manager_workforce_playback = playback
+    frame = frames[playback.frame_index]
+
+    clock_columns = st.columns([1, 2, 1])
+    clock_columns[1].metric("SIMULATED CLOCK", frame.simulated_clock)
+    clock_columns[1].caption(f"Frame {frame.index + 1} / {frame.frame_count}")
+    st.progress(
+        frame.index / max(1, frame.frame_count - 1),
+        text=f"00:00 → {frame.simulated_clock} → 24:00",
+    )
+    if playback.reached_end:
+        st.success("24-hour Workforce Intelligence replay complete")
+    elif playback.is_playing:
+        st.info(f"Replay playing at {playback.speed_multiplier:g}x")
+    else:
+        st.caption("Replay paused · use the synchronized scrubber to inspect any frame.")
+
+    st.markdown("### KNOWN DEMAND AND STAFFING PLAN")
+    peak_point = max(forecast.points, key=lambda point: point.predicted_contacts)
+    peak_columns = st.columns(2)
+    peak_columns[0].metric("FORECAST PEAK", peak_point.timestamp.strftime("%H:%M"))
+    peak_columns[1].metric(
+        "Predicted contacts / slot", f"{peak_point.predicted_contacts:.2f}"
+    )
+    st.caption(
+        f"Current position: {frame.simulated_clock} · forecast slot demand "
+        f"{frame.forecast_contacts:.2f} contacts"
+    )
+    st.markdown("**Forecast demand · 48 half-hour slots**")
+    st.line_chart(
+        demand_chart_rows(forecast, frame.simulation_minute),
+        x="simulation_minute",
+        y=["Forecast contacts", "Current time"],
+        x_label="Simulated minute (00:00–24:00)",
+    )
+    st.markdown("**Staffing schedule · exact 30-minute steps**")
+    st.line_chart(
+        staffing_step_rows(comparison, frame.simulation_minute),
+        x="simulation_minute",
+        y=["Fixed 2 advisors", "CallVerse dynamic"],
+        x_label="Simulated minute (00:00–24:00)",
+    )
+    st.info(frame.resource_explanation)
+    if frame.staffing_event:
+        st.success(f"SCHEDULE EVENT · {frame.staffing_event}")
+
+    resource_columns = st.columns(2)
+    resource_columns[0].metric(
+        "Fixed cumulative agent-hours", f"{frame.baseline_agent_hours:.2f}"
+    )
+    resource_columns[1].metric(
+        "CallVerse cumulative agent-hours", f"{frame.callverse_agent_hours:.2f}"
+    )
+
+    st.markdown("### LIVE OPERATIONAL FLOOR · STORED SNAPSHOTS")
+    fixed_column, dynamic_column = st.columns(2)
+    with fixed_column.container(border=True):
+        _render_workforce_floor_side("FIXED · 2 ADVISORS", frame.baseline)
+    with dynamic_column.container(border=True):
+        _render_workforce_floor_side("CALLVERSE · DYNAMIC", frame.callverse)
+
+    st.markdown("**Queue trajectory revealed through the current frame**")
+    st.line_chart(
+        workforce_queue_rows(frames, frame.index),
+        x="simulation_minute",
+        y=["Fixed 2 advisors", "CallVerse dynamic"],
+        x_label="Simulated minute",
+    )
+    st.caption(
+        "Actual stored snapshots only; no smoothing, estimation, or replay-time simulation."
+    )
+    with st.expander(
+        f"PREDEFINED STAFFING EVENTS ({len(comparison.staffing_events)})"
+    ):
+        st.dataframe(
+            [
+                {
+                    "Time": (
+                        f"{int(event.simulation_minute // 60):02d}:"
+                        f"{int(event.simulation_minute % 60):02d}"
+                    ),
+                    "Change": f"{event.previous_advisors} → {event.advisors}",
+                    "Evidence": event.title,
+                }
+                for event in comparison.staffing_events
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+
+    if playback.reached_end:
+        _render_workforce_final_result(comparison)
+    else:
+        st.caption("Final service outcomes unlock only when the replay reaches 24:00.")
+    st.warning(
+        "Simulation evidence only. The schedule does not model named shifts, skills, labor "
+        "law, overtime, or a production optimum."
+    )
+
+    if playback.is_playing:
+        sleep(seconds_per_frame(playback.speed_multiplier))
+        playback = advance(playback, len(frames))
+        st.session_state.manager_workforce_playback = playback
+        st.session_state.manager_workforce_replay_pending = playback.frame_index
+        st.rerun()
 
 
 def _workforce_panel() -> None:

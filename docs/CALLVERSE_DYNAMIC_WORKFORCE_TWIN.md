@@ -171,11 +171,26 @@ not service-level guarantees.
 - The result is simulation evidence about resource allocation, not proof of a real
   organization outcome or a production optimum.
 
-## 11. Visualization boundary
+## 11. Workforce Intelligence replay
 
-This phase exposes a basic 48-row table containing forecast and realized demand,
-baseline and scheduled advisors, queue, busy/available/free/overhang staffing,
-completed, and abandoned values. It also exposes deterministic staffing-change events.
-Prompt 2 may improve how these already-proven data are visualized; this phase does not
-add animated schedule bars, workforce-floor animation, Sankey diagrams, gauges, 3D,
-or cinematic transitions.
+The Workforce tab now presents the fair comparison as a synchronized 97-frame,
+24-hour replay. The explicit two-step control first loads the predefined defense inputs
+and then runs the two simulations once. Play, pause, restart, speed, and scrub controls
+only traverse stored snapshots; playback never reruns the simulator.
+
+Before playback, the fairness banner names the 248 matched contacts, seed 404, and the
+48.0 versus 42.5 agent-hour budgets. Separate aligned charts show the known 48-slot
+demand forecast and the exact step-shaped staffing schedule. The shared simulated clock
+drives symmetric fixed and dynamic operational panels containing current
+busy/free/available/overhang/queue state and cumulative completed, abandoned, and
+agent-hour evidence. Queue history is revealed only through the inspected frame.
+
+The six schedule events are exposed as predefined plan boundaries. The final service
+table becomes prominent only at 24:00 and is derived from the stored comparison result.
+It states that this is calibrated simulation evidence, not a production optimality
+guarantee. The older fixed 3-to-5 replay remains a distinct **Capacity What-if**;
+the lower-budget scheduled experiment is **Workforce Intelligence**.
+
+No fake per-frame SLA, waiting-time, occupancy, named employee, or live telemetry is
+created. No Plotly or animation dependency was added; the visual uses the existing
+Streamlit and playback components.

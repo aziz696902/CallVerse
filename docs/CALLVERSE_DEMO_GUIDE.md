@@ -75,14 +75,20 @@ progression:
    comparison, not a production A/B test."
 5. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
    48 half-hour points, 251.744 total predicted contacts, and 19:00 peak.
-6. In **Workforce**, press **BUILD WORKFORCE PLAN**. Explain the calibrated 3.182-minute
-   AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer. The
-   example plan uses 1–5 agents, 42.5 agent-hours, and reaches its analytical target
-   in 48/48 intervals.
-   Then run **FAIR WORKFORCE COMPARISON**: the fixed two-advisor baseline uses 48.0
-   agent-hours, while the predefined Forecast-to-Erlang-C schedule uses 42.5. Under
-   identical realized demand, show the actual simulated SLA, abandonment, and wait
-   results. Call this **workforce intelligence**, not proof of a production optimum.
+6. In **Workforce**, use the primary **WORKFORCE INTELLIGENCE COMPARISON**. Press
+   **LOAD WORKFORCE INTELLIGENCE DEMO**, then **RUN FAIR COMPARISON**. Before playing,
+   point out 248 matched contacts, seed 404, and the fair 48.0 versus 42.5 agent-hour
+   budget. Press Play at 4x; the simulator has already completed and playback traverses
+   only stored snapshots. Observe quiet periods where CallVerse uses one advisor while
+   fixed staffing uses two. Pause or scrub through the real ramp: 17:30 (1→2), 18:00
+   (2→3), 18:30 (3→4), and the 19:00 forecast peak (4→5, 24.77 predicted contacts).
+   Resume to 24:00 and show 42.5 versus 48.0 hours, 90.79% versus 60.92% SLA, 8.06%
+   versus 29.84% abandonment, and 228 versus 174 completed contacts. State:
+   “calibrated simulation evidence, not a production optimality guarantee.”
+
+   The planning controls below remain available for analytical inspection. Press
+   **BUILD WORKFORCE PLAN** only if time permits; explain the calibrated 3.182-minute
+   AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer.
 7. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
    **RUN COMPARISON**. State: “simulated effect under identical seeded conditions.”
 8. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
