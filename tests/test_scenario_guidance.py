@@ -144,7 +144,7 @@ def test_dashboard_renders_guided_journey_and_scenario_card():
     visible = "\n".join(
         item.value for item in (*app.info, *app.caption, *app.markdown, *app.subheader)
     )
-    assert "1 Choose scenario" in visible
+    assert "1 Scenario" in visible
     assert "Manager question" in visible
     assert "Operational objectives" in visible
     next(

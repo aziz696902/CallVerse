@@ -128,8 +128,9 @@ def check_for_updates() -> int:
 def render_customer(customer_id: str) -> None:
     st.title("💬 Customer Interaction Demo")
     st.caption(
-        "Supporting operational view. Demonstrates the Advisor pipeline: intent "
-        "classification, business tools, RAG, LLM response, escalation, and approval behavior."
+        "Supporting operational view, not the primary CallVerse interface. This focused Advisor "
+        "demo shows intent classification, business tools, RAG, LLM response, escalation, "
+        "and approval behavior."
     )
     if not config.GROQ_API_KEY:
         st.error(
@@ -195,8 +196,8 @@ def render_customer(customer_id: str) -> None:
 def render_staff() -> None:
     st.title("🧑‍💼 Human Approval Queue")
     st.caption(
-        "Supporting operational view. Shows human-in-the-loop review for sensitive actions "
-        "such as refunds. Approve or reject to resume the durable, paused agent run."
+        "Supporting operational view. Sensitive actions such as refunds are not blindly "
+        "autonomous: staff approve or reject them to resume the durable, paused agent run."
     )
 
     pending = db.get_pending_approvals()
@@ -338,7 +339,8 @@ if is_customer and customer_id is not None:
 elif is_customer:
     st.title("💬 Customer Interaction Demo")
     st.caption(
-        "Supporting operational view for the Advisor pipeline, escalation, and approval behavior."
+        "Supporting operational view, not the primary interface, for the Advisor pipeline, "
+        "escalation, and approval behavior."
     )
     st.info("Seed demo customers to start a support conversation.")
 elif is_staff:

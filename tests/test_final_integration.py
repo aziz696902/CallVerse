@@ -70,8 +70,8 @@ def test_app_without_groq_key_stays_available_and_labels_live_as_unavailable(mon
     assert not app.exception
     visible = "\n".join(item.value for item in (*app.info, *app.caption))
     assert "CallVerse V1 research decision-support prototype" in visible
-    assert "Historical support-demand forecasting" in visible
-    assert "ERLANG-C ANALYTICAL STAFFING BASELINE" in visible
+    assert "HISTORICAL ML FORECAST" in visible
+    assert "ANALYTICAL ERLANG-C BASELINE" in visible
 
 
 def test_example_environment_file_contains_placeholders_only():

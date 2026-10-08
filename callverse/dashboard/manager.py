@@ -94,10 +94,16 @@ DEMO_MESSAGES = {
 
 def _render_kpis(run: ManagerRun) -> None:
     cards = kpi_cards(run.result)
+    metric_help = {
+        "SLA": "Share of served contacts whose service started within the wait target.",
+        "Abandonment": "Share of generated contacts that left before service.",
+        "Occupancy": "Proportion of available advisor capacity spent busy.",
+        "Average handling": "AHT: average handling time for completed contacts.",
+    }
     first = st.columns(4)
     second = st.columns(3)
     for column, card in zip((*first, *second), cards):
-        column.metric(card.label, card.value)
+        column.metric(card.label, card.value, help=metric_help.get(card.label))
 
 
 def _render_reproducibility(run: ManagerRun) -> None:
@@ -161,8 +167,8 @@ def _render_run_summary(run: ManagerRun) -> None:
 def _scenario_studio() -> None:
     st.header("Scenario Studio")
     st.write(
-        "Run a virtual support-center scenario, observe the operational impact, "
-        "then test a decision before applying it."
+        "Define the operational situation and run the SIMULATED Digital Twin before testing "
+        "a staffing decision."
     )
 
     if st.button("LOAD RECOMMENDED DEMO"):
@@ -315,18 +321,17 @@ def _render_twin_replay(run: ManagerRun) -> None:
         key=replay_slider_key(run),
     )
     frame = build_replay_frame(run, frame_index)
-    frame_columns = st.columns(4)
+    frame_columns = st.columns(5)
     frame_columns[0].metric(
         "Simulated time", f"{frame.simulated_clock} · min {frame.simulation_minute:g}"
     )
-    frame_columns[1].metric("Waiting contacts", frame.queue_size)
-    frame_columns[2].metric(
-        "Agents busy / free", f"{frame.busy_agents} / {frame.free_agents}"
-    )
-    frame_columns[3].metric("Queue pressure", frame.pressure.value)
+    frame_columns[1].metric("Current queue", frame.queue_size)
+    frame_columns[2].metric("Busy agents", frame.busy_agents)
+    frame_columns[3].metric("Free agents", frame.free_agents)
+    frame_columns[4].metric("Current snapshot pressure", frame.pressure.value)
     st.progress(
         frame.pressure_fraction,
-        text=f"Descriptive queue pressure: {frame.pressure.value}",
+        text=f"Current snapshot pressure: {frame.pressure.value}",
     )
     st.markdown(f"**Waiting:** {waiting_visual(frame)}")
     st.write(
@@ -334,16 +339,21 @@ def _render_twin_replay(run: ManagerRun) -> None:
         f"{frame.available_agents} available"
     )
     flow_columns = st.columns(2)
-    flow_columns[0].metric("Cumulative completed", frame.completed_count)
-    flow_columns[1].metric("Cumulative abandoned", frame.abandoned_count)
+    flow_columns[0].metric("Completed so far", frame.completed_count)
+    flow_columns[1].metric("Abandoned so far", frame.abandoned_count)
     st.caption(
-        "Completed and abandoned are cumulative snapshot counters. Per-snapshot generated "
-        "contacts, occupancy, SLA, and wait are not stored; final KPIs remain in Scenario Studio."
+        "Current snapshot pressure describes this moment only; cumulative abandonment can "
+        "reflect earlier stress in the run. Completed and abandoned are cumulative counters. "
+        "Per-snapshot generated contacts, occupancy, SLA, and wait are not stored."
     )
 
 
 def _twin_monitor() -> None:
     st.header("Twin Monitor")
+    st.caption(
+        "SIMULATED evidence · Observe queue, staffing, and contact flow from the completed "
+        "Digital Twin run."
+    )
     run: ManagerRun | None = st.session_state.get("manager_run")
     if run is None:
         st.info("Run a Digital Twin scenario to unlock the replay.")
@@ -378,6 +388,10 @@ def _twin_monitor() -> None:
 
 def _compare_decisions() -> None:
     st.header("Compare Decisions")
+    st.caption(
+        "SIMULATED same-seed comparison · Test what happens when one staffing choice changes. "
+        "Workforce separately answers what Erlang-C analytically recommends."
+    )
     run: ManagerRun | None = st.session_state.get("manager_run")
     if run is None:
         st.info("Complete a Digital Twin run before testing a staffing decision.")
@@ -470,6 +484,11 @@ def _compare_decisions() -> None:
             ),
             delta=format_metric_delta(change),
             delta_color=delta_color,
+            help=(
+                "Contacts still waiting when the simulation ends."
+                if change.key == "final_backlog"
+                else None
+            ),
         )
 
     st.markdown("**Operational target checks**")
@@ -580,6 +599,15 @@ def _render_quality_result() -> None:
 
 def _interaction_lab() -> None:
     st.header("Interaction Lab")
+    st.write(
+        "Demonstrate one Advisor interaction: the classifier identifies the request, "
+        "structured tools retrieve order/customer facts, RAG retrieves policies and "
+        "procedures, and an LLM writes the response when the live provider is selected."
+    )
+    st.caption(
+        "Order and customer facts come from structured tools. Policies and procedures come "
+        "from RAG. Unsupported or unsafe cases escalate; sensitive actions may require approval."
+    )
     st.warning(
         "Selected individual interaction only. High-volume SimPy contacts do not automatically "
         "invoke the Advisor or Quality Analyst."
@@ -590,8 +618,16 @@ def _interaction_lab() -> None:
     mode = st.radio("Execution mode", modes, horizontal=True)
     if mode == "Offline deterministic demo":
         st.info("Offline deterministic demo mode — responses are not live LLM output.")
+        if not config.GROQ_API_KEY:
+            st.error(
+                "Live LLM provider unavailable because GROQ_API_KEY is not configured. "
+                "No fake live result will be substituted."
+            )
     else:
-        st.warning("Live Groq runs only when you press RUN SELECTED INTERACTION.")
+        st.warning(
+            "LIVE / LLM-ASSISTED Groq execution is available and runs only when you press "
+            "RUN SELECTED INTERACTION."
+        )
 
     selected = st.selectbox("Demo request", tuple(DEMO_MESSAGES))
     default_customer, default_message = DEMO_MESSAGES[selected]
@@ -665,12 +701,17 @@ def _interaction_lab() -> None:
 def _quality_panel() -> None:
     st.header("Quality")
     st.caption(
-        "Individual Advisor evaluations only — never inferred from Digital Twin contacts."
+        "Evaluate an individual Advisor response for quality and compliance. The deterministic "
+        "layer enforces hard safety/compliance flags; the optional LLM layer judges nuanced "
+        "dimensions such as relevance and sentiment handling. LLM scores are not human ground truth."
     )
     history = list(st.session_state.get("manager_quality_history", []))
     summary = session_quality_summary(history)
     if summary is None:
-        st.info("No interaction quality evaluations exist in this session.")
+        st.info(
+            "No interaction quality evaluation is available. Run an Interaction Lab request "
+            "first; deterministic safeguards remain active even without a live LLM judge."
+        )
     else:
         c1, c2, c3 = st.columns(3)
         c1.metric("Evaluated", summary["evaluated_count"])
@@ -712,13 +753,14 @@ def _load_forecast_view():
 
 def _forecast_panel() -> None:
     st.info(
-        "Historical support-demand forecasting from Technion generic contact-center data. "
-        "This is not a live production, courier, delivery-event, or weather-causal forecast."
+        "HISTORICAL ML FORECAST: selected LightGBM Poisson model forecasting contact demand "
+        "for the next 48 half-hour slots (24 hours). It is not a live weather forecast and "
+        "does not predict customer satisfaction."
     )
     st.header("Demand Forecast")
     st.caption(
-        "Historical support-demand forecast · next 24 hours · 30-minute intervals. "
-        "This is separate from manager-defined scenarios."
+        "Estimate upcoming contact volume from historical Technion generic contact-center data. "
+        "This evidence is separate from manager-defined simulated scenarios."
     )
     if not FORECAST_SERIES_PATH.is_file() or not FORECAST_ARTIFACT_PATH.is_file():
         st.error(
@@ -780,8 +822,9 @@ def _forecast_panel() -> None:
 
 def _workforce_panel() -> None:
     st.info(
-        "ERLANG-C ANALYTICAL STAFFING BASELINE: a transparent M/M/c recommendation, "
-        "not an optimal real-world schedule or guaranteed operational outcome."
+        "ANALYTICAL ERLANG-C BASELINE: Forecast estimates demand; Erlang-C converts it into a "
+        "staffing recommendation. Test a staffing choice separately in Compare Decisions. "
+        "This is not an optimal schedule or production guarantee."
     )
     st.header("Workforce")
     st.caption(
@@ -967,9 +1010,11 @@ def _workforce_panel() -> None:
 
 def _rl_experiment_panel() -> None:
     st.divider()
-    st.subheader("PPO Workforce Policy — Experimental")
+    st.subheader("EXPERIMENTAL PPO POLICY — NOT ADOPTED")
     st.caption(
-        "Research experiment only · Stable-Baselines3 PPO · not a production recommendation."
+        "The learned policy reduced queue penalties through severe overstaffing in its simplified "
+        "training environment, so it was not selected for operational use. The PPO training "
+        "environment is not the calibrated Digital Twin."
     )
     if not rl_artifacts_available():
         st.info(
@@ -1048,27 +1093,34 @@ def _rl_experiment_panel() -> None:
 def render_manager() -> None:
     st.title("CallVerse · Manager Control Room")
     st.write(
-        "Use the Digital Twin to simulate demand, observe operational pressure, forecast "
-        "future workload, test staffing decisions, and inspect support quality."
+        "CallVerse helps a manager test operational decisions in a simulated support center "
+        "before applying them."
     )
     st.caption(
         "Operational Digital Twin metrics and individual interaction quality are separate."
     )
     st.info(
-        "**1 Choose scenario** → **2 Observe** → **3 Forecast** → **4 Plan** → "
-        "**5 Test** → **6 Inspect interaction** → **7 Review quality**"
+        "**1 Scenario** → **2 Twin** → **3 Forecast** → **4 Workforce** → "
+        "**5 Compare** → **6 Interaction** → **7 Quality**"
     )
     st.caption(
         "CallVerse V1 research decision-support prototype. This guided journey keeps the "
         "existing tabs available throughout."
     )
+    with st.expander("Recommended demo path"):
+        st.write(
+            "Load Staff Shortage (seed 404, 3 agents, calibrated) → run the Digital Twin → "
+            "inspect replay → review Forecast → build Workforce plan → compare 3→5 agents → "
+            "run an Interaction Lab case → review Quality. Briefly show PPO after Erlang-C."
+        )
+        st.caption("Each action remains explicit; this path does not auto-run any step.")
     tabs = st.tabs(
         [
             "Scenario Studio",
             "Twin Monitor",
-            "Compare Decisions",
             "Forecast",
             "Workforce",
+            "Compare Decisions",
             "Interaction Lab",
             "Quality",
         ]
@@ -1078,11 +1130,11 @@ def render_manager() -> None:
     with tabs[1]:
         _twin_monitor()
     with tabs[2]:
-        _compare_decisions()
-    with tabs[3]:
         _forecast_panel()
-    with tabs[4]:
+    with tabs[3]:
         _workforce_panel()
+    with tabs[4]:
+        _compare_decisions()
     with tabs[5]:
         _interaction_lab()
     with tabs[6]:

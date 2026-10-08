@@ -167,8 +167,43 @@ The replay is always labelled simulation replay rather than live telemetry. It
 supplements the existing KPI cards and Twin Monitor charts. Frame construction is an
 in-memory view operation and does not add meaningful simulation latency.
 
-## Deferred to UX Phase 4
+## UX Phase 4 — Final Demo Polish & Usability Freeze
 
-Final Demo Polish & Usability Freeze may refine wording and the official presentation
-sequence. Automated playback, moving avatars, 3D visualization, and redesigns of
-Forecast, Workforce, Interaction Lab, and Quality remain out of scope.
+The frozen manager journey is **Scenario → Twin → Forecast → Workforce → Compare →
+Interaction → Quality**. The Manager Control Room is the primary defense surface;
+Customer Interaction Demo and Human Approval Queue remain supporting views. The
+recommended Staff Shortage path is visible in the page but never auto-runs an action.
+
+Each stage now identifies the kind of evidence it presents:
+
+- Scenario Studio and Twin Monitor show **simulated** Digital Twin evidence.
+- Forecast shows a **historical ML forecast** of contact demand for 48 half-hour slots;
+  it is not live weather data or a customer-satisfaction forecast.
+- Workforce shows an **analytical Erlang-C baseline** derived from forecast demand;
+  it is not an optimality claim or operational guarantee.
+- Compare Decisions shows a **simulated same-seed comparison** and remains distinct
+  from the analytical Workforce recommendation.
+- Interaction Lab separates structured customer/order tools from RAG policy and
+  procedure retrieval. The classifier routes the request, and the LLM writes a live
+  response only when the provider is explicitly available and selected.
+- Quality separates deterministic hard safety/compliance guardrails from optional
+  LLM judgment of nuanced dimensions. LLM scores are not human ground truth.
+- The PPO policy is labelled **EXPERIMENTAL — NOT ADOPTED** because its result relied
+  on severe overstaffing in a simplified training environment that is not the
+  calibrated Digital Twin.
+
+Replay labels distinguish current state from cumulative flow. **Current snapshot
+pressure** describes only the selected moment, whereas completed and abandoned
+counters accumulate from the beginning of the run. A low-pressure final snapshot can
+therefore coexist with substantial abandonment caused by earlier stress.
+
+Final polish added concise KPI definitions, actionable empty states, explicit live
+provider failure messaging, and a single official demo route. It did not change the
+simulation, forecasting, staffing, Advisor, RAG, Quality, or RL mechanics.
+
+| Phase | Focus | Status |
+|---|---|---|
+| UX Phase 1 | Guided Scenario Studio | Implemented |
+| UX Phase 2 | Decision Storytelling | Implemented |
+| UX Phase 3 | Replay + Navigation | Implemented |
+| UX Phase 4 | Final Demo Polish | Implemented |

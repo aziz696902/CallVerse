@@ -10,7 +10,8 @@ Set-Location "C:\Programs\Project_data_science\CallVerse"
 .\.venv\Scripts\streamlit.exe run app.py
 ```
 
-Select **Manager**. Follow the visible progression:
+The app opens on **Manager Control Room**, the primary demo surface. Follow the visible
+progression:
 
 1. Simulate
 2. Observe
@@ -42,7 +43,7 @@ Select **Manager**. Follow the visible progression:
 - Staffing: 3 agents
 - Demand multiplier: 1.15
 - Verified behavior: 394 contacts, 64.73% SLA, 24.62% abandonment, 85.05% occupancy
-- Tabs: Scenario Studio, Twin Monitor, Compare Decisions
+- Tabs: Scenario Studio, Twin Monitor, Forecast, Workforce, Compare Decisions
 - Story: constrained capacity creates visible wait/SLA/abandonment degradation
 - What-if: change only agents from 3 to 5 and rerun the same seed
 - Verified simulated result: SLA 64.73% → 98.41%, abandonment 24.62% → 4.31%,
@@ -65,21 +66,22 @@ Select **Manager**. Follow the visible progression:
 
 1. In **Scenario Studio**, run Demo B using its unchanged defaults.
 2. Point out generated contacts, wait, SLA, abandonment, occupancy, and AHT.
-3. In **Twin Monitor**, show the queue, busy agents, and cumulative outcomes.
+3. In **Twin Monitor**, move the replay slider. Distinguish **current snapshot
+   pressure** from the completed/abandoned counters accumulated earlier in the run.
 4. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
    48 half-hour points, 251.744 total predicted contacts, and 19:00 peak.
 5. In **Workforce**, press **BUILD WORKFORCE PLAN**. Explain the calibrated 3.182-minute
    AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer. The
    example plan uses 1–5 agents, 42.5 agent-hours, and reaches its analytical target
    in 48/48 intervals.
-6. In **Compare Decisions**, change Demo B from 3 to 5 agents and run
-   **BEFORE VS AFTER**. State: “simulated effect under identical seeded conditions.”
+6. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
+   **RUN COMPARISON**. State: “simulated effect under identical seeded conditions.”
 7. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
    classifier/tool integration. If Groq quota is available, live mode may be shown and
    must remain labelled live.
 8. In **Quality**, show deterministic guardrails. Show six scores only if a real live
    judge completed; otherwise explain the honest unavailable state.
-9. Return to **Workforce** and show **PPO Workforce Policy — Experimental**. Explain
+9. Return to **Workforce** and show **EXPERIMENTAL PPO POLICY — NOT ADOPTED**. Explain
    that it trained successfully but was not adopted because it held roughly 17 agents
    and used 408 agent-hours/day.
 
@@ -96,17 +98,34 @@ Select **Manager**. Follow the visible progression:
 
 | Step | Approximate runtime |
 |---|---:|
-| Streamlit cold startup | 16.70 s |
-| Subsequent UI actions | 0.5–1.3 s |
-| Digital Twin run | 0.02 s |
-| Forecast load/generation | 0.17 s |
-| Workforce plan | <0.01 s |
-| Same-seed before/after simulation | 0.02 s |
-| Offline Advisor cold start | 5.81 s |
+| Streamlit cold startup | 7.36 s |
+| Digital Twin run | 0.02 s direct / 0.37 s UI |
+| Replay interaction | <0.01 s frame / 0.34 s UI rerender |
+| Forecast load/generation | 0.11 s |
+| Workforce plan | <0.01 s direct / 0.44 s UI |
+| Same-seed before/after simulation | 0.02 s direct / 0.46 s UI |
+| Offline Advisor cold start | 1.33 s |
 | Offline deterministic Quality | <0.01 s |
-| PPO model load and one inference | 3.51 s |
-| Live Advisor cases observed | 10–47 s |
-| Live Quality judge observed | 3–17 s |
+| PPO model load and one inference | 1.69 s |
 
-The first Advisor/PPO use is slower because local artifacts initialize. No restart is
-needed between tabs.
+Measured locally on 2026-10-08. The first Advisor/PPO use is slower because local
+artifacts initialize. No restart is needed between tabs. Live Groq latency was not
+retested because Phase 4 did not change provider behavior.
+
+## Evidence language for the defense
+
+- **SIMULATED:** Scenario Studio, Twin Monitor, and same-seed Compare Decisions.
+- **HISTORICAL ML FORECAST:** LightGBM Poisson contact-demand forecast; not live
+  weather and not customer satisfaction.
+- **ANALYTICAL ERLANG-C BASELINE:** a staffing calculation from forecast demand; not
+  an optimality claim or guarantee.
+- **OFFLINE DETERMINISTIC / LIVE LLM-ASSISTED:** Interaction Lab always names its
+  execution mode. Structured tools provide customer/order facts; RAG provides policy
+  and procedure context.
+- **DETERMINISTIC GUARDRAILS / OPTIONAL LLM JUDGE:** hard safety and compliance flags
+  remain active without an LLM; nuanced scores are optional and are not human ground
+  truth.
+
+Customer Interaction Demo and Human Approval Queue are supporting views. They
+demonstrate, respectively, the deeper Advisor pipeline and human review of sensitive
+actions; neither replaces the primary manager journey.

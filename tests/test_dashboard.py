@@ -221,15 +221,15 @@ def test_streamlit_customer_staff_and_manager_views_load_without_exceptions():
     app.sidebar.radio[0].set_value("📊 Manager Control Room")
     app.run()
     assert not app.exception
-    assert {item.label for item in app.tabs} == {
+    assert [item.label for item in app.tabs] == [
         "Scenario Studio",
         "Twin Monitor",
-        "Compare Decisions",
         "Forecast",
         "Workforce",
+        "Compare Decisions",
         "Interaction Lab",
         "Quality",
-    }
+    ]
 
 
 def test_streamlit_manager_run_button_returns_real_kpis():
@@ -289,9 +289,9 @@ def test_streamlit_workforce_view_shows_experimental_ppo_limitations():
     visible_text = "\n".join(
         item.value for item in (*app.subheader, *app.caption, *app.error, *app.warning)
     )
-    assert "PPO Workforce Policy — Experimental" in visible_text
+    assert "EXPERIMENTAL PPO POLICY — NOT ADOPTED" in visible_text
     assert "Operational recommendation: NOT ADOPTED" in visible_text
-    assert "not a production recommendation" in visible_text
+    assert "simplified training environment" in visible_text
 
 
 def test_streamlit_offline_interaction_is_explicit_and_quality_scores_stay_unavailable():

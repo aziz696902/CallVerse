@@ -154,13 +154,15 @@ def test_default_manager_empty_replay_and_supporting_navigation_render():
     app.run(timeout=30)
     assert not app.exception
     customer_copy = "\n".join(item.value for item in app.caption)
-    assert "Demonstrates the Advisor pipeline" in customer_copy
+    assert "supporting operational view" in customer_copy.lower()
+    assert "focused Advisor demo" in customer_copy
 
     app.sidebar.radio[0].set_value("🧑‍💼 Human Approval Queue")
     app.run(timeout=30)
     assert not app.exception
     staff_copy = "\n".join(item.value for item in app.caption)
-    assert "human-in-the-loop review" in staff_copy
+    assert "Supporting operational view" in staff_copy
+    assert "approve or reject" in staff_copy
 
 
 def test_completed_run_unlocks_replay_without_replacing_existing_charts():
@@ -174,8 +176,11 @@ def test_completed_run_unlocks_replay_without_replacing_existing_charts():
     assert "Full-run monitoring" in subheaders
     metrics = {item.label: item.value for item in app.metric}
     assert "Simulated time" in metrics
-    assert "Waiting contacts" in metrics
-    assert "Agents busy / free" in metrics
-    assert "Cumulative completed" in metrics
+    assert "Current queue" in metrics
+    assert "Busy agents" in metrics
+    assert "Free agents" in metrics
+    assert "Completed so far" in metrics
+    assert "Abandoned so far" in metrics
     visible = "\n".join(item.value for item in app.caption)
     assert "does not run a second simulation" in visible
+    assert "Current snapshot pressure describes this moment only" in visible
