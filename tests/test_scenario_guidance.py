@@ -148,7 +148,7 @@ def test_dashboard_renders_guided_journey_and_scenario_card():
     assert "Manager question" in visible
     assert "Operational objectives" in visible
     next(
-        button for button in app.button if button.label == "LOAD RECOMMENDED DEMO"
+        button for button in app.button if button.label == "LOAD JURY STARTING SCENARIO"
     ).click()
     app.run(timeout=30)
 

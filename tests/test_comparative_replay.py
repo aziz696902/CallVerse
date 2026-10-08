@@ -13,8 +13,10 @@ from callverse.dashboard.comparative_replay import (
     ComparativeReplay,
     DecisionSource,
     build_comparative_replay,
+    capacity_what_if_configuration,
     comparison_matches_configuration,
     create_comparison_configuration,
+    same_staff_control_configuration,
     select_comparative_frame,
 )
 from callverse.dashboard.scenario_guidance import (
@@ -34,7 +36,7 @@ def configuration(
         baseline_agents=baseline_agents,
         assisted_agents=assisted_agents,
         policy_mode="calibrated",
-        decision_source=DecisionSource.RECOMMENDED_DEMO,
+        decision_source=DecisionSource.CAPACITY_WHAT_IF,
     )
 
 
@@ -45,9 +47,7 @@ def official_replay() -> ComparativeReplay:
 
 @pytest.fixture(scope="module")
 def equal_replay() -> ComparativeReplay:
-    return build_comparative_replay(
-        configuration(baseline_agents=3, assisted_agents=3)
-    )
+    return build_comparative_replay(same_staff_control_configuration())
 
 
 def side_values(replay: ComparativeReplay, side: str) -> Iterator[dict[str, object]]:
@@ -59,7 +59,7 @@ def test_configuration_is_validated_and_immutable():
     configured = configuration()
 
     assert configured.scenario_name == "staff_shortage"
-    assert configured.decision_source is DecisionSource.RECOMMENDED_DEMO
+    assert configured.decision_source is DecisionSource.CAPACITY_WHAT_IF
     with pytest.raises(ValidationError):
         configured.baseline_agents = 0
     with pytest.raises(ValidationError):
@@ -91,6 +91,38 @@ def test_official_comparison_changes_only_staffing(official_replay):
     baseline_config.pop("available_agents")
     assisted_config.pop("available_agents")
     assert baseline_config == assisted_config
+
+
+def test_jury_fixed_staffing_configurations_have_distinct_scientific_roles():
+    capacity = capacity_what_if_configuration()
+    control = same_staff_control_configuration()
+
+    assert (
+        capacity.scenario_name,
+        capacity.seed,
+        capacity.baseline_agents,
+        capacity.assisted_agents,
+        capacity.decision_source,
+    ) == (
+        "staff_shortage",
+        404,
+        3,
+        5,
+        DecisionSource.CAPACITY_WHAT_IF,
+    )
+    assert (
+        control.scenario_name,
+        control.seed,
+        control.baseline_agents,
+        control.assisted_agents,
+        control.decision_source,
+    ) == (
+        "staff_shortage",
+        404,
+        3,
+        3,
+        DecisionSource.SAME_STAFF_CONTROL,
+    )
 
 
 def test_timeline_is_exactly_aligned_and_complete(official_replay):
@@ -181,6 +213,18 @@ def test_selecting_frames_does_not_rerun_simulation(monkeypatch):
 def test_equal_staffing_control_is_identical_frame_by_frame(equal_replay):
     assert equal_replay.comparison.before == equal_replay.comparison.after
     assert len(equal_replay.frames) == 33
+    assert (
+        equal_replay.comparison.before.result.kpis
+        == equal_replay.comparison.after.result.kpis
+    )
+    assert (
+        equal_replay.comparison.before.result.counts
+        == equal_replay.comparison.after.result.counts
+    )
+    assert (
+        equal_replay.comparison.before.result.snapshots
+        == equal_replay.comparison.after.result.snapshots
+    )
     assert tuple(side_values(equal_replay, "baseline")) == tuple(
         side_values(equal_replay, "assisted")
     )
@@ -215,13 +259,13 @@ def test_changed_setup_marks_stored_comparison_stale(official_replay):
 def test_streamlit_comparative_replay_empty_build_and_stale_states():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
     visible = "\n".join(item.value for item in (*app.subheader, *app.info, *app.caption))
-    assert "COMPARATIVE SIMULATION REPLAY" in visible
+    assert "FIXED-STAFFING COMPARATIVE REPLAY" in visible
     assert "Build a synchronized comparison first" in visible
 
     next(
         button
         for button in app.button
-        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+        if button.label == "PREPARE CAPACITY WHAT-IF"
     ).click()
     app.run(timeout=30)
     inputs = {widget.label: widget.value for widget in app.number_input}
@@ -258,3 +302,30 @@ def test_streamlit_comparative_replay_empty_build_and_stale_states():
     assert not any(
         widget.label == "Synchronized simulated time" for widget in app.select_slider
     )
+
+
+def test_streamlit_demo_hierarchy_leads_with_workforce_intelligence():
+    app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
+    labels = {button.label for button in app.button}
+    visible = "\n".join(
+        item.value
+        for item in (*app.markdown, *app.caption, *app.info, *app.subheader)
+    )
+
+    assert "LOAD WORKFORCE INTELLIGENCE DEMO" in labels
+    assert "PREPARE CAPACITY WHAT-IF" in labels
+    assert "PREPARE SAME-STAFF CONTROL" in labels
+    assert "PRIMARY RECOMMENDED DEMO" in visible
+    assert "Workforce Intelligence" in visible
+    assert "3 → 5" in visible
+    assert "3 → 3" in visible
+    assert "PRIMARY — VALIDATED TEACHING DEMO" not in visible
+
+    next(
+        button for button in app.button if button.label == "PREPARE SAME-STAFF CONTROL"
+    ).click()
+    app.run(timeout=30)
+    inputs = {widget.label: widget.value for widget in app.number_input}
+    assert inputs["Seed"] == 404
+    assert inputs["Baseline advisors"] == 3
+    assert inputs["CallVerse-assisted advisors"] == 3

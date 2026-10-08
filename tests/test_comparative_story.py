@@ -55,7 +55,7 @@ def official_configuration():
         baseline_agents=3,
         assisted_agents=5,
         policy_mode="calibrated",
-        decision_source=DecisionSource.RECOMMENDED_DEMO,
+        decision_source=DecisionSource.CAPACITY_WHAT_IF,
     )
 
 
@@ -270,7 +270,8 @@ def test_large_center_playback_reads_stored_frames_without_simulation(
 def test_streamlit_storytelling_and_large_center_setup_are_visible():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
     labels = {button.label for button in app.button}
-    assert "PREPARE PRIMARY TEACHING DEMO" in labels
+    assert "PREPARE CAPACITY WHAT-IF" in labels
+    assert "PREPARE SAME-STAFF CONTROL" in labels
     assert "PREPARE LARGE CENTER STRESS TEST" in labels
     visible = "\n".join(
         item.value for item in (*app.markdown, *app.caption, *app.info, *app.warning)

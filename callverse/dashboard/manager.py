@@ -40,9 +40,11 @@ from .comparative_replay import (
     DecisionSource,
     ReplaySideFrame,
     build_comparative_replay,
+    capacity_what_if_configuration,
     comparative_slider_key,
     comparison_matches_configuration,
     create_comparison_configuration,
+    same_staff_control_configuration,
 )
 from .comparative_story import (
     build_final_manager_story,
@@ -222,14 +224,14 @@ def _scenario_studio() -> None:
         "a staffing decision."
     )
 
-    if st.button("LOAD RECOMMENDED DEMO"):
+    if st.button("LOAD JURY STARTING SCENARIO"):
         for key, value in recommended_demo_widget_state().items():
             st.session_state[key] = value
         st.session_state.manager_comparison = None
         st.rerun()
     st.caption(
-        "Recommended demo: Staff Shortage · seed 404 · calibrated mode · 3 agents. "
-        "Load the controls, then press RUN DIGITAL TWIN yourself."
+        "Jury starting scenario: Staff Shortage · seed 404 · calibrated mode · 3 agents. "
+        "The primary intelligence evidence comes later from Workforce Intelligence."
     )
 
     preset_name = st.selectbox(
@@ -250,9 +252,7 @@ def _scenario_studio() -> None:
         st.markdown("**Operational objectives:** " + " · ".join(guide.objectives))
         st.markdown(f"**Suggested action:** {guide.suggested_action}")
         if guide.demo_recommended:
-            st.success(
-                "Recommended teaching demo: observe overload, then test higher staffing."
-            )
+            st.success("Jury starting scenario: observe the simulated capacity pressure.")
         st.caption(guide.scientific_note)
     c1, c2, c3 = st.columns(3)
     seed_key = f"manager_seed_{preset_name}"
@@ -508,10 +508,10 @@ def _render_comparative_final_summary(
 
 def _comparative_replay_panel(run: ManagerRun | None) -> None:
     st.divider()
-    st.subheader("CAPACITY WHAT-IF · COMPARATIVE SIMULATION REPLAY")
+    st.subheader("FIXED-STAFFING COMPARATIVE REPLAY")
     st.write(
-        "What happens if the center simply adds staffing? Inspect the fixed baseline and "
-        "tested fixed-capacity decision at the same simulated timestamp."
+        "Secondary Capacity What-if and Same-staff Control evidence. The primary "
+        "recommended intelligence demo is Workforce Intelligence in the Workforce tab."
     )
     st.caption(
         "This is a synchronized replay of two completed simulations, not live production "
@@ -554,27 +554,44 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             decision_source=(
                 DecisionSource.MANAGER_SELECTED
                 if run is not None
-                else DecisionSource.RECOMMENDED_DEMO
+                else DecisionSource.CAPACITY_WHAT_IF
             ),
         )
 
-    demo_buttons = st.columns(2)
-    if demo_buttons[0].button("PREPARE PRIMARY TEACHING DEMO"):
-        official = get_scenario("staff_shortage")
+    demo_buttons = st.columns(3)
+    if demo_buttons[0].button(
+        "PREPARE CAPACITY WHAT-IF", key="twin_prepare_capacity_what_if"
+    ):
+        capacity = capacity_what_if_configuration()
         _set_comparative_controls(
-            scenario_name=official.name,
-            seed=404,
-            baseline_agents=3,
-            assisted_agents=5,
-            demand_multiplier=official.demand_multiplier,
-            duration_minutes=official.simulation_duration,
-            policy_mode="calibrated",
-            decision_source=DecisionSource.RECOMMENDED_DEMO,
+            scenario_name=capacity.scenario_name,
+            seed=capacity.seed,
+            baseline_agents=capacity.baseline_agents,
+            assisted_agents=capacity.assisted_agents,
+            demand_multiplier=capacity.demand_multiplier,
+            duration_minutes=capacity.duration_minutes,
+            policy_mode=capacity.policy_mode,
+            decision_source=capacity.decision_source,
         )
         st.session_state.manager_comparative_replay = None
         st.session_state.manager_comparative_playback = None
         st.rerun()
-    if demo_buttons[1].button("PREPARE LARGE CENTER STRESS TEST"):
+    if demo_buttons[1].button("PREPARE SAME-STAFF CONTROL"):
+        control = same_staff_control_configuration()
+        _set_comparative_controls(
+            scenario_name=control.scenario_name,
+            seed=control.seed,
+            baseline_agents=control.baseline_agents,
+            assisted_agents=control.assisted_agents,
+            demand_multiplier=control.demand_multiplier,
+            duration_minutes=control.duration_minutes,
+            policy_mode=control.policy_mode,
+            decision_source=control.decision_source,
+        )
+        st.session_state.manager_comparative_replay = None
+        st.session_state.manager_comparative_playback = None
+        st.rerun()
+    if demo_buttons[2].button("PREPARE LARGE CENTER STRESS TEST"):
         large = large_center_configuration()
         _set_comparative_controls(
             scenario_name=large.scenario_name,
@@ -590,14 +607,14 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         st.session_state.manager_comparative_playback = None
         st.rerun()
     st.caption(
-        "PRIMARY — VALIDATED TEACHING DEMO: Staff Shortage · seed 404 · 3 → 5 advisors. "
-        "SECONDARY — SCALABILITY DEMO: Large Center Stress Test · seed 404 · "
-        "15 → 25 advisors. Preparing either setup does not run a simulation."
+        "CAPACITY WHAT-IF: Staff Shortage · seed 404 · 3 → 5 advisors. "
+        "SAME-STAFF CONTROL: Staff Shortage · seed 404 · 3 → 3 advisors. "
+        "Preparing a setup does not run a simulation."
     )
     st.caption(
-        "Staff Shortage is the primary calibrated demonstration. Large Center Stress Test "
-        "scales the same mechanisms for computational and visual scalability; it is not "
-        "separately calibrated to a real large call center."
+        "PRIMARY RECOMMENDED DEMO: Workforce Intelligence compares fixed two-advisor "
+        "staffing with the dynamic 48-slot schedule under the same or lower total staffing "
+        "budget. Large Center Stress Test remains an optional scalability demonstration."
     )
 
     setup_one = st.columns(4)
@@ -673,10 +690,16 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
         policy_mode=policy_mode,
         decision_source=decision_source,
     )
-    st.info(
-        f"Both sides use the same {policy_mode} Digital Twin and the same seeded demand "
-        "conditions. Only the tested staffing decision changes."
-    )
+    if decision_source is DecisionSource.SAME_STAFF_CONTROL:
+        st.info(
+            f"Both sides use the same {policy_mode} Digital Twin, seeded demand, and "
+            "three-advisor staffing. Exact equality is the expected scientific control."
+        )
+    else:
+        st.info(
+            f"Both sides use the same {policy_mode} Digital Twin and the same seeded demand "
+            "conditions. Only the tested staffing decision changes."
+        )
     with st.container(border=True):
         st.markdown("### TESTED DECISION")
         st.metric(
@@ -694,6 +717,15 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             "simulated demand."
         )
         st.caption("This is a controlled simulation comparison, not a production A/B test.")
+        if decision_source is DecisionSource.CAPACITY_WHAT_IF:
+            st.caption(
+                "CAPACITY WHAT-IF · What happens if the center simply adds staffing capacity?"
+            )
+        if decision_source is DecisionSource.SAME_STAFF_CONTROL:
+            st.caption(
+                "SAME-STAFF CONTROL · Identical staffing and seeded conditions should "
+                "produce identical trajectories."
+            )
         if decision_source is DecisionSource.SCALABILITY_DEMO:
             st.warning(
                 "Scalability demonstration only. Scaling preserves simulator mechanisms but "
@@ -701,7 +733,12 @@ def _comparative_replay_panel(run: ManagerRun | None) -> None:
             )
 
     with st.expander("Changed and held-constant comparison settings"):
-        st.write(f"**CHANGED:** Available advisors: {baseline_agents} → {assisted_agents}")
+        if decision_source is DecisionSource.SAME_STAFF_CONTROL:
+            st.write(f"**CONTROL:** Available advisors unchanged at {baseline_agents}")
+        else:
+            st.write(
+                f"**CHANGED:** Available advisors: {baseline_agents} → {assisted_agents}"
+            )
         st.write("**HELD CONSTANT:**")
         st.write(f"- Scenario: {get_scenario_guide(scenario_name).title}")
         st.write(f"- Seed: {seed}")
@@ -988,7 +1025,10 @@ def _compare_decisions() -> None:
         and run.scenario.available_agents == 3
         and run.policy_mode == "calibrated"
     )
-    if official_demo_context and st.button("PREPARE RECOMMENDED DECISION TEST"):
+    if official_demo_context and st.button(
+        "PREPARE CAPACITY WHAT-IF DECISION",
+        key="decision_prepare_capacity_what_if",
+    ):
         for key, value in recommended_decision_widget_state(comparison_key).items():
             st.session_state[key] = value
         st.session_state.manager_comparison = None
@@ -1646,6 +1686,7 @@ def _render_workforce_final_result(comparison) -> None:
 def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
     st.divider()
     st.subheader("WORKFORCE INTELLIGENCE COMPARISON")
+    st.success("PRIMARY RECOMMENDED DEMO · WORKFORCE INTELLIGENCE")
     st.markdown("**Same demand. Lower staffing budget. Smarter allocation.**")
     st.caption(
         "SIMULATED · A synchronized 24-hour replay of fixed capacity versus the "
@@ -1653,7 +1694,8 @@ def _fair_workforce_comparison_panel(forecast: DemandForecast) -> None:
         "3→5 CAPACITY WHAT-IF."
     )
     st.write(
-        "Can CallVerse allocate a lower staffing budget more effectively over time?"
+        "Can CallVerse allocate the same or lower total staffing budget more effectively "
+        "over time?"
     )
     st.caption(
         "Predefined experiment: seed 404, current forecast artifact, 80% service target, "
@@ -2202,9 +2244,11 @@ def render_manager() -> None:
     with st.expander("Recommended demo path"):
         st.write(
             "Load Staff Shortage (seed 404, 3 agents, calibrated) → run the Digital Twin → "
-            "inspect replay → review Forecast → run the fair Workforce comparison → optionally "
-            "compare fixed 3→5 capacity → run an Interaction Lab case → review Quality. "
-            "Briefly show PPO after Erlang-C."
+            "briefly inspect the 3→5 Capacity What-if → review Forecast → run the PRIMARY "
+            "RECOMMENDED DEMO, Workforce Intelligence → optionally show the 3→3 Same-staff "
+            "Control if asked about reproducibility → run an Interaction Lab case → review "
+            "Quality. The primary intelligence evidence is the lower-budget dynamic staffing "
+            "comparison, not 3→5."
         )
         st.caption("Each action remains explicit; this path does not auto-run any step.")
     tabs = st.tabs(

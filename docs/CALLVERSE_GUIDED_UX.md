@@ -54,9 +54,9 @@ queue backlog. These observations do not change the status rules. Healthy runs p
 to Forecast, one-target pressure points to Twin Monitor, and overloaded/critical runs
 point to a same-seed staffing comparison.
 
-## Recommended demo
+## Jury starting scenario
 
-`Staff Shortage` is the recommended teaching scenario. **LOAD RECOMMENDED DEMO** sets
+`Staff Shortage` is the jury starting scenario. **LOAD JURY STARTING SCENARIO** sets
 the controls to seed `404`, three agents, and calibrated mode. It does not run the
 simulation, inject KPI values, or bypass **RUN DIGITAL TWIN**.
 
@@ -110,7 +110,7 @@ least two percentage points for SLA/abandonment or 0.25 minutes for wait is mate
 The conclusion also states the added or removed advisor count without inventing a
 monetary cost. One deterministic next step follows the outcome.
 
-For the official Staff Shortage context, **PREPARE RECOMMENDED DECISION TEST** fills
+For the official Staff Shortage context, **PREPARE CAPACITY WHAT-IF DECISION** fills
 the after value with five agents. It neither runs the comparison nor injects KPI
 values.
 

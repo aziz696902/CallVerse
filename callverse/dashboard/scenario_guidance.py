@@ -137,7 +137,10 @@ _GUIDES = {
         suggested_action="Observe the run, then use Compare Decisions to test more advisors.",
         risk_level=RiskLevel.HIGH,
         demo_recommended=True,
-        scientific_note="Recommended teaching scenario; results still come from the real Twin.",
+        scientific_note=(
+            "Jury starting scenario; primary intelligence evidence comes from the separate "
+            "lower-budget Dynamic Workforce comparison."
+        ),
     ),
     "customer_crisis": ScenarioGuide(
         scenario_key="customer_crisis",

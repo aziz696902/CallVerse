@@ -27,7 +27,8 @@ ASSISTED_LABEL = "CALLVERSE-ASSISTED DECISION"
 
 class DecisionSource(str, Enum):
     MANAGER_SELECTED = "Manager-selected decision"
-    RECOMMENDED_DEMO = "Recommended demo decision"
+    CAPACITY_WHAT_IF = "Capacity What-if"
+    SAME_STAFF_CONTROL = "Same-staff control"
     WORKFORCE_RECOMMENDATION = "Workforce recommendation"
     SCALABILITY_DEMO = "Scalability demonstration"
 
@@ -95,6 +96,38 @@ def create_comparison_configuration(
         assisted_agents=assisted_agents,
         policy_mode=policy_mode,
         decision_source=decision_source,
+    )
+
+
+def capacity_what_if_configuration() -> ComparisonConfiguration:
+    """Return the secondary jury configuration that adds fixed capacity."""
+
+    scenario = get_scenario("staff_shortage")
+    return create_comparison_configuration(
+        scenario.name,
+        seed=404,
+        duration_minutes=scenario.simulation_duration,
+        demand_multiplier=scenario.demand_multiplier,
+        baseline_agents=3,
+        assisted_agents=5,
+        policy_mode="calibrated",
+        decision_source=DecisionSource.CAPACITY_WHAT_IF,
+    )
+
+
+def same_staff_control_configuration() -> ComparisonConfiguration:
+    """Return the scientific control with identical fixed staffing."""
+
+    scenario = get_scenario("staff_shortage")
+    return create_comparison_configuration(
+        scenario.name,
+        seed=404,
+        duration_minutes=scenario.simulation_duration,
+        demand_multiplier=scenario.demand_multiplier,
+        baseline_agents=3,
+        assisted_agents=3,
+        policy_mode="calibrated",
+        decision_source=DecisionSource.SAME_STAFF_CONTROL,
     )
 
 

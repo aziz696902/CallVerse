@@ -64,18 +64,17 @@ progression:
 
 ## Complete recommended demo path
 
-1. In **Scenario Studio**, run Demo B using its unchanged defaults.
-2. Point out generated contacts, wait, SLA, abandonment, occupancy, and AHT.
-3. In **Twin Monitor**, move the replay slider. Distinguish **current snapshot
-   pressure** from the completed/abandoned counters accumulated earlier in the run.
-4. Still in **Twin Monitor**, use **PREPARE PRIMARY TEACHING DEMO**, then **BUILD
-   COMPARISON**. Play or scrub the matched Staff Shortage 3-to-5 replay. Explain the
-   tested decision card, deterministic event markers, current-versus-cumulative
-   evidence, queue trajectory, and final manager summary. State: "controlled simulation
-   comparison, not a production A/B test."
-5. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
+1. In **Scenario Studio**, choose **LOAD JURY STARTING SCENARIO**, then run the Staff
+   Shortage Digital Twin. Point out generated contacts, wait, SLA, abandonment,
+   occupancy, and AHT.
+2. In **Twin Monitor**, briefly choose **PREPARE CAPACITY WHAT-IF**, then **BUILD
+   COMPARISON**. The Staff Shortage seed-404 comparison remains 3→5 and asks: “What
+   happens if the center simply adds staffing capacity?” It is secondary evidence,
+   not the primary intelligence demonstration.
+3. In **Forecast**, explain the historical Technion contact-demand boundary. Show the
    48 half-hour points, 251.744 total predicted contacts, and 19:00 peak.
-6. In **Workforce**, use the primary **WORKFORCE INTELLIGENCE COMPARISON**. Press
+4. In **Workforce**, use the **PRIMARY RECOMMENDED DEMO — WORKFORCE INTELLIGENCE**.
+   Press
    **LOAD WORKFORCE INTELLIGENCE DEMO**, then **RUN FAIR COMPARISON**. Before playing,
    point out 248 matched contacts, seed 404, and the fair 48.0 versus 42.5 agent-hour
    budget. Press Play at 4x; the simulator has already completed and playback traverses
@@ -89,16 +88,21 @@ progression:
    The planning controls below remain available for analytical inspection. Press
    **BUILD WORKFORCE PLAN** only if time permits; explain the calibrated 3.182-minute
    AHT, two-minute SLA threshold, 80% target, 85% occupancy cap, and 10% buffer.
-7. In **Compare Decisions**, press **PREPARE RECOMMENDED DECISION TEST**, then
-   **RUN COMPARISON**. State: “simulated effect under identical seeded conditions.”
-8. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
+5. Only if asked about fairness or reproducibility, return to **Twin Monitor**, choose
+   **PREPARE SAME-STAFF CONTROL**, then **BUILD COMPARISON**. The seed-404 3→3 control
+   must produce identical final KPIs and all 33 identical frames. It tests equality; it
+   is not an improvement demonstration.
+6. In **Interaction Lab**, run **Grounded tracking**. Offline mode proves deterministic
    classifier/tool integration. If Groq quota is available, live mode may be shown and
    must remain labelled live.
-9. In **Quality**, show deterministic guardrails. Show six scores only if a real live
+7. In **Quality**, show deterministic guardrails. Show six scores only if a real live
    judge completed; otherwise explain the honest unavailable state.
-10. Return to **Workforce** and show **EXPERIMENTAL PPO POLICY — NOT ADOPTED**. Explain
-   that it trained successfully but was not adopted because it held roughly 17 agents
-   and used 408 agent-hours/day.
+
+The primary intelligence evidence is not 3→5. It is the lower-budget dynamic staffing
+comparison: fixed two-advisor staffing uses 48.0 agent-hours while the CallVerse
+schedule uses 42.5 under the same realized demand. “Same-staff control” refers only to
+the 3→3 equality test; “same or lower total staffing budget” describes the Dynamic
+Workforce research question and does not mean equal instantaneous advisor counts.
 
 ## Optional scalability demonstration
 

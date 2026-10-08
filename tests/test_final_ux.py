@@ -70,7 +70,11 @@ def test_default_normal_run_is_healthy_and_replay_wording_is_coherent():
 
 def test_recommended_path_loads_controls_but_does_not_auto_run():
     app = AppTest.from_file("app.py", default_timeout=30).run(timeout=30)
-    next(button for button in app.button if button.label == "LOAD RECOMMENDED DEMO").click()
+    next(
+        button
+        for button in app.button
+        if button.label == "LOAD JURY STARTING SCENARIO"
+    ).click()
     app.run(timeout=30)
 
     assert not app.exception

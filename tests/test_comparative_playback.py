@@ -181,7 +181,7 @@ def test_streamlit_hides_controls_until_build_then_exposes_operational_view():
     next(
         button
         for button in app.button
-        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+        if button.label == "PREPARE CAPACITY WHAT-IF"
     ).click()
     app.run(timeout=30)
     next(button for button in app.button if button.label == "BUILD COMPARISON").click()
@@ -230,7 +230,7 @@ def test_streamlit_play_reaches_end_without_rerunning_simulation(monkeypatch):
     next(
         button
         for button in app.button
-        if button.label == "PREPARE PRIMARY TEACHING DEMO"
+        if button.label == "PREPARE CAPACITY WHAT-IF"
     ).click()
     app.run(timeout=30)
     next(button for button in app.button if button.label == "BUILD COMPARISON").click()

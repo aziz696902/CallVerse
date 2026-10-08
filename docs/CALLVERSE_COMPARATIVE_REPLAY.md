@@ -107,16 +107,17 @@ with the displayed contact volume, and it does not alter the existing scenario p
 
 ## Final demonstration instructions
 
-1. Open **Twin Monitor > Comparative Simulation Replay**.
-2. For the defense route, select **PREPARE PRIMARY TEACHING DEMO**, inspect the tested
-   decision card, then choose **BUILD COMPARISON**.
+1. Open **Twin Monitor > Fixed-staffing Comparative Replay**.
+2. For the secondary capacity demonstration, select **PREPARE CAPACITY WHAT-IF**,
+   inspect the tested decision card, then choose **BUILD COMPARISON**.
 3. Play at 4x or scrub to 12:00. Explain that queue/busy values are snapshots while
    completed/abandoned values are cumulative.
 4. Expand deterministic timeline events and point out that markers are stored-frame
    evidence, not generated narration.
 5. Move to 16:00 and present the final outcome and +2-advisor trade-off.
-6. Optionally select **PREPARE LARGE CENTER STRESS TEST**, build the 15-to-25 case, and
-   demonstrate that the same synchronized playback and capped visuals remain usable.
+6. If reproducibility is challenged, select **PREPARE SAME-STAFF CONTROL** and show
+   exact 3-to-3 frame equality. Optionally use the Large Center Stress Test only for
+   scalability.
 
 ## Frozen boundaries
 
