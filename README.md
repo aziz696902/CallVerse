@@ -1,62 +1,164 @@
-# CallVerse V1
+# CallVerse
 
-CallVerse is a final-year Data Science research prototype for virtual
-support-center decision support. A manager can simulate demand, inspect operational
-consequences, forecast upcoming contact volume, build an analytical staffing plan,
-test a same-seed what-if decision, and inspect customer-service quality before making
-real-world decisions.
+CallVerse is a final-year Data Science research prototype for customer-support and
+workforce decision support. It combines a calibrated contact-center Digital Twin,
+demand forecasting, analytical workforce planning, synchronized decision replay, an
+AI-assisted customer-service workflow, and quality controls in one Streamlit app.
 
-**Project implementation status: V1 complete.** CallVerse is a reproducible research
-and engineering prototype, not a production workforce or customer-service system.
+The project is designed to answer operational questions before a manager changes a
+real support center. Every dashboard labels simulated, historical, analytical, offline,
+and live-LLM evidence separately.
 
-## Research question and result
+> **Status:** V1 and the Dynamic Workforce research feature are complete. CallVerse is
+> a reproducible research prototype, not a production workforce-management system.
 
-Can a calibrated support-center simulation, demand forecast, explainable Erlang-C
-baseline, and learned PPO policy provide useful evidence for staffing decisions?
-
-The operational recommendation is the transparent **Erlang-C analytical baseline**.
-The experimental PPO policy trained successfully but converged to about 17 constant
-agents and 408 agent-hours/day, versus about 118 mean agent-hours for Erlang-C in the
-same RL evaluation environment. PPO is therefore **not adopted**.
-
-## Final architecture
+## How the application works
 
 ```text
-Technion operations data + Olist delivery/review data + Bitext support text
-                              |
-                    calibration / evaluation
-                              |
-Scenario -> SimPy Digital Twin -> KPIs -> 24h forecast -> Erlang-C plan
-                  |                                      |
-                  +-------- same-seed what-if -----------+
+Historical contact data
+        │
+        ├── calibration ──> service, patience and arrival distributions
+        │                         │
+        │                         ▼
+        │                 SimPy Digital Twin
+        │                         │
+        │                         ├── queues, SLA, abandonment, occupancy
+        │                         └── synchronized stored-snapshot replay
+        │
+        └── LightGBM demand forecast ──> Erlang-C Workforce Manager
+                                               │
+                                               ▼
+                                  48-slot staffing schedule
+                                               │
+                        ┌──────────────────────┴──────────────────────┐
+                        ▼                                             ▼
+          Uniform demand-unaware schedule             Forecast-informed schedule
+          42.5 agent-hours, pool of 5                 42.5 agent-hours, pool of 5
+                        │                                             │
+                        └──────── controlled Digital Twin test ───────┘
 
-Customer -> TF-IDF intent classifier -> HelpPilot Advisor
-                                      -> SQLite tools / Chroma RAG / approval
-                                      -> Quality Analyst
-
-PPO workforce environment -> experimental research result only (not Twin control)
+Customer message ──> intent classifier ──> HelpPilot Advisor
+                                           ├── SQLite customer/order tools
+                                           ├── Chroma policy retrieval
+                                           ├── approval and escalation controls
+                                           └── deterministic + optional LLM quality review
 ```
 
-See [final architecture and implementation matrix](docs/CALLVERSE_ARCHITECTURE.md)
-for evidence boundaries and proposed-versus-implemented components.
+The primary research comparison keeps the workforce pool, total staffing budget,
+seed, realized demand, customer attributes, service draws, and patience draws equal.
+Only the time at which staffing capacity is deployed changes.
+
+## Application views
+
+The Streamlit application contains three user areas:
+
+- **Manager Control Room** — scenarios, Digital Twin results, replay, forecast,
+  Workforce Intelligence, staffing what-ifs, Interaction Lab, and Quality.
+- **Customer Interaction Demo** — customer-facing support conversation and safe action
+  handling.
+- **Human Approval Queue** — review of sensitive proposed actions such as refunds.
+
+The Manager journey is:
+
+1. **Scenario Studio** configures and runs a calibrated support-center scenario.
+2. **Twin Monitor** replays stored queue, advisor, completion, and abandonment states.
+3. **Forecast** displays the existing 48-slot LightGBM contact-demand forecast.
+4. **Workforce** converts forecast demand into an explainable Erlang-C schedule and
+   runs the primary same-resource comparison.
+5. **Compare Decisions** tests fixed-capacity what-if decisions under the same seed.
+6. **Interaction Lab** exercises the classifier, Advisor, tools, RAG, and escalation.
+7. **Quality** applies deterministic safety checks and, when configured, an optional
+   structured Groq judge.
+
+## Primary demo: Workforce Intelligence
+
+The jury-facing experiment is **Workforce Intelligence — Same Resource Budget**.
+
+| Controlled condition | Uniform baseline | CallVerse plan |
+|---|---:|---:|
+| Maximum workforce pool | 5 | 5 |
+| Total staffing budget | 42.5 agent-hours | 42.5 agent-hours |
+| Simulation horizon | 24 hours | 24 hours |
+| Seed | 404 | 404 |
+| Realized contacts | 248 | 248 |
+
+The baseline distributes the budget uniformly without accepting forecast or outcome
+data. CallVerse allocates the same budget using the existing Forecast-to-Erlang-C plan.
+Both schedules are executed by the same Dynamic Twin.
+
+### Verified controlled result
+
+| Metric | Uniform baseline | CallVerse | Difference |
+|---|---:|---:|---:|
+| Completed contacts | 159 | 228 | +69 |
+| SLA | 57.86% | 90.79% | +32.93 pp |
+| Abandonment | 35.89% | 8.06% | -27.82 pp |
+| Average wait | 3.18 min | 0.54 min | -2.65 min |
+| Occupancy | 26.22% | 36.97% | +10.75 pp |
+| Final backlog | 0 | 0 | 0 |
+
+Classification: **BETTER ALLOCATION WITH SAME RESOURCE BUDGET**.
+
+All 248 contacts match across the two runs on arrival, intent, persona, patience, and
+handling draws. This supports an allocation-timing result inside the calibrated Digital
+Twin; it does not prove global optimality or guaranteed production impact.
+
+The app also retains two distinct supporting comparisons:
+
+- **Capacity What-if:** Staff Shortage, seed 404, fixed staffing 3→5.
+- **Same-staff reproducibility control:** Staff Shortage, seed 404, 3→3, producing
+  identical final KPIs and all 33 identical replay frames.
+
+The older 48.0-hour fixed versus 42.5-hour dynamic test remains documented as secondary
+resource-efficiency evidence.
 
 ## Quick start
 
-Python 3.11 and `uv` are recommended.
+Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are recommended.
 
 ```powershell
 Set-Location "C:\Programs\Project_data_science\CallVerse"
 uv sync
 Copy-Item .env.example .env
-# Optionally place GROQ_API_KEY in the ignored .env file.
 uv run python -m helppilot.seed
 uv run streamlit run app.py
 ```
 
-Open the Manager view for the complete offline demo. Without Groq, the Digital Twin,
-forecast, Workforce Manager, PPO research view, offline Interaction Lab, and
-deterministic Quality guardrails remain available. Live Advisor and structured Quality
-scoring are explicitly unavailable rather than silently replaced with fake LLM output.
+If the existing virtual environment is already synchronized:
+
+```powershell
+Set-Location "C:\Programs\Project_data_science\CallVerse"
+.\.venv\Scripts\Activate.ps1
+streamlit run app.py
+```
+
+The app works offline for the Digital Twin, forecasting, workforce experiments,
+classifier, deterministic Advisor demo, and deterministic Quality guardrails. A Groq
+key is required only for explicitly labelled live LLM interactions.
+
+Optional secrets belong in the ignored `.env` file:
+
+```dotenv
+GROQ_API_KEY=your_real_local_secret
+LANGSMITH_TRACING=false
+LANGSMITH_API_KEY=
+```
+
+Never commit `.env`.
+
+## Recommended two-minute defense flow
+
+1. Introduce the Digital Twin and historical demand boundary.
+2. Open **Forecast** and identify the 19:00 predicted peak.
+3. Open **Workforce** and select **LOAD RECOMMENDED WORKFORCE DEMO**.
+4. Show pool `5`, budget `42.5 vs 42.5`, seed `404`, and the controlled-comparison card.
+5. Select **RUN CONTROLLED COMPARISON**, then play at 8x.
+6. Pause near 19:00: CallVerse uses more capacity at that moment but used less earlier;
+   both policies retain the same daily budget.
+7. At 24:00, show exact budget convergence and the operational result.
+8. Demonstrate the offline Advisor/RAG path and Quality guardrails.
+
+See the complete [defense guide](docs/CALLVERSE_DEMO_GUIDE.md).
 
 ## Reproducibility commands
 
@@ -73,77 +175,54 @@ scoring are explicitly unavailable rather than silently replaced with fake LLM o
 # Rebuild Erlang-C versus fixed-Twin validation evidence
 .\.venv\Scripts\python.exe -m callverse.workforce.evaluation
 
-# Evaluate the already-trained PPO policy (no retraining)
+# Evaluate the already-trained PPO policy without retraining
 .\.venv\Scripts\python.exe -m callverse.rl.evaluation
 
-# Offline classifier/Advisor integration demo
+# Offline classifier and Advisor integration demo
 .\.venv\Scripts\python.exe -m callverse.customer_advisor_demo
 ```
 
-Optional live configuration belongs only in ignored `.env`:
+Current verified suite: **260 tests and 15 subtests passing**.
 
-```dotenv
-GROQ_API_KEY=your_real_local_secret
-LANGSMITH_TRACING=false
-LANGSMITH_API_KEY=
-```
+## Implemented components
 
-LangSmith is optional. Never commit `.env`.
-
-## Implemented modules
-
-- calibrated, held-out-validated SimPy operational Digital Twin;
-- seven deterministic scenario presets and same-seed staffing what-if comparison;
-- six-class TF-IDF delivery-support intent classifier with safe fallback;
-- inherited MIT-licensed HelpPilot LangGraph Advisor, SQLite tools, Chroma RAG,
-  grounding review, durable refund approval, and escalation;
-- deterministic Quality guardrails plus optional structured Groq six-dimension judge;
-- rolling-origin 48-step LightGBM Poisson historical contact-demand forecast;
-- calibrated Erlang-C analytical staffing recommendation;
-- Stable-Baselines3 PPO workforce experiment, evaluated and rejected operationally;
-- one Streamlit application for Customer, Staff, and Manager roles.
+- calibrated and held-out-validated SimPy operational Digital Twin;
+- fixed and immutable 30-minute scheduled-capacity simulation modes;
+- non-preemptive staffing reductions with explicit busy-agent overhang;
+- seven deterministic scenario presets;
+- synchronized 97-frame workforce replay and fixed-capacity comparative replay;
+- 48-step LightGBM Poisson historical contact-demand forecast;
+- explainable Erlang-C Workforce Manager;
+- exact agent-hour accounting and demand-agnostic uniform baseline construction;
+- six-class TF-IDF support-intent classifier with safe fallback;
+- HelpPilot LangGraph Advisor with SQLite tools, Chroma RAG, approvals, and escalation;
+- deterministic Quality guardrails and optional structured Groq evaluation;
+- Stable-Baselines3 PPO workforce experiment, evaluated but not adopted operationally.
 
 ## Data and evidence boundaries
 
-- **Technion Anonymous Bank Call-Center Data:** generic contact-center arrivals,
-  service, waiting, and abandonment—not e-commerce customer records.
-- **Olist:** delivery lateness and review association only; it does not establish that
-  lateness caused a support contact.
-- **Bitext:** templated/synthetic-like support text used for intent classification;
-  perfect held-out TF-IDF scores must not be generalized to production language.
+- **Technion Anonymous Bank Call-Center Data:** contact arrivals, service, waiting, and
+  abandonment—not e-commerce customer records.
+- **Olist:** delivery and review associations; it does not prove that lateness caused a
+  support contact.
+- **Bitext:** templated support text for intent classification; its strong held-out score
+  must not be generalized to unrestricted production language.
+- **Forecast and Erlang-C:** historical prediction and analytical planning evidence, not
+  live demand or a guaranteed optimum.
+- **Digital Twin:** controlled simulation evidence, not a production A/B test.
+- **LLM Quality judge:** optional model output, not human ground truth.
 
-See [data sources](docs/DATA_SOURCES.md),
-[final results](docs/CALLVERSE_FINAL_RESULTS.md), and the
-[demo guide](docs/CALLVERSE_DEMO_GUIDE.md).
+No audio model, weather-causality model, bad-review predictor, or autonomous production
+staffing controller is claimed.
 
-## Major verified results
+## Documentation
 
-- Calibration uses 435,785 usable Technion contacts; held-out mean service time was
-  3.333 minutes and held-out queued-call abandonment was 23.28%.
-- TF-IDF logistic regression achieved 1.000 macro-F1 on the 1,004-row templated test
-  split and was selected over BERT-tiny by the predeclared validation rule.
-- LightGBM Poisson test MAE was 6.149 contacts/half-hour and RMSE was 10.018.
-- The final forecast contains 48 half-hour points and 251.744 predicted contacts.
-- The example Erlang-C plan used 42.5 agent-hours and met its analytical target in
-  48/48 intervals; this is not a guaranteed production outcome.
-- PPO reduced RL-environment wait and abandonment through severe overstaffing and is
-  not the operational policy.
-- Deterministic Quality safety fixtures pass; live Groq results are integration smoke
-  tests, not statistical or human evaluation.
-
-## Limitations
-
-There is no joined late-delivery-to-support-contact dataset, weather causal model,
-human evaluation of a large Advisor sample, bad-review prediction model, audio model,
-or dynamic staffing inside the frozen Digital Twin. Erlang-C uses simplified M/M/c
-assumptions. The PPO environment differs materially from the Twin. A Quality LLM
-judge is not human ground truth.
-
-## Documentation and attribution
-
+- [Architecture and implementation matrix](docs/CALLVERSE_ARCHITECTURE.md)
+- [Dynamic Workforce Twin](docs/CALLVERSE_DYNAMIC_WORKFORCE_TWIN.md)
+- [Comparative Replay](docs/CALLVERSE_COMPARATIVE_REPLAY.md)
+- [Defense and demo guide](docs/CALLVERSE_DEMO_GUIDE.md)
 - [Final results](docs/CALLVERSE_FINAL_RESULTS.md)
-- [Defense/demo sequence](docs/CALLVERSE_DEMO_GUIDE.md)
-- [Dashboard](docs/CALLVERSE_DASHBOARD.md)
+- [Data sources](docs/DATA_SOURCES.md)
 - [PPO experiment](docs/CALLVERSE_PPO_WORKFORCE.md)
 - [Storage policy](docs/STORAGE_POLICY.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
