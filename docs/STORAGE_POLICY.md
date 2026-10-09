@@ -16,6 +16,10 @@ CallVerse should remain reproducible and intentionally lean throughout developme
 - Require explicit justification before introducing any file larger than about 500 MB.
 - Keep generated caches, databases, indexes, logs, and temporary experiment outputs
   untracked unless a small artifact is intentionally required for reproducibility.
+- The final raw Technion, Olist, and Bitext research snapshot and deterministic Bitext
+  splits are tracked by explicit project-owner decision for offline reproducibility.
+  Runtime databases, vector indexes, checkpoints, secrets, and environments remain
+  untracked.
 
 ## Storage Baseline — 2026-10-05
 

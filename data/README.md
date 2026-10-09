@@ -1,7 +1,9 @@
-# Local Data Layout
+# Data Layout
 
-Raw source data is intentionally untracked. Download it from the official sources in
-[`docs/DATA_SOURCES.md`](../docs/DATA_SOURCES.md) and place files as follows:
+The research snapshot used for the final CallVerse results is tracked with the
+repository so the calibration and classification experiments can be reproduced.
+Source attribution, licensing, revisions, and verified hashes are documented in
+[`docs/DATA_SOURCES.md`](../docs/DATA_SOURCES.md). The files are arranged as follows:
 
 ```text
 data/raw/technion_anonymous_bank/*1999.txt
@@ -22,9 +24,9 @@ review text, and credentials are not written to processed artifacts. Download ar
 may be removed after their required files and hashes have been verified because the
 official source and reproducible extraction layout are documented.
 
-Phase 5 prepares the ignored Bitext dataset and deterministic 70/15/15 splits under
-`data/processed/classification/`. Only the small `evaluation/` audit, metrics,
-confusion matrix, and compact error samples are tracked. Rebuild them with:
+Phase 5 prepares the Bitext dataset and deterministic 70/15/15 splits under
+`data/processed/classification/`. The final source snapshot, prepared splits, and
+small `evaluation/` audit artifacts are tracked. Rebuild them with:
 
 ```bash
 python -m callverse.classification.train

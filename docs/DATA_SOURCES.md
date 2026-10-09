@@ -40,4 +40,5 @@ The sources describe different organizations and people. They are calibrated ind
 
 The source is a hybrid synthetic dataset. It provides no defensible urgency target and
 does not directly support CallVerse `damaged_item` or `general`; those labels are not
-fabricated. The full CSV and prepared train/validation/test rows remain untracked.
+fabricated. The final source CSV and deterministic prepared train/validation/test rows
+are tracked to preserve the exact research snapshot used for the reported results.

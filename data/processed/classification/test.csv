@@ -1,0 +1,1005 @@
+text,label,source_intent
+"I am waiting for a refund of {{Currency Symbol}}{{Refund Amount}}, has it been processed?",refund,track_refund
+were do i report damn troubles with payment,payment_issue,payment_issue
+help to check in which cases can I ask to be refunded,refund,check_refund_policy
+need assistance to make a customer claim against ur business,complaint,complaint
+i dont know what i have to do to see the rebate status,refund,track_refund
+how to make an reclamation against your company?,complaint,complaint
+i have got to ask for reabtes,refund,get_refund
+help me making a reclamation,complaint,complaint
+"the experience with you has been bad, make a reclamation",complaint,complaint
+where to see the ETA of order {{Order Number}}?,tracking,track_order
+need help to check in which cases can i request refunds,refund,check_refund_policy
+can you help me report troubles with payment?,payment_issue,payment_issue
+I cannot see if there are any updates on my compensation,refund,track_refund
+i do not know what i have to do to get my money back,refund,get_refund
+i need assistance reporting troubles with online payments,payment_issue,payment_issue
+help me check inwhat cases can i ask for refunds,refund,check_refund_policy
+"I purchased some damn product, help me cancel order {{Order Number}}",cancel_order,cancel_order
+need help to solve an error with payment,payment_issue,payment_issue
+i need help to receive fucking compensations,refund,get_refund
+want help filing a consumer cliam against your company,complaint,complaint
+see in which cases can i ask for a reimbursement,refund,check_refund_policy
+I have to check purchase {{Order Number}} current status,tracking,track_order
+can you help me obtaining refunds of my money?,refund,get_refund
+i cannot check purchase {{Order Number}} status,tracking,track_order
+i expect a refund of {{Refund Amount}} dollars has it been processed,refund,track_refund
+I need help to cancel order {{Order Number}},cancel_order,cancel_order
+I want help to demand a rebate of money,refund,get_refund
+can utell me more about modifying my delivery address,address_change,change_shipping_address
+how to check the fucking rebate current status?,refund,track_refund
+show me in which situations can I request to be refunded,refund,check_refund_policy
+i do not know what to do to request refunds,refund,get_refund
+help changimg my address,address_change,change_shipping_address
+want assistance to ask for a restitution of my money,refund,get_refund
+how long till I receive my refund of money ?,refund,get_refund
+I need help to obtain compensations of money,refund,get_refund
+could I check in what cases can I ask to be reimbursed?,refund,check_refund_policy
+can you tell me more about an address change?,address_change,change_shipping_address
+how do I make a reclamation against your company?,complaint,complaint
+I don't know what I have to do to see the restitution status,refund,track_refund
+"I have got to see how long refunds usually take, I need help",refund,check_refund_policy
+help me check if there is anything wrong with my refund,refund,track_refund
+need to see in what situations can i ask for a reimbursement,refund,check_refund_policy
+i dont know what i have to do to obtain a compensation,refund,get_refund
+can I check in which cases can I ask for my money back?,refund,check_refund_policy
+I need help trying to hcange the bloody delivery address,address_change,change_shipping_address
+I don't know how I can camcel purchase {{Order Number}},cancel_order,cancel_order
+how to see if there is anything wrong with my restitution?,refund,track_refund
+see in what situations can I request a reimbursement,refund,check_refund_policy
+I have errors correcting the address,address_change,change_shipping_address
+"I have to see your money back guarantee, help me",refund,check_refund_policy
+"I would like to make a reclamation, how do I do it?",complaint,complaint
+help cancelling purchase {{Order Number}},cancel_order,cancel_order
+what do I need to do to file a claim against your business?,complaint,complaint
+I do not know how I could receive an reimbursement of money,refund,get_refund
+I have problems editing the address,address_change,change_shipping_address
+I have a truble editing my shipping address,address_change,change_shipping_address
+I have got to check your reimbursement policy,refund,check_refund_policy
+I do not know how to lodge a claim against your business,complaint,complaint
+need help to check the ETA of the order {{Order Number}},tracking,track_order
+can yahelp me getting a compensation,refund,get_refund
+i have a problem with a delivery address modification,address_change,change_shipping_address
+can you help me to see the current status of my refund?,refund,track_refund
+"I have to check the restitution status, how can I do it?",refund,track_refund
+make consumer reclamation against your organization,complaint,complaint
+i xepect a refund of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+I want information about changing the delivery address,address_change,change_shipping_address
+I try to change the delivery address,address_change,change_shipping_address
+how do I check the current status of my restitution?,refund,track_refund
+need assistance to see the ETA of the purchase {{Order Number}},tracking,track_order
+i cannot make payments help to report an error,payment_issue,payment_issue
+want help seeing the eta of purchase {{Order Number}},tracking,track_order
+help seeing in what situations can I ask for refunds,refund,check_refund_policy
+how could i notify of an error with online payment,payment_issue,payment_issue
+i do not knowhow to request a restitution of money,refund,get_refund
+troubles modifying address,address_change,change_shipping_address
+want help to see in which cases can I request reimbursements,refund,check_refund_policy
+i need support trying to modify the address,address_change,change_shipping_address
+i need support modifying the address,address_change,change_shipping_address
+check under which circumstances can I ask to be refunded,refund,check_refund_policy
+assistance to file a reclamation,complaint,complaint
+I am waiting for a restitution of {{Refund Amount}} dollars,refund,track_refund
+"I have to inform of damn payment errors, how can I do it?",payment_issue,payment_issue
+"the experience with you has been bad, I try to file a claim",complaint,complaint
+"I can't make payments, assistance informing of problems",payment_issue,payment_issue
+check status of refund,refund,track_refund
+can I see under what circumstances can I request a refund?,refund,check_refund_policy
+what do i have to od to check order {{Order Number}} status,tracking,track_order
+can uhelp me canceling purchase {{Order Number}},cancel_order,cancel_order
+want help to get a rebate of my money,refund,get_refund
+"I can't pay, is it possible to report troubles with payment?",payment_issue,payment_issue
+I want help to see your refund policy,refund,check_refund_policy
+need help checking the damn ETA of purchase {{Order Number}},tracking,track_order
+I need help demanding a rebate of money,refund,get_refund
+cancel purchase113542617735902,cancel_order,cancel_order
+can ya help me inform of errors with online payment,payment_issue,payment_issue
+I don't know what I need to do to make a consumer claim,complaint,complaint
+I don't knpw how to report payment issues,payment_issue,payment_issue
+want help to obtain a compensation of money,refund,get_refund
+want assistance to check in what casew can I request refunds,refund,check_refund_policy
+could I see in which cases can I ask to be refunded?,refund,check_refund_policy
+I need to lodge a claim against your organization,complaint,complaint
+i need assistance informing of problems with online payment,payment_issue,payment_issue
+i do not know how to file a claim against ur business,complaint,complaint
+I have to edit my shipping address,address_change,change_shipping_address
+can i lodge a customer claim againmst ur company,complaint,complaint
+I need help to obtain refunds of money,refund,get_refund
+I need to file a customer claim against your business,complaint,complaint
+help to check in which situations can I ask for refunds,refund,check_refund_policy
+how can I inform of issues with online payment?,payment_issue,payment_issue
+supports editing the shipping address,address_change,change_shipping_address
+I want assistance locating purchase {{Order Number}},tracking,track_order
+I want support modifying my address,address_change,change_shipping_address
+there is an error trying to edit the shipping address,address_change,change_shipping_address
+assistance seeing in what casew can i ask to be refunded,refund,check_refund_policy
+"I want to track my rebate, I need assistance",refund,track_refund
+file consumer reclamation against ur company,complaint,complaint
+can ya help me cancel purchase {{Order Number}},cancel_order,cancel_order
+I want to see in what cases can I ask for reimbursements,refund,check_refund_policy
+I have got to notify of goddamn issues with online payment,payment_issue,payment_issue
+assistance cancelling order {{Order Number}},cancel_order,cancel_order
+want assistance to track the restitution,refund,track_refund
+"I need to file a customer claim, how do I do it?",complaint,complaint
+making customer reclamation against ur company,complaint,complaint
+assistance informing of errors with payment,payment_issue,payment_issue
+check under what circumstances can I ask for my money back,refund,check_refund_policy
+I'm waiting for a reimbursement of 1499dollars,refund,track_refund
+i wanthelp filing a customer complaint against ur company,complaint,complaint
+checking ETA of order {{Order Number}},tracking,track_order
+I am trying to check my rebate status,refund,track_refund
+where culd i cancel order {{Order Number}},cancel_order,cancel_order
+I do not know what I need to do to receive reimbursemenrs,refund,get_refund
+I want help filing a consumer complaint,complaint,complaint
+"the payment failed, where do I notify of errors?",payment_issue,payment_issue
+cancel purchase00004587345,cancel_order,cancel_order
+"I have to see the ETA of order {{Order Number}}, how to do it?",tracking,track_order
+how to notify of issues with payment?,payment_issue,payment_issue
+I have troubles correcting my address,address_change,change_shipping_address
+want help to make a complaint against your business,complaint,complaint
+help me checking the ETA of purchase {{Order Number}},tracking,track_order
+i need assistance requesting reimbursements of my money,refund,get_refund
+could I track my damn reimbursement?,refund,track_refund
+i dont know how to request a refund,refund,get_refund
+i cannot see if there are any news on my rebate,refund,track_refund
+i have got toedit the address,address_change,change_shipping_address
+need help requesting restitutions of my money,refund,get_refund
+need assistance seeing order {{Order Number}} current status,tracking,track_order
+want assistance making a claim against ur company,complaint,complaint
+where can I see the fucking status of order {{Order Number}}?,tracking,track_order
+I want help seeing in what situations can I request refunds,refund,check_refund_policy
+I don't know how I can get a compensation of my money,refund,get_refund
+I want help to lodge a customer claim,complaint,complaint
+help seeing in which cases can I request to be refunded,refund,check_refund_policy
+when am i receiving my refund of money,refund,get_refund
+help checking in which cases can I ask to be reimbursed,refund,check_refund_policy
+i need help seeing purchase {{Order Number}} status,tracking,track_order
+I do not know what to do to report an error with payment,payment_issue,payment_issue
+where can I obtain restitutions of money?,refund,get_refund
+want help cancelling purchase {{Order Number}},cancel_order,cancel_order
+help me seeing if there are any updates on the reimbursement,refund,track_refund
+can you help me cancelling the bloody purchase I made?,cancel_order,cancel_order
+i do not know how to track my rebate,refund,track_refund
+i do not know how to see the eta of the order {{Order Number}},tracking,track_order
+i try to inform of problems with online payments,payment_issue,payment_issue
+problems editing address,address_change,change_shipping_address
+I want to check in which situations can I ask to be refunded,refund,check_refund_policy
+find information about editing the delivery address,address_change,change_shipping_address
+help seeing under which circumstances can I request a refund,refund,check_refund_policy
+I try to make a reclamation against your organization,complaint,complaint
+help checking if there is anything wrong with the refund,refund,track_refund
+assistnace cancelling order {{Order Number}},cancel_order,cancel_order
+when will i obtain my rdbate of money,refund,get_refund
+I'm trying to see in what cases can i ask for my money back,refund,check_refund_policy
+I want to make a consumer claim against your organization,complaint,complaint
+help me cancel ordere {{Order Number}},cancel_order,cancel_order
+"I chose a wrong delivery address, can you help me update it?",address_change,change_shipping_address
+I do not know how to report a problem with payments,payment_issue,payment_issue
+"I want to make a fucking consumer claim, I need help",complaint,complaint
+I need help to lodge a claim against your organization,complaint,complaint
+"I cannot afford this article, cancel order {{Order Number}}",cancel_order,cancel_order
+"my experience with you has been bad, make a customer claim",complaint,complaint
+would ugive me information about editing my delivery address,address_change,change_shipping_address
+how can i see the ETA of the purchase {{Order Number}},tracking,track_order
+i try to make a customer reclamation,complaint,complaint
+I'm rtying to cancel order {{Order Number}},cancel_order,cancel_order
+how to check the current status of purchase {{Order Number}}?,tracking,track_order
+I need to file a complaint against your business,complaint,complaint
+I need help to notify of a trouble with payment,payment_issue,payment_issue
+can you tell me about a shipping address update?,address_change,change_shipping_address
+where can i obtain a compensation of money,refund,get_refund
+can uhelp me file a complaint against ur organization,complaint,complaint
+could you help me see if there are any news on my rebate?,refund,track_refund
+help me seeing in which cases can I request to be reimbursed,refund,check_refund_policy
+how could I make a consumer claim against your company?,complaint,complaint
+I need to check in which situations can I ask for a refund,refund,check_refund_policy
+"I purchased some items, I want to cancel order {{Order Number}}",cancel_order,cancel_order
+could you help me notify of payment problems?,payment_issue,payment_issue
+I would like to cancel purchase {{Order Number}},cancel_order,cancel_order
+need to know if there is anything new on the restitution,refund,track_refund
+I need help to see how long refunds take,refund,check_refund_policy
+"I need to change the address, will you help me?",address_change,change_shipping_address
+how can I cancel order {{Order Number}}?,cancel_order,cancel_order
+i need help requesting rebates of money,refund,get_refund
+i have got to obtain a rebate of my money,refund,get_refund
+I don't know how to track purchase {{Order Number}},tracking,track_order
+want help to lodge a reclamation against your company,complaint,complaint
+how do I see the goddamn ETA of order {{Order Number}}?,tracking,track_order
+help checking the ETA of the purchase {{Order Number}},tracking,track_order
+have a problem with cancelling order {{Order Number}},cancel_order,cancel_order
+I am trying to make a customer complaint,complaint,complaint
+need assistance checking the ETA of the purchase {{Order Number}},tracking,track_order
+I need assistance with cancelling order {{Order Number}},cancel_order,cancel_order
+error modifying address,address_change,change_shipping_address
+help seeing in what cases can I request to be refunded,refund,check_refund_policy
+"I want to file a customer reclamation, can I get some help?",complaint,complaint
+tell me more about a delivery address change,address_change,change_shipping_address
+"I want to see your money back guarantee, how could I do it?",refund,check_refund_policy
+"I bought some article, help canceling order {{Order Number}}",cancel_order,cancel_order
+cani file a customer claim,complaint,complaint
+can ya help me solve troubles with payment,payment_issue,payment_issue
+I want assistance to make a customer reclamation,complaint,complaint
+I have to file a customer reclamation against your business,complaint,complaint
+help me see in what cases can I reuest my money back,refund,check_refund_policy
+I don't know how I could report a payment problem,payment_issue,payment_issue
+can I see in which cases can I ask to be refunded?,refund,check_refund_policy
+assistance to file a customer claim,complaint,complaint
+I have got to notify of issues wit payments,payment_issue,payment_issue
+need assistance trying to modify my delivery address,address_change,change_shipping_address
+what do I need to do to track order {{Order Number}}?,tracking,track_order
+could you help me see my rebate status?,refund,track_refund
+need help cancelling purchase {{Order Number}},cancel_order,cancel_order
+help me checking in what situations can I ask for a refund,refund,check_refund_policy
+where could I notify of a problem with payment?,payment_issue,payment_issue
+need to update my address,address_change,change_shipping_address
+how can i see my compensation current status,refund,track_refund
+I want help changing the bloody delivery address,address_change,change_shipping_address
+I do not know how I can check your money back guarantee,refund,check_refund_policy
+I need to notify of troubles with online payment,payment_issue,payment_issue
+I don't know how I can modify the address,address_change,change_shipping_address
+help me file a reclamation against ur compay,complaint,complaint
+"I expect a rebate of {{Currency Symbol}}{{Refund Amount}}, was it processed",refund,track_refund
+assistance to make a caim against ur business,complaint,complaint
+i want help to get a rebate of my money,refund,get_refund
+i need help to inform of troubles with payment,payment_issue,payment_issue
+I'm trying to lodge a customer claim against ur organization,complaint,complaint
+support coprrecting the address,address_change,change_shipping_address
+assistance to request rebates,refund,get_refund
+want help to receive a damn restitution of money,refund,get_refund
+i want assistance to notify of a issue with payments,payment_issue,payment_issue
+want help seeing the ETA of the purchase {{Order Number}},tracking,track_order
+I want help requesting my money back,refund,get_refund
+need help obtaining restitutions of my money,refund,get_refund
+i have to see in what cases acn i request my money back,refund,check_refund_policy
+I do not know how to inform of payment problems,payment_issue,payment_issue
+"I want to track my restitution, how do I do it?",refund,track_refund
+can you help me updating my shipping address?,address_change,change_shipping_address
+"I need to see how long reimbursements take, how do I do it?",refund,check_refund_policy
+have problems with a shipping address update,address_change,change_shipping_address
+help to lodge a claim against your organization,complaint,complaint
+get reimbursement of money,refund,get_refund
+i do not know how i can cancel order {{Order Number}},cancel_order,cancel_order
+can uhelp me cancelliung order {{Order Number}},cancel_order,cancel_order
+can ya help me obtaining restitutions of my money,refund,get_refund
+I try to see purchase {{Order Number}} status,tracking,track_order
+I want to see in which cases can I request my money back,refund,check_refund_policy
+i want help seeing theeta of purchase {{Order Number}},tracking,track_order
+filing consumer reclamation against your business,complaint,complaint
+I need assistance seeing the ETA of order {{Order Number}},tracking,track_order
+I need help seeing how long reimbursements usually take,refund,check_refund_policy
+where to request refunds,refund,get_refund
+I need to lodge a consumer complaint,complaint,complaint
+i have to check in what cases can i ask for refunds,refund,check_refund_policy
+"I have got to see how long refunds take, I need help",refund,check_refund_policy
+where can I request rebates of my money?,refund,get_refund
+i have got to lodge a reclamaion i need help,complaint,complaint
+tghere is a problem trying to change the delivery address,address_change,change_shipping_address
+how long till i get a compensation of mnoney,refund,get_refund
+"I expect a bloody refund of {{Currency Symbol}}{{Refund Amount}}, has it been processed?",refund,track_refund
+want help filiong a consumer claim,complaint,complaint
+"I have entered a wrong address, could I correct it?",address_change,change_shipping_address
+i have got to obtain an reimbursement of money,refund,get_refund
+refunding{{Currency Symbol}}{{Refund Amount}},refund,get_refund
+I don't know what I need to do to demand a rebate,refund,get_refund
+I want assistance to edit my shipping address,address_change,change_shipping_address
+I need help to receive a refund of my money,refund,get_refund
+"I have paid {{Currency Symbol}}{{Refund Amount}} for an item, help me receiving a rebate",refund,get_refund
+"I want to track the reimbursement, can you help me?",refund,track_refund
+i want help cancelling purchase {{Order Number}},cancel_order,cancel_order
+I want help to check if there is anything new on my rebate,refund,track_refund
+"I have chosen a wrong shipping address , how do I update it?",address_change,change_shipping_address
+were could i locate purchase {{Order Number}},tracking,track_order
+wanna see how long refunds take help me,refund,check_refund_policy
+help me chsnge the delivery address,address_change,change_shipping_address
+I don't know how I could file a goddamn customer claim,complaint,complaint
+I expect an reimbursement of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+there are problems trying to modify the shipping address,address_change,change_shipping_address
+where can I inform of issues with payments?,payment_issue,payment_issue
+I am waiting for a compensation of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+I need help to notify of an error with payments,payment_issue,payment_issue
+how to check the ETA of the order {{Order Number}},tracking,track_order
+help me knowing if there are any updates on the refund,refund,track_refund
+file consumer claim against your organization,complaint,complaint
+showing me purchase {{Order Number}} current status,tracking,track_order
+I am trying to see the status of order {{Order Number}},tracking,track_order
+I need to demand a rebate,refund,get_refund
+I do not know what I have to do to edit the address,address_change,change_shipping_address
+is it possible to obtain rebates?,refund,get_refund
+assistance to make a customer reclamation,complaint,complaint
+help me filing a reclamation against your company,complaint,complaint
+I want assistance reporting a trouble with payment,payment_issue,payment_issue
+i need help cancelling order {{Order Number}},cancel_order,cancel_order
+lodge reclamation against your company,complaint,complaint
+information about a delivery address modification,address_change,change_shipping_address
+report payment issue,payment_issue,payment_issue
+need help seeing the eta of the purchase {{Order Number}},tracking,track_order
+wanna make a consumer complaint,complaint,complaint
+I do not know what I need to do to obtain rebates,refund,get_refund
+where do I get rebates of my money?,refund,get_refund
+where to request reimbursements,refund,get_refund
+how to ask for a restitution of my money,refund,get_refund
+could you help me to report troubles with online payments?,payment_issue,payment_issue
+i dont know how i could track the rebate,refund,track_refund
+i have to cancel purchase {{Order Number}},cancel_order,cancel_order
+help me see the current status of my rebate,refund,track_refund
+I need assistance seeing the compensation current status,refund,track_refund
+I want to file a reclamation,complaint,complaint
+assistance lodging a reclamation against your organization,complaint,complaint
+how to make a consumer claim against ur company,complaint,complaint
+need assistance to see my restitution current status,refund,track_refund
+how do i inform of payment provlems,payment_issue,payment_issue
+check estimated time of arrival of order {{Order Number}},tracking,track_order
+I have got to ask for rebates,refund,get_refund
+need assistance to correct my address,address_change,change_shipping_address
+information about modifying the delivery address,address_change,change_shipping_address
+I want information about updating the shipping address,address_change,change_shipping_address
+what do i need to do to get a reimbursement of money,refund,get_refund
+have a problem with a shpiping address modification,address_change,change_shipping_address
+can i see the eta of the order {{Order Number}},tracking,track_order
+I want help solving payment problems,payment_issue,payment_issue
+I want assistance to notify of troubles with online payments,payment_issue,payment_issue
+I do not know how I can obtain rebates of my money,refund,get_refund
+where could I check purchase {{Order Number}} current status?,tracking,track_order
+"I expect a bloody rebate of {{Currency Symbol}}{{Refund Amount}}, was it processed already",refund,track_refund
+help me ask for reimbursements of my money,refund,get_refund
+"I have paid {{Currency Symbol}}{{Refund Amount}} for a product, I want mydamn reimbursement",refund,get_refund
+I don't know what to do to seeorder {{Order Number}} status,tracking,track_order
+I have to check the status of purchase {{Order Number}},tracking,track_order
+can you help me notify of an error with payments?,payment_issue,payment_issue
+i need assistance to solve a problem with payments,payment_issue,payment_issue
+I don't know how to inform of troubles with online payments,payment_issue,payment_issue
+i do not know how i can obtain compensations of my money,refund,get_refund
+help me to report errors with payment,payment_issue,payment_issue
+i need help to change my shipping address,address_change,change_shipping_address
+tgell me more about a shipping address update,address_change,change_shipping_address
+i have to see in which cases can i ask for erimbursements,refund,check_refund_policy
+can ya help me solving issues with online payment,payment_issue,payment_issue
+help filing a reclamation against your business,complaint,complaint
+there is an issue modifying my address,address_change,change_shipping_address
+help me to see in what cases can i ask for my money back,refund,check_refund_policy
+need to report a troubled with payments,payment_issue,payment_issue
+show your money back guarantee,refund,check_refund_policy
+I need assistance to demand compensations of my money,refund,get_refund
+help me check in which cases can I request refunds,refund,check_refund_policy
+I have got to check in which cases can I request refunds,refund,check_refund_policy
+assistance to cancel purchased {{Order Number}},cancel_order,cancel_order
+where do I get a reimbursement?,refund,get_refund
+how can I demand rebates?,refund,get_refund
+how can I see your reimbursement policy?,refund,check_refund_policy
+assistance correcting my delivery address,address_change,change_shipping_address
+where is ordered {{Order Number}},tracking,track_order
+help checking the current status of the restitution,refund,track_refund
+there are troubles modifying the shipping address,address_change,change_shipping_address
+where to ask for reimbursements of money ?,refund,get_refund
+want assistance to check the ETA of purchase {{Order Number}},tracking,track_order
+wanna make a damn claim willuhelp me,complaint,complaint
+I want to check your reimbursement policy,refund,check_refund_policy
+"I entered a wrong shipping address, I need help to modify it",address_change,change_shipping_address
+i need assistance asdking for compensations,refund,get_refund
+where to lodge a customer complaint,complaint,complaint
+"I can't afford purchase {{Order Number}}, could you cancel it?",cancel_order,cancel_order
+I want herlp to obtain reimbursements of money,refund,get_refund
+i do not know how i could obtaain compensations,refund,get_refund
+help me to lodge a complaint against your organization,complaint,complaint
+I need help filing a claim,complaint,complaint
+I need hepp requesting compensations,refund,get_refund
+I don't know how I can make a customer reclamation,complaint,complaint
+can you help me reporting troubles with payments?,payment_issue,payment_issue
+want help to see the eta of purchase {{Order Number}},tracking,track_order
+how to track the reimbursement?,refund,track_refund
+can you help me checking the ETA of the order {{Order Number}} ?,tracking,track_order
+"the address changed, I need assistace editing it",address_change,change_shipping_address
+I want assistance to see the status of the compensation,refund,track_refund
+need assistance modifying theshipping address,address_change,change_shipping_address
+how can I obtain refunds of my money?,refund,get_refund
+how can I find information about a delivery address change?,address_change,change_shipping_address
+wanna track purchase {{Order Number}},tracking,track_order
+help seeing ur money back guarantee,refund,check_refund_policy
+want assistance solving a payment issue,payment_issue,payment_issue
+where to check the ETA of purchase {{Order Number}},tracking,track_order
+could ya help me cancel order {{Order Number}},cancel_order,cancel_order
+i have issuws modifying my shipping address,address_change,change_shipping_address
+are the charges of ur services reimbursable,refund,check_refund_policy
+I have got to see in which situations can I ask for a refund,refund,check_refund_policy
+can i see in what situations can i request to be refunded,refund,check_refund_policy
+how to modify my shippng address,address_change,change_shipping_address
+where can i get compensations of my money,refund,get_refund
+is it possible to lodge a complaint against your business?,complaint,complaint
+assistance to see how long reimbursements usually take,refund,check_refund_policy
+I have troubles editing my address,address_change,change_shipping_address
+could you help me change the shipping address?,address_change,change_shipping_address
+help me report problems with online payment,payment_issue,payment_issue
+"I cannot pay, I want to report bloody problems with payment",payment_issue,payment_issue
+can you help me make a claim against your organization?,complaint,complaint
+where could I edit my delivery address?,address_change,change_shipping_address
+I'm trying to demand a rebate of my money,refund,get_refund
+ho do i get a refund,refund,get_refund
+i expect a restitution of {{Refund Amount}} dollafs,refund,track_refund
+how can I ask for a restitution of my money?,refund,get_refund
+"I want to see the ETA of order {{Order Number}}, how do I do it?",tracking,track_order
+there are problems tring to correct my address,address_change,change_shipping_address
+where to correct my shipping address?,address_change,change_shipping_address
+want help to make a complaint,complaint,complaint
+I donot know what to do to demand a refund,refund,get_refund
+i do not know what to do to obtain a goddamn refund of money,refund,get_refund
+i cannot make a payment help me inform of fucking issues,payment_issue,payment_issue
+where to request compensations of money?,refund,get_refund
+help me lodging a customer complaint against ur business,complaint,complaint
+assistance seeing your refund policy,refund,check_refund_policy
+consumer reclamation against your organization,complaint,complaint
+where can I request refunds?,refund,get_refund
+i can no longer pay for purchase {{Order Number}},cancel_order,cancel_order
+i do not know whzt to do to inform of a problem with payment,payment_issue,payment_issue
+i have paid {{Currency Symbol}}{{Refund Amount}} for these products i want my money back,refund,get_refund
+want assistance solving troubles with online payment,payment_issue,payment_issue
+can ya help me to inform of a problem with payment,payment_issue,payment_issue
+I want assistance to inform of a problem with payment,payment_issue,payment_issue
+information about a deliveryaddress change,address_change,change_shipping_address
+"I want to see your reimbursement policy, I need assistance",refund,check_refund_policy
+what do I need to do to locate purchase {{Order Number}}?,tracking,track_order
+I'd like to see how long refunds take help me,refund,check_refund_policy
+I do not know what to do to modify my shipping address,address_change,change_shipping_address
+help me solving a trouble with payment,payment_issue,payment_issue
+can you help me notify of problems with online payments?,payment_issue,payment_issue
+help to modify my fucking shipping address,address_change,change_shipping_address
+need to check how long refunds take how can i do it,refund,check_refund_policy
+problems with a shipping address update,address_change,change_shipping_address
+I'm trying to check if there are any updates on the rebate,refund,track_refund
+help me filing a reclamation against your business,complaint,complaint
+help me reporting an issue wigh online payment,payment_issue,payment_issue
+i expect a rebate of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+is it possible to change the delivery address?,address_change,change_shipping_address
+i need help informing of a trouble with payment,payment_issue,payment_issue
+I don't know what to do to check the status of my rebate,refund,track_refund
+can ya help me change my address,address_change,change_shipping_address
+I expect a bloody reimbursement of {{Refund Amount}} dollars,refund,track_refund
+anything new on the refund,refund,track_refund
+i have got ti see in which cases can i ask for a refund,refund,check_refund_policy
+is it possible toreceive refunds of money?,refund,get_refund
+I want assistance to see the fucking status of the rebate,refund,track_refund
+can you help me to notify of errors with payment?,payment_issue,payment_issue
+help to see in what cases can I request to be reimbursed,refund,check_refund_policy
+I'm trying to inform of an issue with payments,payment_issue,payment_issue
+need assistance notifying of a problen with payment,payment_issue,payment_issue
+I'd like to locate purchase {{Order Number}} i need assistance,tracking,track_order
+I have a question about an address correction,address_change,change_shipping_address
+I have a probllem with canceling order {{Order Number}},cancel_order,cancel_order
+where do i report problems with online payment,payment_issue,payment_issue
+can you help me canceling purchase {{Order Number}}?,cancel_order,cancel_order
+I have got to file a reclamation,complaint,complaint
+I need help correcting my address,address_change,change_shipping_address
+i need help to lodge a customer claim agaisnt ur business,complaint,complaint
+"the shipping address changed, how can I correct it?",address_change,change_shipping_address
+help checking the ETA of purchase {{Order Number}},tracking,track_order
+can you help me see the compensation status?,refund,track_refund
+I don't know how I can check the rebate status,refund,track_refund
+I need assistance with canceling purchase {{Order Number}},cancel_order,cancel_order
+complaint,complaint,complaint
+"I am not happy with your work, help to file a reclamation",complaint,complaint
+i have paid {{Currency Symbol}}{{Refund Amount}} for these order help me receiving a refund,refund,get_refund
+"I am not happy with your work, help lodging a customer claim",complaint,complaint
+checking status of rebate,refund,track_refund
+how can I change my shipping address?,address_change,change_shipping_address
+i dont know how i can lodge a claim,complaint,complaint
+I want to edit my address,address_change,change_shipping_address
+"I am very unhappy with your service, I try to lodge a claim",complaint,complaint
+check ETA of order {{Order Number}},tracking,track_order
+I want help to lodge a consumer reclamation,complaint,complaint
+can you tell me about updating my fucking shipping address?,address_change,change_shipping_address
+the shipping address changed could ya help me changing it,address_change,change_shipping_address
+help me to see in what situations can I ask for a refund,refund,check_refund_policy
+can i check in which cases can i ask for refunds,refund,check_refund_policy
+I want help notifying of troubles with online paymnet,payment_issue,payment_issue
+help me to check how long reimbursements usually take,refund,check_refund_policy
+want help seeing in which cases can i request a refund,refund,check_refund_policy
+how can I see if there is anything wrong with my rebate?,refund,track_refund
+wanna make a consumer reclamation against ur company,complaint,complaint
+want help to request a compensation of my money,refund,get_refund
+how long until i receiver my reimbursement of money,refund,get_refund
+I no longerr want purchase {{Order Number}},cancel_order,cancel_order
+support trying to update mh address,address_change,change_shipping_address
+I need help seeing in what cases can I ask to be reimbursed,refund,check_refund_policy
+"my card was declined, inform of an error with payments",payment_issue,payment_issue
+"I can't make transfers, help to inform of a payment issue",payment_issue,payment_issue
+I want support editing my address,address_change,change_shipping_address
+I'm dissatisfied with ur work help me making a complaint,complaint,complaint
+ETA of purchase {{Order Number}},tracking,track_order
+i paid {{Currency Symbol}}{{Refund Amount}} for an item can ya help me obtain a rebate,refund,get_refund
+i expect a compensation of1200 dollars has it been processed,refund,track_refund
+assistance to check ur refund pollicy,refund,check_refund_policy
+where to inform of problems with online payments ?,payment_issue,payment_issue
+i dont know how i can inform of payment issues,payment_issue,payment_issue
+need to receive reimbursements of my money,refund,get_refund
+want assistance asking for refunds of money,refund,get_refund
+i have to see the status of order {{Order Number}},tracking,track_order
+help reporting troubles with payments,payment_issue,payment_issue
+seeing purchase {{Order Number}} current status,tracking,track_order
+could you help me see my compensation current status?,refund,track_refund
+want help to see in what situations can i ask to be refunded,refund,check_refund_policy
+"I paid {{Currency Symbol}}{{Refund Amount}} for a purchase, help me obtaining my money back",refund,get_refund
+i have got to locate purchase {{Order Number}} help me,tracking,track_order
+I need to check my goddamn restitution status,refund,track_refund
+my card was declined help to inform oof a payment issue,payment_issue,payment_issue
+"I no longer want purchase {{Order Number}}, can you cancel it?",cancel_order,cancel_order
+I do not know what I have to do to correct my address,address_change,change_shipping_address
+I have to modify my delivery address,address_change,change_shipping_address
+how can i obtain a compensation of my money,refund,get_refund
+i ned assistance to ask for a reimbursement,refund,get_refund
+have a problem with canceling order {{Order Number}},cancel_order,cancel_order
+I'm waiting for a restitution of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+can utell me about a shipping addres modification,address_change,change_shipping_address
+I have to check in what cases can I request reimbursements,refund,check_refund_policy
+I am waiting for an rebate of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+track purchase {{Order Number}},tracking,track_order
+how can I file a customer claim against your organization?,complaint,complaint
+could I know if there are any news on my reimbursement?,refund,track_refund
+I would like to get a compensation of my money,refund,get_refund
+can uhelp me file a customer reclamation,complaint,complaint
+can ya hrlp me make a claim against ur organization,complaint,complaint
+want assistance updating my address,address_change,change_shipping_address
+"I no longer want order {{Order Number}}, how do I cancel it?",cancel_order,cancel_order
+I want helpto see your refund policy,refund,check_refund_policy
+I do not know how I can obtain refunds of money,refund,get_refund
+I have a question about a shipping address change,address_change,change_shipping_address
+could you help me to report an error with online payment?,payment_issue,payment_issue
+order 732201349959current status,tracking,track_order
+help me see the status of order {{Order Number}},tracking,track_order
+check in what situations can I request a reimbursement,refund,check_refund_policy
+where do I make a consumer claim against your business?,complaint,complaint
+how can I make a consumer reclamation against your business?,complaint,complaint
+help seeing order {{Order Number}} status,tracking,track_order
+need to obtain restitutions of money,refund,get_refund
+can you help me requesting a reimbursement?,refund,get_refund
+I need to check how long reimbursements usually take,refund,check_refund_policy
+help me lodge a complaint against ur business,complaint,complaint
+i need assistance checking the ETA of the purchase {{Order Number}},tracking,track_order
+I need help to receive an reimbursement of money,refund,get_refund
+I have to see the ETA of the purchase {{Order Number}},tracking,track_order
+I can't change my delivery address,address_change,change_shipping_address
+help notifying of a fucking error with online payments,payment_issue,payment_issue
+I do not know how to request a compensation,refund,get_refund
+need help to make a complaint against ur company,complaint,complaint
+how can I see if there is anything new on my compensation?,refund,track_refund
+help checkinjg the eta of order {{Order Number}},tracking,track_order
+I want assistance trying to change the shipping addrses,address_change,change_shipping_address
+help checking in which cases can I ask for reimbursements,refund,check_refund_policy
+I cannot modify the delivery address,address_change,change_shipping_address
+where to notify of problems with online payments?,payment_issue,payment_issue
+where do I file a customer claim against your business?,complaint,complaint
+"I bought some items, cancel order {{Order Number}}",cancel_order,cancel_order
+wanna demand a reimbursement of money,refund,get_refund
+I try to check my restitution status,refund,track_refund
+"I have to see the status of the rebate, will you help me?",refund,track_refund
+see in which situations can I ask for a reimbursement,refund,check_refund_policy
+"I paid {{Currency Symbol}}{{Refund Amount}} for a product, help me get a fucking rebate",refund,get_refund
+want help receiving a restitution of my money,refund,get_refund
+I need to obtain a compensation of money,refund,get_refund
+I do not know how I can notify of an error with payments,payment_issue,payment_issue
+see under which circumstances can I ask for refunds,refund,check_refund_policy
+how to receive restitutions of money?,refund,get_refund
+can I see under which circumstances can I ask for refunds?,refund,check_refund_policy
+i need assistance checking the status of order {{Order Number}},tracking,track_order
+help me make a customer complaint against your business,complaint,complaint
+i dont want this artilce cancel order {{Order Number}},cancel_order,cancel_order
+help to see in which cases can i ask for my money back,refund,check_refund_policy
+I have got to see in which situations can Irequest a refund,refund,check_refund_policy
+I want t file a consumer claim against your company,complaint,complaint
+can you show me in which situations can I ask for refunds?,refund,check_refund_policy
+there are troubles trying to correct my damn address,address_change,change_shipping_address
+I have to check if there are any updates on the restitution,refund,track_refund
+can ya help me cancel order {{Order Number}},cancel_order,cancel_order
+how to check purchase {{Order Number}} status?,tracking,track_order
+I want assistance receiving a compensation,refund,get_refund
+"I want to see my reimbursement current status, help me",refund,track_refund
+i need help trying to correct my shipping address,address_change,change_shipping_address
+what do I have to do to notify of payment issues?,payment_issue,payment_issue
+I want assistance trying to correct my address,address_change,change_shipping_address
+cann I lodge a consumer reclamation against your business?,complaint,complaint
+wanna track purchase {{Order Number}} will ya help me,tracking,track_order
+"I have to edit the address, I need assistance",address_change,change_shipping_address
+need to check order {{Order Number}} current status how do i do it,tracking,track_order
+want assistance to request a restitution of money,refund,get_refund
+"the payment failed, I want assistance to notify of a problem",payment_issue,payment_issue
+want assistance seeing the ETA of purchase {{Order Number}},tracking,track_order
+see in what cases can I request a reimbursement,refund,check_refund_policy
+I want to report an error with payment,payment_issue,payment_issue
+I need assistance filing a reclamation,complaint,complaint
+where to see purchase {{Order Number}} status?,tracking,track_order
+help me check in which cases can i ask ofr reimbursements,refund,check_refund_policy
+I want assistance to check the ETA of purchase {{Order Number}},tracking,track_order
+need assistance to notify of issues with online payment,payment_issue,payment_issue
+what do I need to do to notify of a payment error?,payment_issue,payment_issue
+find information about modifying the delivery address,address_change,change_shipping_address
+help me notify of a payment issue,payment_issue,payment_issue
+I can't seed your refund policy,refund,check_refund_policy
+I don't know how I can report an issue with online payment,payment_issue,payment_issue
+wanna check ur money back guarantee how can i do it,refund,check_refund_policy
+I need help trying to update my deliery address,address_change,change_shipping_address
+help me check in which cases canI request reimbursements,refund,check_refund_policy
+is it possible to lodge a bloody customer claim?,complaint,complaint
+I want to lodge a reclamation against your company,complaint,complaint
+I need help reporting a problem with payment,payment_issue,payment_issue
+I need assistance to correct the delivery address,address_change,change_shipping_address
+I want help checking order {{Order Number}} current status,tracking,track_order
+give me information about modifying the address,address_change,change_shipping_address
+check your refund policy,refund,check_refund_policy
+would it be possible to obtain compensations of money?,refund,get_refund
+trackorder {{Order Number}},tracking,track_order
+I am trying to inform of a payment error,payment_issue,payment_issue
+i have to demand rebates of my money,refund,get_refund
+"I have submitted a wrong shippingh address, update it",address_change,change_shipping_address
+can uhelp me file a customer reeclamation,complaint,complaint
+i do not know what to do to inform of problems with payments,payment_issue,payment_issue
+i dont know what i need to do to obtain compensations,refund,get_refund
+help checking in what cases can I request my money back,refund,check_refund_policy
+I have troubles modifying my address,address_change,change_shipping_address
+"the payment did not go through, report an error",payment_issue,payment_issue
+i try to see the eta of order {{Order Number}},tracking,track_order
+I do not know how to see the status of my rebate,refund,track_refund
+i need assistance solving errors with payments,payment_issue,payment_issue
+I have a question about canceling order {{Order Number}},cancel_order,cancel_order
+how do i inform of payment issues,payment_issue,payment_issue
+need to check ur money back ugarantee,refund,check_refund_policy
+want assistance to report a payment problem,payment_issue,payment_issue
+where can I get a restitution of money?,refund,get_refund
+I don't know how I can receive reimbursements of money,refund,get_refund
+where to correct the shipping address,address_change,change_shipping_address
+can you help me to check purchase {{Order Number}} status?,tracking,track_order
+I have an issue modifying the bloody address,address_change,change_shipping_address
+I don't know how I can check your reimbursement policy,refund,check_refund_policy
+"I need to track purchase {{Order Number}}, how to do it?",tracking,track_order
+I want supports trying to edit the delivery address,address_change,change_shipping_address
+I want help to notify of errors with payments,payment_issue,payment_issue
+i have troubles editing my delivery address,address_change,change_shipping_address
+need help with cfanceling order {{Order Number}},cancel_order,cancel_order
+how can I update my bloody address?,address_change,change_shipping_address
+hlp seeing ur money back guarantee,refund,check_refund_policy
+need help with cancelling order {{Order Number}},cancel_order,cancel_order
+can ya tell me about modifying the shipping address,address_change,change_shipping_address
+I don't know how to lodge a customer complaint,complaint,complaint
+report a trouble wuth payments,payment_issue,payment_issue
+i cant check my restitution current status,refund,track_refund
+i have got to file a claim against ur business,complaint,complaint
+I have got to ask for refunds,refund,get_refund
+i want information about changing the address,address_change,change_shipping_address
+need help to get a copmpensation of money,refund,get_refund
+"I am unhappy with your service, help me to make a claim",complaint,complaint
+check refund status,refund,track_refund
+show me in what cases can I ask for refunds,refund,check_refund_policy
+I want to inform of pamyent issues,payment_issue,payment_issue
+need help to modify the shipping address,address_change,change_shipping_address
+assistance to see in what situations can i ask for a refund,refund,check_refund_policy
+need assistance to check the ETA of purchase {{Order Number}},tracking,track_order
+can uhelp me see the goddamn ETA of order {{Order Number}},tracking,track_order
+i expect a restitution of {{Currency Symbol}}{{Refund Amount}} has it been prcoessed,refund,track_refund
+informing of troubles with payments,payment_issue,payment_issue
+want help seeing the current status of my reimbursement,refund,track_refund
+notifyof issues with online payment,payment_issue,payment_issue
+I do not know how to notify of a problem with payment,payment_issue,payment_issue
+i call to file a consumer claim against ur company,complaint,complaint
+I want assistance editing the shipping address,address_change,change_shipping_address
+I am trying to check your money back guarantee,refund,check_refund_policy
+i need help to get reimbursements,refund,get_refund
+I have to request reimbursements of my money,refund,get_refund
+"I cannot make a payment, I need help notifying of errors",payment_issue,payment_issue
+I do not know what to do to obtain compensations of my money,refund,get_refund
+I need assistance editing the address,address_change,change_shipping_address
+i need help with canceling orer {{Order Number}},cancel_order,cancel_order
+how to inform of a problem with online payments?,payment_issue,payment_issue
+assistance to request a reimbursement of my money,refund,get_refund
+I have got to check if there are any news on the restitution,refund,track_refund
+show me the current status of the reimbursement,refund,track_refund
+I want assistance to demand reimbursements of money,refund,get_refund
+help me to check ur money back guarantee,refund,check_refund_policy
+reporting trouble with online payment,payment_issue,payment_issue
+I need assistance trackng purchase {{Order Number}},tracking,track_order
+I don't know how I can ask for a rebate,refund,get_refund
+I need assistance to check the current status of the rebate,refund,track_refund
+want supports trying to modify the address,address_change,change_shipping_address
+I don't know how I could make a claim,complaint,complaint
+show me in which cases can I request to be refunded,refund,check_refund_policy
+help filing a customer claim against your organization,complaint,complaint
+i bought somegoddamn item how do i cancel order {{Order Number}},cancel_order,cancel_order
+check the current status of my rebate,refund,track_refund
+I have iussues correcting my address,address_change,change_shipping_address
+I need assistance tocancel order {{Order Number}},cancel_order,cancel_order
+"I have entered a wrong address, I need help modifying it",address_change,change_shipping_address
+help me solve troubles with payments,payment_issue,payment_issue
+I want assistance to ask for a refund of money,refund,get_refund
+I don't know how I can see the ETA of purchase {{Order Number}},tracking,track_order
+order 113542617735902current status,tracking,track_order
+help me lodge a consumer claim,complaint,complaint
+I do not know what to do to get a compensation,refund,get_refund
+i try to make a bloody consumer complaint against ur company,complaint,complaint
+what do i have to do to check ur damn reimbursement policy,refund,check_refund_policy
+I have a problem updating my delivery address,address_change,change_shipping_address
+help me check if there are any news on the rebate,refund,track_refund
+I try to see my compensation current status,refund,track_refund
+I want help to report issues with online payment,payment_issue,payment_issue
+information about editing my shipping address,address_change,change_shipping_address
+assistance seeing in which cases can I request refunds,refund,check_refund_policy
+check in which situations can i request an refund,refund,check_refund_policy
+know if there is anything wrong with the refund,refund,track_refund
+need to check in which cases can i request an reimbursement,refund,check_refund_policy
+"I am unhappy with your services, help filing a claim",complaint,complaint
+I don't know how I can update my address,address_change,change_shipping_address
+i need help to check the rebate current status,refund,track_refund
+can you tell me more about updating my delivery address?,address_change,change_shipping_address
+show me in which cases can I request a refund,refund,check_refund_policy
+i dont know how i can see the ETA of order {{Order Number}},tracking,track_order
+I want assistance to see your money back guarantee,refund,check_refund_policy
+I do not know what I have to do to file a consumer complaint,complaint,complaint
+I want help to check purchase {{Order Number}} status,tracking,track_order
+assistance seeing in what situations can I request a refund,refund,check_refund_policy
+assistance with a delivery address change,address_change,change_shipping_address
+i need assiostance cancelling order {{Order Number}},cancel_order,cancel_order
+I don't know how to make a complaint against your company,complaint,complaint
+I am calling to lodge a claim against your organization,complaint,complaint
+I try to edit the address,address_change,change_shipping_address
+could you help me to see how long reimbursements take?,refund,check_refund_policy
+I try to lodge a customer reclamation,complaint,complaint
+"I am waiting for a refund of {{Currency Symbol}}{{Refund Amount}}, was it processed",refund,track_refund
+how do I check if there are any updates on my refund?,refund,track_refund
+I can't see the status of order {{Order Number}},tracking,track_order
+are charges for services reimbursable?,refund,check_refund_policy
+help to see thje ETA of purchase {{Order Number}},tracking,track_order
+i dont know what to do to cancel order {{Order Number}},cancel_order,cancel_order
+wann locate order {{Order Number}},tracking,track_order
+I would like to lodge a consumer complaint,complaint,complaint
+needassistance to demand rebates,refund,get_refund
+how do I know if there is anything new on my reimbursement?,refund,track_refund
+"I am not happy with your service, how can I make a claim?",complaint,complaint
+I ahve got to get rebates,refund,get_refund
+how can I inform of a payment error?,payment_issue,payment_issue
+I have to file a complaint against your organization,complaint,complaint
+see ETA of order {{Order Number}},tracking,track_order
+check purchase {{Order Number}} statsu,tracking,track_order
+could I check the goddamn status of the refund?,refund,track_refund
+assistance to inform of an issue with online payments,payment_issue,payment_issue
+support changing my shipping address,address_change,change_shipping_address
+checking order {{Order Number}} current status,tracking,track_order
+assistance to see in what cases can I request refunds,refund,check_refund_policy
+could you help me reporting errors with online payment?,payment_issue,payment_issue
+can you help me see in which cases can I ask for refunds?,refund,check_refund_policy
+I need support trying to update my delivery address,address_change,change_shipping_address
+can you help me check in which cases can I ask for refunds?,refund,check_refund_policy
+where to see if there are any updates on the refund?,refund,track_refund
+how to report a problem with payment,payment_issue,payment_issue
+I want assistance to lodge a claim,complaint,complaint
+i dont want purchase {{Order Number}},cancel_order,cancel_order
+what do i have to do to report errors with payments,payment_issue,payment_issue
+I'm waitng for a reimbursement of {{Currency Symbol}}{{Refund Amount}} has it been processed,refund,track_refund
+there are troubles trying to modify my dfelivery address,address_change,change_shipping_address
+help me to lodge a complaint against ur company,complaint,complaint
+can you help me cancelong purchase {{Order Number}}?,cancel_order,cancel_order
+how can I check purchase {{Order Number}} current status?,tracking,track_order
+I need help to see your reimbursement policy,refund,check_refund_policy
+can you help me to receive a refund?,refund,get_refund
+help me to lodge a consumer complaint,complaint,complaint
+i do not know how i can obtain a restitution of my money,refund,get_refund
+how can i see purchase {{Order Number}} sttatus,tracking,track_order
+i have got to notify of issues with online payment,payment_issue,payment_issue
+help informing of a fucking payment problem,payment_issue,payment_issue
+I need assistance notifying of a trouble with online payment,payment_issue,payment_issue
+I do not know what to do to lodge a consumer claim,complaint,complaint
+want assistance solving an error with payment,payment_issue,payment_issue
+"I paid {{Currency Symbol}}{{Refund Amount}} for this purchase, how can I get a rebate?",refund,get_refund
+I need assistance requesting a restitution of money,refund,get_refund
+"I have to see the status of my rebate, how to do it?",refund,track_refund
+help me to make a consumer complaint against your business,complaint,complaint
+need assistance modifying the delivery addres,address_change,change_shipping_address
+want assistance to check purchase {{Order Number}} status,tracking,track_order
+can ya help me to see the ETA of purchase {{Order Number}},tracking,track_order
+I want to check in what cases can I request refunds,refund,check_refund_policy
+what do I have to do to file a customer complaint?,complaint,complaint
+I want help to report an error with payments,payment_issue,payment_issue
+help with cancelling order {{Order Number}},cancel_order,cancel_order
+I have an error modifying the address,address_change,change_shipping_address
+can ya help me lodging an consumer complaint,complaint,complaint
+how do I make a claim against your company?,complaint,complaint
+is it possible to check the ETA of order {{Order Number}}?,tracking,track_order
+i dont know how i can ask for compensations of money,refund,get_refund
+is it possible to report errors with payments?,payment_issue,payment_issue
+assistance to file a claim against ur company,complaint,complaint
+i want help making a claim against u company,complaint,complaint
+where can i lodge a claim against ur company,complaint,complaint
+check under which circumstances can I ask for refunds,refund,check_refund_policy
+when am i getting a reimbursement,refund,get_refund
+how to see the reimbursement current status,refund,track_refund
+I want help to report payment problems,payment_issue,payment_issue
+I have troubles trying to change my shipping address,address_change,change_shipping_address
+I have an error trying to modify my address,address_change,change_shipping_address
+is it possible to see the eta of order {{Order Number}},tracking,track_order
+I want to make a consumer claim,complaint,complaint
+I want supports correcting my shipping address,address_change,change_shipping_address
+need to inform of a fucking issue with payments help me,payment_issue,payment_issue
+lodging consumer reclamation against urcompany,complaint,complaint
+i dont know what i need to do to obtain a refund of my money,refund,get_refund
+can I see in which cases can I ask to be reimbursed?,refund,check_refund_policy
+i dont know what i have to do to lodge a consumer complaint,complaint,complaint
+help me making a customer complaint,complaint,complaint
+i have got to request reimbirsements of money,refund,get_refund
+I have issues updating the address,address_change,change_shipping_address
+want assistance to notify of issues with payments,payment_issue,payment_issue
+report problems with payment,payment_issue,payment_issue
+I need to ask fot refunds of money,refund,get_refund
+assistance seeing the bloody ETA of the purchase {{Order Number}},tracking,track_order
+I need help to solve a problem with payments,payment_issue,payment_issue
+"I would like to make a customer reclamation, help me",complaint,complaint
+I do not know what I have to do to get refunds of my money,refund,get_refund
+I have a problem witrh cancelling purchase {{Order Number}},cancel_order,cancel_order
+is it possible to notify of issues with online payment?,payment_issue,payment_issue
+I do not know what I need to do to obtain a reimbursement,refund,get_refund
+can ya show me in what cases can i ask for a reimbursement,refund,check_refund_policy
+where do i inform of a trouble with online payment,payment_issue,payment_issue
+how to see order {{Order Number}} status,tracking,track_order
+"I cannot pay, where could I inform of payment issues?",payment_issue,payment_issue
+i have to see how long refunds take how do i do it,refund,check_refund_policy
+I do not know what I need to do to inform of paymdnt errors,payment_issue,payment_issue
+i want assistance to receive my money back,refund,get_refund
+I want to update my address,address_change,change_shipping_address
+i need help seeing ur reimbursement policy,refund,check_refund_policy
+"I paid {{Currency Symbol}}{{Refund Amount}} for this purchase, I want my rebate",refund,get_refund
+could i know if there are any news on the refund,refund,track_refund
+supports trying to edit the address,address_change,change_shipping_address
+wanna see order {{Order Number}} damn current status help me,tracking,track_order
+how can I notify of problems with online payments?,payment_issue,payment_issue
+help me lodge a customer reclamation against your business,complaint,complaint
+I am waiting for a reimbursement of {{Refund Amount}} dollras,refund,track_refund
+checking purchase {{Order Number}} status,tracking,track_order
+i dont know what to do to track my rebate,refund,track_refund
+acn I make a consumer reclamation against your business?,complaint,complaint
+is it possible to report troubles with payments?,payment_issue,payment_issue
+need assistance to check the status of order {{Order Number}},tracking,track_order
+I want help seeing in what cases can I ask to be refunded,refund,check_refund_policy
+"I am unhappy with your work, how to make a customer claim?",complaint,complaint
+I would like to check the compensation status,refund,track_refund
+I need assistance informing of problems with online payments,payment_issue,payment_issue
+i dont know how i can check ur reimbursement policy,refund,check_refund_policy
+i do not know how i can canmcel order {{Order Number}},cancel_order,cancel_order
+how to make a customer claim against your business?,complaint,complaint
+seeing your money back policy,refund,check_refund_policy
+I need assistance changing the address,address_change,change_shipping_address
+I need help notifying of issues with online payment,payment_issue,payment_issue
+I want assistance to notify of troubles with payments,payment_issue,payment_issue
+i want assistance to get rebates of my money,refund,get_refund
+track order {{Order Number}},tracking,track_order
+i want help to check the ETA of the oder {{Order Number}},tracking,track_order
+I need assistance cancelling order {{Order Number}},cancel_order,cancel_order
+I want assistance seeing the damn reimbursement status,refund,track_refund
+can I check in what cases can I request the damn refunds?,refund,check_refund_policy
+I need help to report a bloody error with payment,payment_issue,payment_issue
+want help to cancel order {{Order Number}},cancel_order,cancel_order
+assistance filing a consumer claim against your organization,complaint,complaint
+how to see if there is anything wrong with the restitution?,refund,track_refund
+help me informing of an issue with payments,payment_issue,payment_issue
+i dont know how i can obtain reimbursements of myh money,refund,get_refund
+I am calling to file a complaint against your organization,complaint,complaint
+i want assistance to notify of troubles with payment,payment_issue,payment_issue
+i have paid {{Currency Symbol}}{{Refund Amount}} for this purchase help receiving a rebate,refund,get_refund
+I want to know about correcting the address,address_change,change_shipping_address
+where do i see the status of purchase {{Order Number}},tracking,track_order
+where do I demand a rebate ofb money?,refund,get_refund
+help to check in what cases can I request to be refunded,refund,check_refund_policy
+I want to notify of troubles with online payments,payment_issue,payment_issue
+where do I check the reimbursement current status?,refund,track_refund
+show me the fucking current status of order {{Order Number}},tracking,track_order
+refund {{Refund Amount}} dollars,refund,get_refund
+check the current status of purchase {{Order Number}},tracking,track_order
+I don't know what to do t report issues with online payment,payment_issue,payment_issue
+where can i notify of errors with online payments,payment_issue,payment_issue
+need to track purchase {{Order Number}},tracking,track_order
+where can I edit my delivery address?,address_change,change_shipping_address
+assistance informing of problems with payment,payment_issue,payment_issue
+where can I get information about an address change?,address_change,change_shipping_address
+"I have ordered some article, cancel purchase {{Order Number}}",cancel_order,cancel_order
+how do i see purchase {{Order Number}} status,tracking,track_order
+i cannot see the status of order {{Order Number}},tracking,track_order
+tell me about correcting the shipping address,address_change,change_shipping_address
+help notifying of an error with payment,payment_issue,payment_issue
+what do I have to do to get rebates of money?,refund,get_refund
+can ya help me checking the eta of the order {{Order Number}},tracking,track_order
+notify of issues wiht payment,payment_issue,payment_issue
+making customer claim against your company,complaint,complaint
+"I need to see in whichy cases can I ask for refunds, help me",refund,check_refund_policy
+I have to see under what circumstances can I request refunds,refund,check_refund_policy
+I want help canceling order {{Order Number}},cancel_order,cancel_order
+need to modify my delivery address,address_change,change_shipping_address
+help me see in what situations can I request refunds,refund,check_refund_policy
+I want assistance to see your money back policy,refund,check_refund_policy
+tell me about a delivery address update,address_change,change_shipping_address
+help me canceling purchase {{Order Number}},cancel_order,cancel_order
+is it possible to obtain reimbursements of my money,refund,get_refund
+I am looking for information about correcting my address,address_change,change_shipping_address
+I want assistance to inform of errors with online payment,payment_issue,payment_issue
+"I paid {{Currency Symbol}}{{Refund Amount}} for this item, help me get a refund",refund,get_refund
+helpme check your refund policy,refund,check_refund_policy
+I do not know what to do to check your reimbursement policy,refund,check_refund_policy
+"my experience with you was too bad, help making a complaint",complaint,complaint
+could I know if there is anything new on my compensation?,refund,track_refund
+can ya help me report payment issues,payment_issue,payment_issue
+file reclamation,complaint,complaint
+tell me more about updating the delivery address,address_change,change_shipping_address
+I have to inform of errors with online payments,payment_issue,payment_issue
+i do not know how to file a customer complaint,complaint,complaint
+wanna report troubles with onlpine payment,payment_issue,payment_issue
+help solving issues with online payments,payment_issue,payment_issue
+I want to see the fucking ETA of the order {{Order Number}},tracking,track_order
+I need help with cancelling purchase {{Order Number}},cancel_order,cancel_order
+wanna see hte eta of order {{Order Number}} help me,tracking,track_order
+how can I lodge a customer reclamation against your company?,complaint,complaint
+I need support trying to edit my shipping address,address_change,change_shipping_address
+"I am unhappy with your services, help filing a complaint",complaint,complaint
+help me see in which situations can I ask for myt money back,refund,check_refund_policy
+order cancelation,cancel_order,cancel_order
+I am waiting for an restitution of {{Refund Amount}} dollars,refund,track_refund
+where do I demand compensations?,refund,get_refund
+I need assistance seeing how long refunds take,refund,check_refund_policy
+I want to know about editing my delivery address,address_change,change_shipping_address
+i dont know what i have to do to receive a reimbursement,refund,get_refund
+i want help solving a trouble with online paymwnts,payment_issue,payment_issue
+ETA of ordr {{Order Number}},tracking,track_order
+I do not know how to reauest reimbursements,refund,get_refund
+"my card did not work, help to inform of payment issues",payment_issue,payment_issue
+want assistance to notify of a payment problem,payment_issue,payment_issue
+i need assistance to obtain reimbursementsof money,refund,get_refund
+I would like to see how long reimbursements take,refund,check_refund_policy
+need help to see in which situations can I request a refund,refund,check_refund_policy
+i cant pay inform of a problem with payment,payment_issue,payment_issue
+where can i report issues with payment,payment_issue,payment_issue
+i nedd supports editing my address,address_change,change_shipping_address
+can you help me to report a problem with online payment?,payment_issue,payment_issue
+what do I have to do to see the rebate status?,refund,track_refund
+i paid $1499for this article help obtaining a refund,refund,get_refund
+how to see the status of my restitution?,refund,track_refund
+"I paid {{Currency Symbol}}{{Refund Amount}} for this product, assistance to receive a refund",refund,get_refund
+what do I have to do to file a claim?,complaint,complaint
+I try to check order {{Order Number}} current status,tracking,track_order
+how can I check the ETA of the purchase {{Order Number}}?,tracking,track_order
+where can I check your reimbursement policy?,refund,check_refund_policy
+how to report problems with payment?,payment_issue,payment_issue
+show me ETA of purchase {{Order Number}},tracking,track_order
+want assistance to report issues with payment,payment_issue,payment_issue
+there is a problem trying to edit the address,address_change,change_shipping_address
+I need help checking how long rdimbursements take,refund,check_refund_policy
+could you help me lodging a claim?,complaint,complaint
+I'd like to see in which situations can i ask for reunds,refund,check_refund_policy
+is it possible to lodge an complaint against ur business,complaint,complaint
+I can't check the status of purchase {{Order Number}},tracking,track_order
+checking refund status,refund,track_refund
+I want to lodge a consumer complaint against your company,complaint,complaint
+help me obtaining a reimbursement of money,refund,get_refund
+"I need to locate purchase {{Order Number}}, how do I do it?",tracking,track_order
+where can I make a consumer complaint against your business?,complaint,complaint
+help me check in what cases can I request to be reimbursed,refund,check_refund_policy
+help me see in what situations can i request my money back,refund,check_refund_policy
+help to check in what situations can I request a refund,refund,check_refund_policy
+I am trying to see the status of purchase {{Order Number}},tracking,track_order
+what do i need to do to report troubles with online payment,payment_issue,payment_issue
+I want support updating the shipping address,address_change,change_shipping_address
+is it possible to see in what cases can I request refunds?,refund,check_refund_policy
+help me seeing the ETA of order {{Order Number}},tracking,track_order
+help me to check in what cases can i request a refund,refund,check_refund_policy
+is it possible to file a customer complaint?,complaint,complaint
+payment help,payment_issue,payment_issue
+help me file a reclamation against your organization,complaint,complaint
+where can I report errors with payments?,payment_issue,payment_issue
+can you help me make a reclamation against your company?,complaint,complaint
+updating address,address_change,change_shipping_address
+want assistance cancelling order {{Order Number}},cancel_order,cancel_order
+I am waiting for a refund of {{Refund Amount}} dollars,refund,track_refund
+support correcting my delivery address,address_change,change_shipping_address
+icall to file a complaint against ur company,complaint,complaint
+i have a problem with an adress update,address_change,change_shipping_address
+help me see in what situations can I request a refund,refund,check_refund_policy
+need assistanbce to make a complaint,complaint,complaint
+I have got to know if there are any news on my compensation,refund,track_refund
+"I paid {{Currency Symbol}}{{Refund Amount}} for a product, I want my rebate",refund,get_refund
+I want to demand compensations of money,refund,get_refund
+I exxpect a rebate of {{Currency Symbol}}{{Refund Amount}},refund,track_refund
+want help informing of an issue with online payments,payment_issue,payment_issue
+check the current status of my compensation,refund,track_refund
+"my experience with you was terrible, help me lodging a claim",complaint,complaint
+I try to edit my address,address_change,change_shipping_address
+problems with a delivery address update,address_change,change_shipping_address
+how to notify of a trouble with online payments,payment_issue,payment_issue
